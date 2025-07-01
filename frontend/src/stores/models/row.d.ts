@@ -1,3 +1,3 @@
 import type { Cell } from "./cell";
 
-export type Row = Map<number, Cell>
+export type Row = Array<Cell>
