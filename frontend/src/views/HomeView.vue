@@ -6,6 +6,6 @@ import { Button } from '@/components/ui/button';
 
 <template>
   <main class="w-screen h-screen">
-    <Button>Start</Button>
+
   </main>
 </template>

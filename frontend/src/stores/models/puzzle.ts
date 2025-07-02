@@ -1,20 +1,22 @@
 import type { Cell } from "./cell";
 import type { Difficulty } from "./difficulty";
 import type { Row } from "./row";
-
+export interface SudokuOptions {
+  difficulty: Difficulty
+}
 export class SudokuPuzzle {
     readonly originalCells: Array<Row>;
     readonly cellsPerRow: number;
     readonly difficulty: Difficulty;
     rows: Array<Row>;
-    constructor(rows: Array<Row>, difficulty: Difficulty = 'medium') {
+    constructor(rows: Array<Row>, options: SudokuOptions = {difficulty: 'medium'}) {
         if(!Number.isInteger(Math.sqrt(rows.length))) {
           throw new Error(`Row length of ${rows.length} is invalid for proper sudoku puzzles.`)
         }
         this.rows = rows,
         this.originalCells = rows
         this.cellsPerRow = rows.length
-        this.difficulty = difficulty;
+        this.difficulty = options.difficulty;
     }
     /**
      * Takes a number (0 - 8 for standard sudoku) and returns the block of digits from that space.
