@@ -1,5 +1,5 @@
 export interface Cell {
-    type: 'pre-filled' | 'input',
+    type: 'original' | 'added',
     value: number | undefined,
     pencilValues: number[],
     // row: number | undefined,
