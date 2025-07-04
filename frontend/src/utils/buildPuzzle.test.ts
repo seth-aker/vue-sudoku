@@ -1,5 +1,5 @@
 import { describe, it, expect} from 'vitest'
-import { buildStandardPuzzleRows } from './buildPuzzle.dev'
+import { buildStandardPuzzleRows } from './buildPuzzle'
 
 describe('Build Puzzle Tests', () => {
   it('buildStandardPuzzleRows returns complete set of rows for traditional puzzle', () => {

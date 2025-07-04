@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest'
 import { SudokuPuzzle } from './puzzle'
-import { buildStandardPuzzleRows } from '@/utils/buildPuzzle.dev'
+import { buildStandardPuzzleRows } from '@/utils/buildPuzzle'
 import type { Cell } from './cell'
 
 describe('SudokuPuzzle Tests', () => {

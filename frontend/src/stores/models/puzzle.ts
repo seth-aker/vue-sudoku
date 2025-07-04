@@ -47,4 +47,28 @@ export class SudokuPuzzle {
       }
       return column;
     }
+    /**
+     *
+     * @param y row number (top row = 0)
+     * @param x column number (left column = 0)
+     * @returns Cell
+     */
+    getCell(y: number, x: number) {
+      if(x < 0 || x >= this.cellsPerRow || y < 0 || y >= this.cellsPerRow) {
+        return undefined
+      }
+      return this.rows[y][x]
+    }
+        /**
+     *
+     * @param y row number (top row = 0)
+     * @param x column number (left column = 0)
+     * @returns void
+     */
+    setCell(cell: Cell, y: number, x: number) {
+      if(x < 0 || x >= this.cellsPerRow || y < 0 || y >= this.cellsPerRow) {
+        return
+      }
+      this.rows[y][x] = cell;
+    }
 }

@@ -1,4 +1,5 @@
 <script setup lang='ts'>
+import SudokuPuzzle from '@/components/SudokuPuzzle.vue';
 import useSudokuStore from '@/stores/sudoku'
 
 const sudokuStore = useSudokuStore();
@@ -6,6 +7,9 @@ const sudokuStore = useSudokuStore();
 sudokuStore.getNewPuzzle({ difficulty: 'easy' });
 
 </script>
-<template>
 
+<template>
+  <div class="w-screen h-screen flex items-center justify-center">
+    <SudokuPuzzle v-if="sudokuStore.puzzle" :puzzle="sudokuStore.puzzle" />
+  </div>
 </template>

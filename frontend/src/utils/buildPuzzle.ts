@@ -17,3 +17,19 @@ export function buildStandardPuzzleRows() {
     }
     return rows
 }
+export function buildBlankPuzzleRows() {
+  const rows = [] as Row[]
+    for(let i = 0; i < 9; i++) {
+      const row = [] as Row
+      for(let j = 0; j < 9; j++) {
+        const cell: Cell = {
+          type: 'original',
+          value: undefined,
+          pencilValues: []
+        }
+        row.push(cell)
+      }
+      rows.push(row)
+    }
+    return rows
+}
