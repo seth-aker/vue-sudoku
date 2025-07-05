@@ -9,7 +9,7 @@ for (let i = 0; i < sudokuStore.puzzle.cellsPerRow; i++) {
 }
 const onNumberPress = (value: number) => {
   const { x, y } = sudokuStore.selectedCell
-  const cell = sudokuStore.puzzle.getCell(x, y);
+  const cell = sudokuStore.getCell(x, y);
   if (x === undefined || y === undefined || cell === undefined || cell.type === 'prefilled') {
     return;
   }
@@ -29,7 +29,7 @@ const onNumberPress = (value: number) => {
     }
   }
   cell.type = 'edited'
-  sudokuStore.puzzle.setCell(cell, x, y)
+  sudokuStore.setCell(cell, x, y)
 }
 </script>
 

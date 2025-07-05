@@ -10,7 +10,7 @@ const eraseValue = () => {
   if (x === undefined || y === undefined) {
     return;
   }
-  const cell = sudokuStore.puzzle.getCell(x, y)
+  const cell = sudokuStore.getCell(x, y)
   if (!cell) {
     console.error(`Cell at ${x}, ${y} could not be found.`)
     return;
@@ -19,14 +19,15 @@ const eraseValue = () => {
     cell.pencilValues = [];
   }
   cell.value = undefined;
-  sudokuStore.puzzle.setCell(cell, x, y)
+  sudokuStore.setCell(cell, x, y)
 }
+
 </script>
 
 <template>
   <div>
     <div class="flex items-center">
-      <Button>
+      <Button @click="() => sudokuStore.undoAction()">
         <Icon icon="material-symbols:undo-rounded" />
       </Button>
       <Button @click="eraseValue">
