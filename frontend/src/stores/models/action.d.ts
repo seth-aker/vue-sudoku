@@ -1,7 +1,7 @@
 import type { Cell } from "@/stores/models/cell"
 
 export interface Action {
-  cell: Cell,
+  prevCell: Cell | undefined,
   x: number,
   y: number
 }

@@ -14,7 +14,6 @@ export default defineStore('sudoku', {
         selectedCell: {
           x: undefined as number | undefined,
           y: undefined as number | undefined,
-          value: undefined as number | undefined
         },
         actions: [] as Action[]
     }),
@@ -23,19 +22,23 @@ export default defineStore('sudoku', {
         this.puzzle = await sudokuService.fetchPuzzle(options)
       },
       setCell(cell: Cell, x: number, y: number) {
-        this.actions.push({cell, x, y})
+        const prevCell = this.puzzle.getCell(x, y);
+        console.log(`Prev cell: `, prevCell)
+        console.log(`New Cell: `, cell)
+        this.actions.push({prevCell, x, y})
         this.puzzle.setCell(cell, x, y);
       },
       getCell(x:number | undefined, y: number | undefined) {
-        return this.puzzle.getCell(x, y)
+        const cell = this.puzzle.getCell(x,y)
+        return structuredClone(cell)
       },
       undoAction() {
         const action = this.actions.pop();
-        console.log(action)
-        if(action === undefined) {
+        if(action === undefined || action.prevCell === undefined) {
           return;
         }
-        this.puzzle.setCell(action.cell, action.x, action.y)
+        this.puzzle.setCell(action.prevCell, action.x, action.y)
+        this.selectedCell = { x: action.x, y: action.y}
       }
     },
     getters: {

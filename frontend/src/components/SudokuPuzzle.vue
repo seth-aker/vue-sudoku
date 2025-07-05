@@ -11,7 +11,6 @@ const selectedCell = defineModel<{
   default: {
     x: undefined,
     y: undefined,
-    value: undefined
   }, required: true
 })
 
