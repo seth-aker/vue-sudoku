@@ -7,7 +7,7 @@ export function buildStandardPuzzleRows() {
       const row = [] as Row
       for(let j = 0; j < 9; j++) {
         const cell: Cell = {
-          type: 'original',
+          type: 'prefilled',
           value: ((i + j) % 9) + 1,
           pencilValues: []
         }
@@ -23,7 +23,7 @@ export function buildBlankPuzzleRows() {
       const row = [] as Row
       for(let j = 0; j < 9; j++) {
         const cell: Cell = {
-          type: 'original',
+          type: 'blank',
           value: undefined,
           pencilValues: []
         }

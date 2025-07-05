@@ -53,8 +53,8 @@ export class SudokuPuzzle {
      * @param x column number (left column = 0)
      * @returns Cell
      */
-    getCell(y: number, x: number) {
-      if(x < 0 || x >= this.cellsPerRow || y < 0 || y >= this.cellsPerRow) {
+    getCell(x: number | undefined, y: number | undefined) {
+      if(x === undefined || y === undefined || x < 0 || x >= this.cellsPerRow || y < 0 || y >= this.cellsPerRow) {
         return undefined
       }
       return this.rows[y][x]
@@ -65,7 +65,7 @@ export class SudokuPuzzle {
      * @param x column number (left column = 0)
      * @returns void
      */
-    setCell(cell: Cell, y: number, x: number) {
+    setCell(cell: Cell, x: number, y: number) {
       if(x < 0 || x >= this.cellsPerRow || y < 0 || y >= this.cellsPerRow) {
         return
       }

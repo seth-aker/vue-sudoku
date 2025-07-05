@@ -2,6 +2,25 @@
 import { Icon } from '@iconify/vue'
 import { Button } from './ui/button';
 import Toggle from './ui/toggle/Toggle.vue';
+import useSudokuStore from '@/stores/sudokuStore'
+import Numpad from './Numpad.vue';
+const sudokuStore = useSudokuStore()
+const eraseValue = () => {
+  const { x, y } = sudokuStore.selectedCell;
+  if (x === undefined || y === undefined) {
+    return;
+  }
+  const cell = sudokuStore.puzzle.getCell(x, y)
+  if (!cell) {
+    console.error(`Cell at ${x}, ${y} could not be found.`)
+    return;
+  }
+  if (cell.value === undefined) {
+    cell.pencilValues = [];
+  }
+  cell.value = undefined;
+  sudokuStore.puzzle.setCell(cell, x, y)
+}
 </script>
 
 <template>
@@ -10,12 +29,16 @@ import Toggle from './ui/toggle/Toggle.vue';
       <Button>
         <Icon icon="material-symbols:undo-rounded" />
       </Button>
-      <Button>
+      <Button @click="eraseValue">
         <Icon icon="material-symbols:ink-eraser-outline-rounded" />
       </Button>
-      <Toggle>
+      <Toggle @update:model-value="sudokuStore.usingPencil = !sudokuStore.usingPencil"
+        :model-value="sudokuStore.usingPencil">
         <Icon icon="material-symbols:edit-outline-rounded" />
       </Toggle>
+    </div>
+    <div>
+      <Numpad />
     </div>
   </div>
 </template>
