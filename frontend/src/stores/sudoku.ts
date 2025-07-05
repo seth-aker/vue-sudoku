@@ -10,6 +10,11 @@ export default defineStore('sudoku', {
     state: () => ({
         puzzle: blankPuzzle as SudokuPuzzle,
         usingPencil: false,
+        selectedCell: {
+          x: undefined as number | undefined,
+          y: undefined as number | undefined,
+          value: undefined as number | undefined
+        }
     }),
     actions: {
       async getNewPuzzle(options: SudokuOptions) {

@@ -18,7 +18,8 @@ const visiblePencilArray = computed(() => {
 </script>
 
 <template>
-  <div :class="[{ 'bg-orange-400': highlighted }, { 'bg-orange-500': selected }, 'bg-white outline-1 outline-gray-300']"
+  <div
+    :class="['outline-1 outline-gray-300', { 'bg-orange-200': highlighted }, { 'bg-orange-400': selected }, { 'bg-white': !highlighted && !selected }]"
     :style="{ height: `${width}px`, width: `${width}px` }" class="absolute">
     <div v-if="cell.value !== undefined" class="relative h-full w-full flex items-center justify-center"
       :class="[{ 'font-bold': cell.type === 'original' }]">

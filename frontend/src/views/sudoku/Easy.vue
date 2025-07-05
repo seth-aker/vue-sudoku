@@ -10,6 +10,7 @@ sudokuStore.getNewPuzzle({ difficulty: 'easy' });
 
 <template>
   <div class="w-screen h-screen flex items-center justify-center">
-    <SudokuPuzzle v-if="sudokuStore.puzzle" :puzzle="sudokuStore.puzzle" />
+    <SudokuPuzzle v-if="sudokuStore.puzzle" :puzzle="sudokuStore.puzzle"
+      v-model:selected-cell="sudokuStore.selectedCell" />
   </div>
 </template>
