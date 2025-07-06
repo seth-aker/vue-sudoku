@@ -5,6 +5,7 @@ import sudokuService from "@/services/sudokuService";
 import { buildBlankPuzzleRows } from "@/utils/buildPuzzle";
 import type { Action } from "@/stores/models/action.d.ts";
 import type { Cell } from "./models/cell";
+import lodash from 'lodash'
 export type Rows = Map<number, Row>
 const blankPuzzle = new SudokuPuzzle(buildBlankPuzzleRows())
 export default defineStore('sudoku', {
@@ -30,7 +31,7 @@ export default defineStore('sudoku', {
       },
       getCell(x:number | undefined, y: number | undefined) {
         const cell = this.puzzle.getCell(x,y)
-        return structuredClone(cell)
+        return lodash.cloneDeep(cell);
       },
       undoAction() {
         const action = this.actions.pop();
