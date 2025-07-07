@@ -6,6 +6,7 @@ import { buildBlankPuzzleRows } from "@/utils/buildPuzzle";
 import type { Action } from "@/stores/models/action.d.ts";
 import type { Cell } from "./models/cell";
 import lodash from 'lodash'
+import { cellHasError } from "@/utils/cellHasError";
 export type Rows = Map<number, Row>
 const blankPuzzle = new SudokuPuzzle(buildBlankPuzzleRows())
 export default defineStore('sudoku', {
@@ -24,8 +25,6 @@ export default defineStore('sudoku', {
       },
       setCell(cell: Cell, x: number, y: number) {
         const prevCell = this.puzzle.getCell(x, y);
-        console.log(`Prev cell: `, prevCell)
-        console.log(`New Cell: `, cell)
         this.actions.push({prevCell, x, y})
         this.puzzle.setCell(cell, x, y);
       },
@@ -45,6 +44,23 @@ export default defineStore('sudoku', {
     getters: {
       loading(state) {
         return state.puzzle === undefined
+      },
+      isPuzzleSolved(state) {
+        if(state.puzzle.rows.some((row) => row.some((cell) => cell.value === undefined))) {
+          console.log('Puzzle Unfinished')
+          return false;
+        }
+        let hasError = false;
+        for(let rowIndex = 0; rowIndex < state.puzzle.cellsPerRow; rowIndex++) {
+          for(let columnIndex = 0; columnIndex < state.puzzle.cellsPerRow; columnIndex++) {
+            hasError = cellHasError(state.puzzle, columnIndex, rowIndex)
+            if(hasError) {
+              console.log(`Error found at x:${columnIndex}, y:${rowIndex}`)
+              return false
+            }
+          }
+        }
+        return true;
       }
     }
 })

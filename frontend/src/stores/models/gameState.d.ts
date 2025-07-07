@@ -1,1 +1,1 @@
-export type GameState = 'playing' | 'finished' | 'not-started' | 'paused'
+export type GameState = 'playing' | 'solved' | 'not-started' | 'paused'
