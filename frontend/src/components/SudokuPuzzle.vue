@@ -15,10 +15,6 @@ const selectedCell = defineModel<{
   }, required: true
 })
 
-const emit = defineEmits<{
-  keypress: [event: KeyboardEvent]
-}>()
-
 const blockLength = Math.sqrt(puzzle?.cellsPerRow ?? 0)
 const blockGapPx = 3;
 const cellHeightWidth = 40;
@@ -79,7 +75,7 @@ const isCellInBlock = (columnIndex: number, rowIndex: number) => {
       <div v-for="(row, rowIndex) in puzzle?.rows" :key="`row${rowIndex}`" class="absolute w-full"
         :style="{ top: generateBlockSpacingOffset(rowIndex), height: `${cellHeightWidth}px` }">
         <div class="relative h-full w-full">
-          <Cell @keypress="emit('keypress', $event)" v-for="(cell, columnIndex) in row" :key="`cell${columnIndex}`"
+          <Cell v-for="(cell, columnIndex) in row" :key="`cell${columnIndex}`"
             @click="() => { selectedCell.x = columnIndex; selectedCell.y = rowIndex }"
             :style="{ left: generateBlockSpacingOffset(columnIndex) }" class="absolute" :cell="cell"
             :width="cellHeightWidth" :highlighted="isCellHighlighted(columnIndex, rowIndex)"

@@ -9,22 +9,18 @@ const props = defineProps<{
   selected: boolean,
   hasError: boolean
 }>();
-const emit = defineEmits<{
-  keypress: [event: KeyboardEvent]
-}>();
 const sudokuStore = useSudokuStore()
 const visablePencilArray = computed(() => {
   const isVisableArray: boolean[] = new Array(sudokuStore.puzzle.cellsPerRow).fill(false);
   return isVisableArray.map((isVisible, index) => {
     return props.cell.value !== undefined ? false : props.cell.pencilValues.includes(index + 1);
   })
-
 })
 
 </script>
 
 <template>
-  <div @keypress="emit('keypress', $event)"
+  <div
     :class="['outline-1 outline-gray-300', { 'bg-orange-200': highlighted }, { 'bg-orange-400': selected }, { 'bg-white': !highlighted && !selected }]"
     :style="{ height: `${width}px`, width: `${width}px` }" class="absolute">
     <div v-if="cell.value !== undefined" class="relative h-full w-full flex items-center justify-center text-black"

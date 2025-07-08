@@ -47,7 +47,6 @@ export default defineStore('sudoku', {
       },
       isPuzzleSolved(state) {
         if(state.puzzle.rows.some((row) => row.some((cell) => cell.value === undefined))) {
-          console.log('Puzzle Unfinished')
           return false;
         }
         let hasError = false;
