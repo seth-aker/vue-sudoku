@@ -2,6 +2,7 @@
 import SudokuControls from '@/components/SudokuControls.vue';
 import SudokuPuzzle from '@/components/SudokuPuzzle.vue';
 import useSudokuStore from '@/stores/sudokuStore'
+import useGameStore from '@/stores/gameStore'
 import { Dialog } from '@/components/ui/dialog';
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue';
@@ -11,25 +12,45 @@ import DialogDescription from '@/components/ui/dialog/DialogDescription.vue';
 import DialogFooter from '@/components/ui/dialog/DialogFooter.vue';
 import Button from '@/components/ui/button/Button.vue';
 import DialogClose from '@/components/ui/dialog/DialogClose.vue';
-
+import { Icon } from '@iconify/vue';
+import { useRouter } from 'vue-router';
+import type { Difficulty } from '@/stores/models/difficulty';
 const sudokuStore = useSudokuStore();
+const gameStore = useGameStore()
+const router = useRouter();
+const difficulty = router.currentRoute.value.name?.toString() as Difficulty
 
-sudokuStore.getNewPuzzle({ difficulty: 'easy' });
+sudokuStore.getNewPuzzle({ difficulty: difficulty });
 
 onMounted(() => {
-  window.addEventListener('keyup', handleKeyPress)
+  window.addEventListener('keyup', handleKeyPress);
+  gameStore.startTimer();
+  gameStore.gameState = 'playing'
 })
 onUnmounted(() => {
   window.removeEventListener('keyup', handleKeyPress)
+  gameStore.stopTimer();
+  gameStore.gameState = 'not-started'
 })
 
 const dialogOpen = ref(false);
 watch(() => sudokuStore.isPuzzleSolved, () => {
   if (sudokuStore.isPuzzleSolved) {
+    gameStore.stopTimer();
     dialogOpen.value = true;
+    gameStore.gameState = 'solved';
   }
 })
 
+const toggleTimer = () => {
+  if (gameStore.gameState === 'not-started' || gameStore.gameState === 'paused') {
+    gameStore.startTimer();
+    gameStore.gameState = 'playing'
+  } else {
+    gameStore.stopTimer();
+    gameStore.gameState = 'paused'
+  }
+}
 const handleKeyPress = (event: KeyboardEvent) => {
   if (sudokuStore.selectedCell.x === undefined || sudokuStore.selectedCell.y === undefined) return;
   switch (event.key) {
@@ -98,6 +119,13 @@ const handleKeyPress = (event: KeyboardEvent) => {
   <div class="w-screen h-screen flex items-center justify-center">
     <SudokuPuzzle v-if="sudokuStore.puzzle" :puzzle="sudokuStore.puzzle"
       v-model:selected-cell="sudokuStore.selectedCell" />
+    <div>
+      {{ gameStore.formattedElapsedTime }}
+      <Button @click="toggleTimer" variant="ghost">
+        <Icon v-if="gameStore.gameState === 'playing'" icon="material-symbols:pause-rounded" />
+        <Icon v-else icon="material-symbols:play-arrow-rounded" />
+      </Button>
+    </div>
     <SudokuControls />
     <Dialog :open="dialogOpen" @update:open="(event) => dialogOpen = event">
       <DialogContent>
@@ -109,14 +137,14 @@ const handleKeyPress = (event: KeyboardEvent) => {
             You did it!
           </DialogDescription>
         </DialogHeader>
-
+        Time: {{ gameStore.formattedElapsedTime }}
         <DialogFooter>
           <DialogClose as-child>
             <Button variant="secondary" @click="dialogOpen = false">
               Close
             </Button>
           </DialogClose>
-          <Button @click="() => { sudokuStore.getNewPuzzle({ difficulty: 'easy' }); dialogOpen = false }">
+          <Button @click="() => { sudokuStore.getNewPuzzle({ difficulty: difficulty }); dialogOpen = false }">
             New Puzzle
           </Button>
         </DialogFooter>

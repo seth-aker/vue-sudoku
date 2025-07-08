@@ -20,7 +20,22 @@ const router = createRouter({
     {
       path: '/sudoku/easy',
       name: 'easy',
-      component: () => import('../views/sudoku/Easy.vue')
+      component: () => import('../views/sudoku/Standard.vue')
+    },
+    {
+      path: '/sudoku/medium',
+      name: 'medium',
+      component: () => import('../views/sudoku/Standard.vue')
+    },
+    {
+      path: '/sudoku/hard',
+      name: 'hard',
+      component: () => import('../views/sudoku/Standard.vue')
+    },
+    {
+      path: '/sudoku/impossible',
+      name: 'impossible',
+      component: () => import('../views/sudoku/Standard.vue')
     }
   ],
 })

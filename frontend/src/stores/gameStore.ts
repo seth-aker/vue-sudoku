@@ -4,12 +4,25 @@ import type { GameState } from "./models/gameState";
 
 const ONE_MINUTE_SECONDS = 60;
 const ONE_HOUR_SECONDS = 60 * ONE_MINUTE_SECONDS;
-export default defineStore('root', {
+export default defineStore('gameStore', {
     state: () => ({
         difficulty: undefined as Difficulty | undefined,
         elapsedSeconds: 0,
         gameState: 'not-started' as GameState,
+        interval: null as NodeJS.Timeout | null
     }),
+    actions: {
+      startTimer() {
+        this.interval = setInterval(() => {
+          this.elapsedSeconds++
+        }, 1000)
+      },
+      stopTimer() {
+        if(this.interval) {
+          clearInterval(this.interval)
+        }
+      }
+    },
     getters: {
         formattedElapsedTime: (state) => {
             const hours = Math.floor(state.elapsedSeconds / ONE_HOUR_SECONDS);
