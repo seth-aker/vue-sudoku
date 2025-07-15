@@ -1,11 +1,14 @@
+import { ObjectId } from "mongodb";
+import { Difficulty } from "./difficulty";
 import { Row } from "./row";
 
 export interface SudokuPuzzle {
-  puzzleId: string,
+  _id: string | ObjectId,
   cells: Row[];
-  usedBy: string[]
+  difficulty: Difficulty
+  usedBy: string[] | ObjectId[]
 }
 
-export interface CreatePuzzle extends Omit<SudokuPuzzle, 'puzzleId'> {};
+export interface CreatePuzzle extends Omit<SudokuPuzzle, '_id'> {}
 
-export interface UpdatePuzzle extends Partial<SudokuPuzzle> {};
+export interface UpdatePuzzle extends Partial<SudokuPuzzle> {}
