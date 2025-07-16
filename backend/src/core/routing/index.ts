@@ -5,6 +5,6 @@ import AuthRouter from "../../feature/auth/routing/index";
 export const configureRouting = (app: Application) => {
   const router = express.Router()
   app.use('/api', router)
-  app.use('/auth', AuthRouter)
+  router.use('/auth', AuthRouter)
   router.use('/sudoku', sudokuRouter)
 }
