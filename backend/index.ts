@@ -1,6 +1,6 @@
 import express from 'express'
-import { configureRouting } from './src/core/routing';
-import { config } from './src/core/config';
+import { configureRouting } from './src/core/routing/index';
+import { config } from './src/core/config/index';
 const app = express();
 
 app.use(express.json())

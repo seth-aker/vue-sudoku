@@ -1,4 +1,4 @@
-import { client } from '../datasource/mongoDbClient'
+import client from '../../../core/dataSource/mongoDbClient'
 import { MongoDbSudokuDataSource } from '../datasource/mongoDbSudokuDataSource';
 import { SudokuServiceImplementation } from '../service/sudokuServiceImplementation';
 import SudokuRouter from './sudokuRouter';
