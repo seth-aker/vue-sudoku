@@ -1,13 +1,14 @@
-import { ObjectId } from "mongodb";
 import { SudokuDataSource } from "../datasource/sudokuDataSource";
-import { PuzzleArray } from "../models/puzzleArray";
-import PuzzleOptions from "../models/puzzleOptions";
-import { SudokuPuzzle, CreatePuzzle, UpdatePuzzle } from "../models/sudokuPuzzle";
+import { PuzzleArray } from "../datasource/models/puzzleArray";
+import PuzzleOptions from "../datasource/models/puzzleOptions";
+import { SudokuPuzzle, CreatePuzzle, UpdatePuzzle } from "../datasource/models/sudokuPuzzle";
 import { SudokuService } from "./sudokuService";
+import { BaseService } from "../../../core/service/baseService";
 
-export class SudokuServiceImplementation implements SudokuService {
+export class SudokuServiceImplementation extends BaseService implements SudokuService {
   private sudokuDataSource: SudokuDataSource;
   private constructor(dataSource: SudokuDataSource) {
+    super();
     this.sudokuDataSource = dataSource;
   }
   static instance: SudokuService | null = null;
@@ -18,14 +19,36 @@ export class SudokuServiceImplementation implements SudokuService {
     return SudokuServiceImplementation.instance
   }
 
-  getPuzzle: (requestedBy: string, options: PuzzleOptions) => Promise<SudokuPuzzle>;
+  async getPuzzle(requestedBy: string, options: PuzzleOptions): Promise<SudokuPuzzle>{
+    return await this.callDataSource(async () => {
+      return await this.sudokuDataSource.getPuzzle(requestedBy, options)
+    });
+  };
   async getPuzzleById(requestedBy: string, puzzleId: string): Promise<SudokuPuzzle> {
-    // May want to transform the return below to a DTO but for now this is fine.
-    return await this.sudokuDataSource.getPuzzleById(requestedBy, puzzleId);
+    return await this.callDataSource(async () => {
+      return await this.sudokuDataSource.getPuzzleById(requestedBy, puzzleId);
+    })
   }
-  getPuzzles: (page?: number, limit?: number) => Promise<PuzzleArray>;
-  createPuzzle: (puzzle: CreatePuzzle) => Promise<SudokuPuzzle>;
-  updatePuzzle: (puzzle: UpdatePuzzle) => Promise<number>;
-  deletePuzzle: (puzzleId: string | ObjectId) => Promise<number>;
+
+  async getPuzzles(options: PuzzleOptions, page?: number, limit?: number): Promise<PuzzleArray>{
+    return await this.callDataSource(async () => {
+      return await this.sudokuDataSource.getPuzzles(options, page, limit);
+    })
+  };
+  async createPuzzle(puzzle: CreatePuzzle): Promise<SudokuPuzzle> {
+    return await this.callDataSource(async () => {
+      return await this.sudokuDataSource.createPuzzle(puzzle);
+    })
+  };
+  async updatePuzzle(puzzle: UpdatePuzzle): Promise<number> {
+    return await this.callDataSource(async () => {  
+      return await this.sudokuDataSource.updatePuzzle(puzzle)
+    });
+  };
+  async deletePuzzle(puzzleId: string): Promise<number>{
+    return await this.callDataSource(async () => {
+      return await this.sudokuDataSource.deletePuzzle(puzzleId)
+    });
+  }
 
 }

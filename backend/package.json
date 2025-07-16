@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev ./index.ts",
+    "dev": "tsx watch index.ts",
     "start": "node ./dist/index.js",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -13,8 +13,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.12.4",
+  "packageManager": "pnpm@10.13.1",
+  "type": "module",
   "dependencies": {
+    "@auth/express": "^0.11.0",
+    "@auth/mongodb-adapter": "^3.10.0",
     "dotenv": "^17.1.0",
     "express": "^5.1.0",
     "mongodb": "^6.17.0",
@@ -23,8 +26,8 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "nodemon": "^3.1.10",
-    "ts-node-dev": "^2.0.0",
     "tsc": "^2.0.4",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }

@@ -1,7 +1,7 @@
 import { CustomError } from "../errors/customError";
 import { GenericError } from "../errors/genericError";
 
-export class BaseDataSource {
+export class BaseService {
   async callDataSource<T>(callBack: () => Promise<T>): Promise<T> {
     try {
       return await callBack();

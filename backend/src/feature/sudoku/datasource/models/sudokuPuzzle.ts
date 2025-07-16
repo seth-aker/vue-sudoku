@@ -6,7 +6,7 @@ export interface SudokuPuzzle {
   _id: string | ObjectId,
   cells: Row[];
   difficulty: Difficulty
-  usedBy: string[] | ObjectId[]
+  usedBy: ObjectId[]
 }
 
 export interface CreatePuzzle extends Omit<SudokuPuzzle, '_id'> {}

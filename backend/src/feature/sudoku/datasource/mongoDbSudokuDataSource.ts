@@ -1,16 +1,16 @@
 import { Db, MongoClient, ObjectId } from 'mongodb'
 import { SudokuDataSource } from './sudokuDataSource';
-import PuzzleOptions from '../models/puzzleOptions';
-import { CreatePuzzle, SudokuPuzzle, UpdatePuzzle } from '../models/sudokuPuzzle';
+import PuzzleOptions from './models/puzzleOptions';
+import { CreatePuzzle, SudokuPuzzle, UpdatePuzzle } from './models/sudokuPuzzle';
 import { config } from '../../../core/config';
 import { DataBaseError } from '../../../core/errors/databaseError';
 import { NotFoundError } from '../../../core/errors/notFoundError';
-import { PuzzleArray } from '../models/puzzleArray';
+import { PuzzleArray } from './models/puzzleArray';
 
 export class MongoDbSudokuDataSource implements SudokuDataSource {
   static instance: MongoDbSudokuDataSource | null = null;
   private client: MongoClient;
-  private db: Db | null;
+  private db: Db | null = null;
 
   constructor(client: MongoClient) {
     this.client = client;
@@ -36,7 +36,7 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
       if(!response) {
         throw new DataBaseError(new Error("No more puzzles"))
       }
-      response.usedBy.push(requestedBy);
+      response.usedBy.push(new ObjectId(requestedBy));
       const res = await coll.updateOne({_id: response._id}, response);
       if(!res.acknowledged) {
         throw new DataBaseError(new Error("Failed to retrieve puzzle"))
@@ -53,13 +53,13 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
       }
       return response
   }
-  async getPuzzles(page: number = 1, limit: number = 20): Promise<PuzzleArray> {
+  async getPuzzles(options: PuzzleOptions, page: number = 1, limit: number = 20): Promise<PuzzleArray> {
     const db = this.connect();
     const coll = db.collection<SudokuPuzzle>('puzzles');
     const response = await coll.aggregate<PuzzleArray>([
       {
         $match: {
-          // All for now
+           difficulty: options.difficulty 
         }
       },  
       {   
@@ -120,7 +120,7 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
       }
       return this.db
     } catch(err) {
-      throw new DataBaseError(err)
+      throw new DataBaseError(err as Error)
     }
   }
 }
