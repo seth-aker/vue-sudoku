@@ -21,7 +21,11 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
 
   async getPuzzle(requestedBy: string, options: PuzzleOptions): Promise<SudokuPuzzle>{
     return await this.callDataSource(async () => {
-      return await this.sudokuDataSource.getPuzzle(requestedBy, options)
+      const response = await this.sudokuDataSource.getPuzzle(requestedBy, options);
+      if(response.metadata.totalCount < 100) {
+        
+      }
+      return response.puzzle
     });
   };
   async getPuzzleById(requestedBy: string, puzzleId: string): Promise<SudokuPuzzle> {

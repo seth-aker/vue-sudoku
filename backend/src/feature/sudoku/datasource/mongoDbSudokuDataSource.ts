@@ -1,7 +1,7 @@
 import { Db, MongoClient, ObjectId } from 'mongodb'
 import { SudokuDataSource } from './sudokuDataSource';
 import PuzzleOptions from './models/puzzleOptions';
-import { CreatePuzzle, SudokuPuzzle, UpdatePuzzle } from './models/sudokuPuzzle';
+import { CreatePuzzle, SudokuPuzzle, SudokuPuzzleResponse, UpdatePuzzle } from './models/sudokuPuzzle';
 import { config } from '../../../core/config';
 import { DataBaseError } from '../../../core/errors/databaseError';
 import { NotFoundError } from '../../../core/errors/notFoundError';
@@ -22,22 +22,25 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
     return MongoDbSudokuDataSource.instance
   }
 
-  async getPuzzle(requestedBy: string, options: PuzzleOptions): Promise<SudokuPuzzle> {
+  async getPuzzle(requestedBy: string, options: PuzzleOptions): Promise<SudokuPuzzleResponse> {
       const db = this.connect();
       const coll = db.collection<SudokuPuzzle>('puzzles');
-      const response = await coll.aggregate<SudokuPuzzle>([
+      const response = await coll.aggregate<SudokuPuzzleResponse>([
         { $match: {
           $not: [{
             $in: [requestedBy, "$requestedBy"]
-          }]
+          }],
         }},
-        { $sample: {size: 1}}
+        { $facet: {
+          metadata: [{ $count: 'totalCount'}, {}],
+          puzzle: [{ $sample: {size: 1}}]
+        }}
       ]).next();
-      if(!response) {
+      if(!response?.puzzle) {
         throw new DataBaseError(new Error("No more puzzles"))
       }
-      response.usedBy.push(new ObjectId(requestedBy));
-      const res = await coll.updateOne({_id: response._id}, response);
+      response.puzzle.usedBy.push(new ObjectId(requestedBy));
+      const res = await coll.updateOne({_id: response.puzzle._id}, response.puzzle);
       if(!res.acknowledged) {
         throw new DataBaseError(new Error("Failed to retrieve puzzle"))
       }
