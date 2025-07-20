@@ -7,9 +7,4 @@ export class ValidationError extends CustomError {
     super();
     Object.setPrototypeOf(this, ValidationError.prototype);
   }
-  formatError(): { message: string; field?: string; }[] {
-    return this.error.issues.map((issue) => {
-      return { message: issue.message, field: issue.path.join('.') };
-    });
-  }
 }

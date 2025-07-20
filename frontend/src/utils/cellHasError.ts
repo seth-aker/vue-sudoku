@@ -1,7 +1,7 @@
 import type { SudokuPuzzle } from "@/stores/models/puzzle";
 
 export const cellHasError = (puzzle: SudokuPuzzle, columnIndex: number, rowIndex: number) => {
-  const blockLength = Math.sqrt(puzzle?.cellsPerRow ?? 0)
+  const blockLength = Math.sqrt(puzzle.cellsPerRow ?? 0)
   const cell = puzzle.getCell(columnIndex, rowIndex);
   if (cell === undefined || cell.value === undefined) return false;
   const blockX = Math.floor(columnIndex / blockLength);

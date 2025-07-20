@@ -1,15 +1,12 @@
 import { CustomError } from './customError';
 
-export class DataBaseError extends CustomError {
+export class DatabaseError extends CustomError {
     statusCode = 500;
 
     constructor(public error: Error) {
       super();
-      Object.setPrototypeOf(this, DataBaseError.prototype);
-    }
-
-    formatError(): { message: string; field?: string }[] {
-        return [{message: 'Database error.'}];
+      Object.setPrototypeOf(this, DatabaseError.prototype);
+      this.message = `[DatabaseError] ${error.message}`
     }
 
 }
