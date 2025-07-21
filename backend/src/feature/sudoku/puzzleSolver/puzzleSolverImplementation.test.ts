@@ -1,9 +1,10 @@
+// deno-lint-ignore-file no-explicit-any
 import { expect, describe, test } from 'vitest'
 
-import { PuzzleSolverImplementation } from './puzzleSolverImplementation'
-import { Row } from '../datasource/models/row'
-import { PuzzleSolverError } from '../errors/puzzleSolverError'
-import { buildBlankPuzzleRows } from '../utils/buildBlankPuzzleRows'
+import { PuzzleSolverImplementation } from "./puzzleSolverImplementation.ts"
+import { Row } from "../datasource/models/row.ts"
+import { PuzzleSolverError } from '../errors/puzzleSolverError.ts'
+import { buildBlankPuzzleRows } from '../utils/buildBlankPuzzleRows.ts'
 
 describe('PuzzleSolverImplementation Tests', () => {
   describe('Constructor Tests', () => {
@@ -61,10 +62,71 @@ describe('PuzzleSolverImplementation Tests', () => {
     })
   })
   describe("findSingle() tests", () => {
-    test('findSingle finds single when there is one', () => {
+    test('findSingle finds last digit single in row when there is one', () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      for(let i = 0; i < 8; i++) {
+        puzzleRows[0][i].value = i + 1
+      }
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.fillPuzzlePencilValues();
+      const single = puzzleSolver.findSingle();
+      expect(single).toBeDefined();
+      expect(single?.value).toBe(9);
+      expect(single?.rowIndex).toBe(0);
+      expect(single?.colIndex).toBe(8);
+    })
+    test('findSingle finds last digit single in column when there is one', () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      for(let i = 0; i < 8; i++) {
+        puzzleRows[i][0].value = i + 1
+      }
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.fillPuzzlePencilValues();
+      const single = puzzleSolver.findSingle();
+      expect(single).toBeDefined();
+      expect(single?.value).toBe(9);
+      expect(single?.rowIndex).toBe(8);
+      expect(single?.colIndex).toBe(0);
+    })
+    test('findSingle finds last digit single in block when there is one', () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      puzzleRows[0][0].value = 1
+      puzzleRows[0][1].value = 2
+      puzzleRows[0][2].value = 3
+      puzzleRows[1][0].value = 4
+      puzzleRows[1][1].value = 5
+      puzzleRows[1][2].value = 6
+      puzzleRows[2][0].value = 7
+      puzzleRows[2][1].value = 8
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.fillPuzzlePencilValues()
+      const single = puzzleSolver.findSingle();
+      expect(single).toBeDefined();
+      expect(single?.value).toBe(9);
+      expect(single?.colIndex).toBe(2);
+      expect(single?.rowIndex).toBe(2);
+    })
+    test('findSingle returns undefined when there is no single to be found', () => {
       const puzzleRows = buildBlankPuzzleRows(9);
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      
+      puzzleSolver.fillPuzzlePencilValues();
+      const single = puzzleSolver.findSingle();
+      expect(single).toBeUndefined();
+    })
+    test('findSingle return hidden single at [8][8] when there is one', () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      puzzleRows[6][0].value = 9;
+      puzzleRows[7][3].value = 9;
+      puzzleRows[0][6].value = 9;
+      puzzleRows[3][7].value = 9;
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.fillPuzzlePencilValues();
+      const single = puzzleSolver.findSingle();
+      expect(puzzleSolver.getPuzzle()[8][8].pencilValues).toEqual([1,2,3,4,5,6,7,8,9]);
+      expect(single).not.toBeUndefined();
+      expect(single?.value).toBe(9);
+      expect(single?.rowIndex).toBe(8);
+      expect(single?.colIndex).toBe(8);
     })
   })
 })

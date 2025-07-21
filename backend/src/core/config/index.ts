@@ -1,4 +1,5 @@
 import dotenv from 'dotenv'
+import process from "node:process";
 dotenv.config();
 
 if (!process.env.DB_CONNECTION_STRING) {

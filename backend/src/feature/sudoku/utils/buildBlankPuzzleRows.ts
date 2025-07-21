@@ -1,5 +1,5 @@
-import { Cell } from "../datasource/models/cell"
-import { Row } from "../datasource/models/row"
+import { Cell } from "../datasource/models/cell.ts"
+import { Row } from "../datasource/models/row.ts"
 
 export function buildBlankPuzzleRows(rowLength: number) {
     if(!Number.isInteger(Math.sqrt(rowLength))){

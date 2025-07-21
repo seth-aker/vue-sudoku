@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
-import { SudokuService } from '../service/sudokuService';
-import { createPuzzleValidator, deletePuzzleValidator, getPuzzleValidator, updatePuzzleValidator } from '../middleware/validation/validation';
-import { DataBaseError } from '../../../core/errors/databaseError';
+import { SudokuService } from "../service/sudokuService.ts";
+import { createPuzzleValidator, deletePuzzleValidator, getPuzzleValidator, updatePuzzleValidator } from "../middleware/validation/validation.ts";
+import { DatabaseError } from "../../../core/errors/databaseError.ts";
 export default function SudokuRouter(sudokuService: SudokuService) {
   const router = express.Router();
   // /api/sudoku
@@ -32,7 +32,7 @@ export default function SudokuRouter(sudokuService: SudokuService) {
       const puzzle = req.body;
       const result = await sudokuService.updatePuzzle(puzzle);
       if(result !== 1) {
-        throw new DataBaseError(new Error(`Expected to update 1, instead updated: ${result}`))
+        throw new DatabaseError(new Error(`Expected to update 1, instead updated: ${result}`))
       }
       res.status(204).send();
     } catch (err) {
@@ -44,8 +44,9 @@ export default function SudokuRouter(sudokuService: SudokuService) {
       const puzzleId = req.params.puzzleId;
       const result = await sudokuService.deletePuzzle(puzzleId);
       if(result !== 1) {
-        throw new DataBaseError(new Error(`Expected to delete 1, instead deleted: ${result}`))
+        throw new DatabaseError(new Error(`Expected to delete 1, instead deleted: ${result}`))
       }
+      res.sendStatus(201)
     } catch (err) {
       next(err)
     }

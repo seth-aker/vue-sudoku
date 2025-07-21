@@ -1,9 +1,9 @@
-import { SudokuDataSource } from "../datasource/sudokuDataSource";
-import { PuzzleArray } from "../datasource/models/puzzleArray";
-import PuzzleOptions from "../datasource/models/puzzleOptions";
-import { SudokuPuzzle, CreatePuzzle, UpdatePuzzle } from "../datasource/models/sudokuPuzzle";
-import { SudokuService } from "./sudokuService";
-import { BaseService } from "../../../core/service/baseService";
+import { SudokuDataSource } from "../datasource/sudokuDataSource.ts";
+import { PuzzleArray } from "../datasource/models/puzzleArray.ts";
+import PuzzleOptions from "../datasource/models/puzzleOptions.ts";
+import { SudokuPuzzle, CreatePuzzle, UpdatePuzzle } from "../datasource/models/sudokuPuzzle.ts";
+import { SudokuService } from "./sudokuService.ts";
+import { BaseService } from "../../../core/service/baseService.ts";
 
 export class SudokuServiceImplementation extends BaseService implements SudokuService {
   private sudokuDataSource: SudokuDataSource;

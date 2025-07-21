@@ -1,5 +1,5 @@
-import { CustomError } from "../errors/customError";
-import { GenericError } from "../errors/genericError";
+import { CustomError } from "../errors/customError.ts";
+import { GenericError } from "../errors/genericError.ts";
 
 export class BaseService {
   async callDataSource<T>(callBack: () => Promise<T>): Promise<T> {

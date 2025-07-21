@@ -1,6 +1,6 @@
-import { PuzzleArray } from "./models/puzzleArray";
-import PuzzleOptions from "./models/puzzleOptions";
-import { CreatePuzzle, SudokuPuzzle, SudokuPuzzleResponse, UpdatePuzzle } from "./models/sudokuPuzzle";
+import { PuzzleArray } from "./models/puzzleArray.ts";
+import PuzzleOptions from "./models/puzzleOptions.ts";
+import { CreatePuzzle, SudokuPuzzle, SudokuPuzzleResponse, UpdatePuzzle } from "./models/sudokuPuzzle.ts";
 
 export interface SudokuDataSource {
     getPuzzle: (requestedBy: string, options: PuzzleOptions) => Promise<SudokuPuzzleResponse>;

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
-import { ValidationError } from '../../../../core/errors/validationError';
-import { createPuzzleSchema, deletePuzzleSchema, getPuzzleSchema, updatePuzzleSchema } from './schema/sudokuPuzzle';
+import { ValidationError } from "../../../../core/errors/validationError.ts";
+import { createPuzzleSchema, deletePuzzleSchema, getPuzzleSchema, updatePuzzleSchema } from "./schema/sudokuPuzzle.ts";
 
 
 export const getPuzzleValidator = (req: Request<{puzzleId: string}>, res: Response, next: NextFunction) => {

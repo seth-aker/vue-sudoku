@@ -1,7 +1,7 @@
 import z from "zod/v4"
-import { objectIdSchema } from "./objectId"
-import { cellSchema } from "./cell"
-import { difficultySchema } from "./difficulty"
+import { objectIdSchema } from "./objectId.ts"
+import { cellSchema } from "./cell.ts"
+import { difficultySchema } from "./difficulty.ts"
 
 export const getPuzzleSchema = z.object({
     puzzleId: objectIdSchema

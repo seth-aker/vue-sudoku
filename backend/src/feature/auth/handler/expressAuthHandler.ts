@@ -1,4 +1,4 @@
-import client from "../../../core/dataSource/mongoDbClient";
+import client from "../../../core/dataSource/mongoDbClient.ts";
 import { ExpressAuth } from '@auth/express'
 import GitHub from '@auth/express/providers/github'
 import { MongoDBAdapter } from '@auth/mongodb-adapter'

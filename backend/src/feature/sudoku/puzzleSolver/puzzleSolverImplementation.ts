@@ -1,9 +1,9 @@
 import z from "zod/v4";
-import { BlockIndice as BlockIndexSet } from "../datasource/models/blockIndexSet";
-import { Cell } from "../datasource/models/cell"
-import { Row } from "../datasource/models/row"
-import { PuzzleSolverError } from "../errors/puzzleSolverError";
-import { cellSchema } from "../middleware/validation/schema/cell";
+import { BlockIndice as BlockIndexSet } from "../datasource/models/blockIndexSet.ts";
+import { Cell } from "../datasource/models/cell.ts"
+import { Row } from "../datasource/models/row.ts"
+import { PuzzleSolverError } from "../errors/puzzleSolverError.ts";
+import { cellSchema } from "../middleware/validation/schema/cell.ts";
 
 export class PuzzleSolverImplementation {
   private puzzle: Row[];
@@ -47,7 +47,7 @@ export class PuzzleSolverImplementation {
     for(let row = 0; row < puzzle.length; row++) {
       for(let col = 0; col < puzzle[row].length; col++){
         const cell = puzzle[row][col] 
-        if(!!cell.value) {
+        if(cell.value) {
           continue;
         }
         this.fillCellPencilValues(row, col, puzzle);
@@ -79,10 +79,11 @@ export class PuzzleSolverImplementation {
           continue;
         }
         if(cell.pencilValues.length === 1) {
-          return cell;
+          return {value: cell.pencilValues[0], rowIndex, colIndex}
         }
-        if(this.hasHiddenSingle(rowIndex, colIndex, puzzle)) {
-          return {cell, rowIndex, colIndex};
+        const hiddenSingle = this.findHiddenSingle(rowIndex, colIndex, puzzle);
+        if(hiddenSingle !== -1) {
+          return {value: hiddenSingle, rowIndex, colIndex};
         }
       }
     }
@@ -262,36 +263,42 @@ export class PuzzleSolverImplementation {
     return undefined
   }
 
-  private hasHiddenSingle( rowIndex: number, colIndex: number, puzzleRows: Row[]) {
+  private findHiddenSingle( rowIndex: number, colIndex: number, puzzleRows: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const cell = puzzle[rowIndex][colIndex]
-    const blockWidth = Math.floor(Math.sqrt(puzzle.length));
-    const blockX = Math.floor(colIndex / blockWidth);
-    const blockY = Math.floor(rowIndex / blockWidth)
-    const blockNum = blockX + (blockY * blockWidth);
+    const blockNum = this.BLOCK_INDICES.findIndex((block) => block.colIndices.includes(colIndex) && block.rowIndices.includes(rowIndex))
     const pencilRow = puzzle[rowIndex].filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.pencilValues)
     const pencilCol = this.getColumn(colIndex, puzzle).filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.pencilValues)
     const pencilBlock = this.getBlock(blockNum, puzzle).filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.pencilValues)
     
     for(let i = 0; i < cell.pencilValues.length; i++ ) {
+      let singleInRow = true;
+      let singleInCol = true;
+      let singleInBlock = true;
       const pencilValue = cell.pencilValues[i];
-      pencilRow.forEach((cellPencilValues) => {
+      for(const cellPencilValues of pencilRow) {
         if(cellPencilValues.includes(pencilValue)) {
-          return false;
+          singleInRow = false;
+          break;
         }
-      })
-      pencilCol.forEach((cellPencilValues) => {
+      }
+      for(const cellPencilValues of pencilCol) {
         if(cellPencilValues.includes(pencilValue)) {
-          return false
+          singleInCol = false;
+          break;
         }
-      })
-      pencilBlock.forEach((cellPencilValues) => {
+      }
+      for(const cellPencilValues of pencilBlock) {
         if(cellPencilValues.includes(pencilValue)) {
-          return false;
+          singleInBlock = false;
+          break;
         }
-      })
-      return true;
+      }
+      if(singleInRow || singleInCol || singleInBlock) {
+        return pencilValue;
+      }
     }
+    return -1;
   }
   getBlock(num: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
