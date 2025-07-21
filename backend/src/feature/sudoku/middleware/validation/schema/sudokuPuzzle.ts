@@ -7,12 +7,12 @@ export const getPuzzleSchema = z.object({
     puzzleId: objectIdSchema
 })
 export const createPuzzleSchema = z.object({
-    cells: z.array(cellSchema, 'Invalid cell array'),
+    cells: z.array(z.array(cellSchema, 'Invalid cell array'), 'Invalid row array'),
     difficulty: difficultySchema,
     usedBy: z.array(objectIdSchema, 'Invalid usedBy array')
 })
 export const updatePuzzleSchema = z.object({
-    cells: z.optional(z.array(cellSchema, 'Invalid cell array')),
+    cells: z.optional(z.array(z.array(cellSchema, 'Invalid cell array'), 'Invalid row array')),
     difficulty: z.optional(difficultySchema),
     usedBy: z.optional(z.array(objectIdSchema, 'Invalid usedBy array'))
 })

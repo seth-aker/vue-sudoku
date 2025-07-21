@@ -7,7 +7,7 @@
     "dev": "tsx watch index.ts",
     "start": "node ./dist/index.js",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
     "tsc": "tsc"
   },
   "keywords": [],
@@ -21,6 +21,7 @@
     "dotenv": "^17.1.0",
     "express": "^5.1.0",
     "mongodb": "^6.17.0",
+    "vitest": "^3.2.4",
     "zod": "^3.25.76"
   },
   "devDependencies": {
