@@ -34,7 +34,6 @@ describe('PuzzleSolverImplementation Tests', () => {
     })
   })
   describe("fillPuzzlePencilValues() Tests", () => {
-
     test("fillPuzzlePencilValues fills all pencilValues for all cells", () => {
       const puzzleRows = buildBlankPuzzleRows(9);
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
@@ -59,6 +58,50 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleSolver.getBlock(0, filledRows2).forEach((cell) => {
         expect(cell.pencilValues).not.toContain(1)
       })
+    })
+  })
+  describe("fillCellPencilValues() Tests", () => {
+    test('fillCellPencilValues fills all cells when no numbers conflict', () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.fillCellPencilValues(0, 0);
+      expect(puzzleSolver.getPuzzle()[0][0].pencilValues).toEqual([1,2,3,4,5,6,7,8,9])
+    })
+    test('fillCellPencilValues only fills one number for cell that has one option in row', () => {
+      const puzzleRows1 = buildBlankPuzzleRows(9);
+      for(let i = 1; i < 9; i++) {
+        puzzleRows1[0][i].value = i
+      }
+      const puzzleRows2 = buildBlankPuzzleRows(9);
+      for(let i = 1; i < 9; i++) {
+        puzzleRows2[i][0].value = i
+      }
+      const puzzleRows3 = buildBlankPuzzleRows(9);
+      puzzleRows3[0][1].value = 1;
+      puzzleRows3[0][2].value = 2;
+      puzzleRows3[1][0].value = 3;
+      puzzleRows3[1][1].value = 4;
+      puzzleRows3[1][2].value = 5;
+      puzzleRows3[2][0].value = 6;
+      puzzleRows3[2][1].value = 7;
+      puzzleRows3[2][2].value = 8;
+
+      const puzzleSolver1 = new PuzzleSolverImplementation(puzzleRows1);
+      const puzzleSolver2 = new PuzzleSolverImplementation(puzzleRows2);
+      const puzzleSolver3 = new PuzzleSolverImplementation(puzzleRows3)
+      puzzleSolver1.fillCellPencilValues(0,0);
+      puzzleSolver2.fillCellPencilValues(0,0);
+      puzzleSolver3.fillCellPencilValues(0,0);
+      expect(puzzleSolver1.getPuzzle()[0][0].pencilValues).toEqual([9])
+      expect(puzzleSolver2.getPuzzle()[0][0].pencilValues).toEqual([9])
+      expect(puzzleSolver3.getPuzzle()[0][0].pencilValues).toEqual([9])
+    })
+    test('fillCellPencilValues doesn\'t duplicate pencil values', () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      puzzleRows[0][0].pencilValues = [1,2,3,4,5,6,7,8,9];
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.fillCellPencilValues(0,0);
+      expect(puzzleSolver.getPuzzle()[0][0].pencilValues).toEqual([1,2,3,4,5,6,7,8,9])
     })
   })
   describe("findSingle() tests", () => {
@@ -128,5 +171,26 @@ describe('PuzzleSolverImplementation Tests', () => {
       expect(single?.rowIndex).toBe(8);
       expect(single?.colIndex).toBe(8);
     })
+  })
+  describe('findLockedPencilValue() Tests', () => {
+    test('findLockedPencilValue returns locked value in row', () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      puzzleRows[1][0].value = 2;
+      puzzleRows[1][1].value = 3;
+      puzzleRows[1][2].value = 4;
+      puzzleRows[2][0].value = 5;
+      puzzleRows[2][1].value = 6;
+      puzzleRows[2][2].value = 7;
+      puzzleRows[3][0].value = 1;
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.fillPuzzlePencilValues();
+      const lockedValue = puzzleSolver.findLockedPencilValue();
+      expect(lockedValue).toBeDefined();
+      expect(lockedValue?.value).toBe(1);
+      expect(lockedValue?.rowIndex).toBe(0);
+      expect(lockedValue?.colIndex).toBe(undefined)
+    })
+    const puzzleRows = buildBlankPuzzleRows(9);
+
   })
 })

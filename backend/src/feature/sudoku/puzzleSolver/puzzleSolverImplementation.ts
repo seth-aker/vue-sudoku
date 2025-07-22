@@ -110,20 +110,21 @@ export class PuzzleSolverImplementation {
     if(lockedValueInCol) {
       return lockedValueInCol
     }
+    return undefined;
   }
 
-  private findLockedPencilValueInRowsType1( blockNum: number, puzzleRows?: Row[]): {value: number, rowIndex: number, colIndex:number} | undefined {
+  private findLockedPencilValueInRowsType1( blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const block = this.BLOCK_INDICES[blockNum]
     for(let rowIndex = block.rowIndices[0]; rowIndex < block.rowIndices[block.rowIndices.length - 1]; rowIndex++) {
-      const pencilValueInBlockRow = new Set<number>();
+      const pencilValuesInBlockRow = new Set<number>();
       for(let colIndex = block.colIndices[0]; colIndex < block.colIndices[block.colIndices.length - 1]; colIndex++) {
         const cell = puzzle[rowIndex][colIndex];
         if(cell.value) {
           continue;
         }
         cell.pencilValues.forEach((value) => {
-          pencilValueInBlockRow.add(value);
+          pencilValuesInBlockRow.add(value);
         })
       }
       const otherBlockRowPencilValues = new Set<number>();
@@ -133,7 +134,7 @@ export class PuzzleSolverImplementation {
         }
         const row = puzzle[i]
         for(let cellIndex = 0; cellIndex < row.length; cellIndex++) {
-          if(block.colIndices.includes(cellIndex)) {
+          if(!block.colIndices.includes(cellIndex)) {
             continue;
           }
           const cell = row[cellIndex]
@@ -142,11 +143,11 @@ export class PuzzleSolverImplementation {
           })
         }
       }
-      pencilValueInBlockRow.forEach((value) => {
+      for(const value of pencilValuesInBlockRow) {
         if(!otherBlockRowPencilValues.has(value)) {
-          return {value, rowIndex, colIndex: undefined, block: undefined};
+          return {value, rowIndex, colIndex: undefined, block: blockNum};
         }
-      })
+      }
       return undefined;
     }
   }
@@ -221,7 +222,7 @@ export class PuzzleSolverImplementation {
       }
       pencilValueInBlockCol.forEach((value) => {
         if(!otherBlockPencilValues.has(value)) {
-          return { value, rowIndex: undefined, colIndex, block: undefined}
+          return { value, rowIndex: undefined, colIndex, block: blockNum}
         }
       })
       return undefined;
