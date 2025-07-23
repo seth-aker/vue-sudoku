@@ -173,15 +173,16 @@ describe('PuzzleSolverImplementation Tests', () => {
     })
   })
   describe('findLockedPencilValue() Tests', () => {
-    test('findLockedPencilValue returns locked value in row', () => {
+    test('findLockedPencilValue returns locked value in row type 1', () => {
       const puzzleRows = buildBlankPuzzleRows(9);
+      // Use a configuration that only allows one locked pencil value.
       puzzleRows[1][0].value = 2;
       puzzleRows[1][1].value = 3;
       puzzleRows[1][2].value = 4;
       puzzleRows[2][0].value = 5;
       puzzleRows[2][1].value = 6;
-      puzzleRows[2][2].value = 7;
-      puzzleRows[3][0].value = 1;
+      puzzleRows[3][2].value = 7;
+      puzzleRows[2][6].value = 1;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
       puzzleSolver.fillPuzzlePencilValues();
       const lockedValue = puzzleSolver.findLockedPencilValue();
@@ -190,7 +191,24 @@ describe('PuzzleSolverImplementation Tests', () => {
       expect(lockedValue?.rowIndex).toBe(0);
       expect(lockedValue?.colIndex).toBe(undefined)
     })
-    const puzzleRows = buildBlankPuzzleRows(9);
+    test('findLockedPencilValue returns locked value in col type 1', () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      // Use a configuration that only allows one locked pencil value.
+      puzzleRows[1][0].value = 2;
+      puzzleRows[1][1].value = 3;
+      puzzleRows[1][2].value = 4;
+      puzzleRows[2][0].value = 5;
+      puzzleRows[2][1].value = 6;
+      puzzleRows[0][1].value = 7;
+      puzzleRows[3][0].value = 1;
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.fillPuzzlePencilValues();
+      const lockedValue = puzzleSolver.findLockedPencilValue();
+      expect(lockedValue).toBeDefined();
+      expect(lockedValue?.value).toBe(1);
+      expect(lockedValue?.rowIndex).toBe(undefined);
+      expect(lockedValue?.colIndex).toBe(2)
+    })
 
   })
 })

@@ -116,9 +116,9 @@ export class PuzzleSolverImplementation {
   private findLockedPencilValueInRowsType1( blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const block = this.BLOCK_INDICES[blockNum]
-    for(let rowIndex = block.rowIndices[0]; rowIndex < block.rowIndices[block.rowIndices.length - 1]; rowIndex++) {
+    for(let rowIndex = block.rowIndices[0]; rowIndex <= block.rowIndices[block.rowIndices.length - 1]; rowIndex++) {
       const pencilValuesInBlockRow = new Set<number>();
-      for(let colIndex = block.colIndices[0]; colIndex < block.colIndices[block.colIndices.length - 1]; colIndex++) {
+      for(let colIndex = block.colIndices[0]; colIndex <= block.colIndices[block.colIndices.length - 1]; colIndex++) {
         const cell = puzzle[rowIndex][colIndex];
         if(cell.value) {
           continue;
@@ -128,7 +128,7 @@ export class PuzzleSolverImplementation {
         })
       }
       const otherBlockRowPencilValues = new Set<number>();
-      for(let i = block.rowIndices[0]; i < block.rowIndices[block.rowIndices.length - 1]; i++) {
+      for(let i = block.rowIndices[0]; i <= block.rowIndices[block.rowIndices.length - 1]; i++) {
         if(i === rowIndex) {
           continue;
         }
@@ -148,8 +148,8 @@ export class PuzzleSolverImplementation {
           return {value, rowIndex, colIndex: undefined, block: blockNum};
         }
       }
-      return undefined;
     }
+    return undefined;
   }
   private findLockedPencilValueInRowsType2(puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
@@ -187,12 +187,12 @@ export class PuzzleSolverImplementation {
     return undefined;
   }
   
-  private findLockedPencilValueInColsType1(blockNum: number, puzzleRows?: Row[]): {value: number, rowIndex: number, colIndex:number} | undefined {
+  private findLockedPencilValueInColsType1(blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const block = this.BLOCK_INDICES[blockNum];
-    for(let colIndex = block.colIndices[0]; colIndex < block.colIndices[block.colIndices.length - 1]; colIndex++ ) {
+    for(let colIndex = block.colIndices[0]; colIndex <= block.colIndices[block.colIndices.length - 1]; colIndex++ ) {
       const pencilValueInBlockCol = new Set<number>();
-      for(let rowIndex = block.rowIndices[0]; rowIndex < block.rowIndices[block.rowIndices.length -1]; rowIndex++) {
+      for(let rowIndex = block.rowIndices[0]; rowIndex <= block.rowIndices[block.rowIndices.length -1]; rowIndex++) {
         const cell = puzzle[rowIndex][colIndex];
         if(cell.value){
           continue;
@@ -202,13 +202,13 @@ export class PuzzleSolverImplementation {
         })
       }
       const otherBlockPencilValues = new Set<number>();
-      for(let i = block.colIndices[0]; i < block.colIndices[block.colIndices.length -1]; i++) {
+      for(let i = block.colIndices[0]; i <= block.colIndices[block.colIndices.length -1]; i++) {
         if(i === colIndex) {
           continue;
         }
         const col = this.getColumn(i, puzzle);
         for(let rowIndex = 0; rowIndex < col.length; rowIndex++) {
-          if(block.rowIndices.includes(colIndex)) {
+          if(!block.rowIndices.includes(rowIndex)) {
             continue;
           }
           const cell = col[colIndex]
@@ -220,13 +220,13 @@ export class PuzzleSolverImplementation {
           })
         }
       }
-      pencilValueInBlockCol.forEach((value) => {
+      for(const value of pencilValueInBlockCol) {
         if(!otherBlockPencilValues.has(value)) {
           return { value, rowIndex: undefined, colIndex, block: blockNum}
         }
-      })
-      return undefined;
+      }
     }
+    return undefined;
   }
   private findLockedPencilValueInColsType2(puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
