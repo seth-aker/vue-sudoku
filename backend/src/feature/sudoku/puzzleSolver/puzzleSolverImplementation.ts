@@ -211,7 +211,7 @@ export class PuzzleSolverImplementation {
           if(!block.rowIndices.includes(rowIndex)) {
             continue;
           }
-          const cell = col[colIndex]
+          const cell = col[rowIndex]
           if(cell.value) {
             continue;
           }

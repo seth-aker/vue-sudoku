@@ -209,6 +209,21 @@ describe('PuzzleSolverImplementation Tests', () => {
       expect(lockedValue?.rowIndex).toBe(undefined);
       expect(lockedValue?.colIndex).toBe(2)
     })
-
+    test('findLockedPencilValue returns locked value in row type 2', () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      puzzleRows[0][8].value = 2;
+      puzzleRows[2][3].value = 1;
+      puzzleRows[0][6].value = 2;
+      puzzleRows[0][7].value = 3;
+      puzzleRows[0][8].value = 4
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.fillPuzzlePencilValues();
+      const lockedValue = puzzleSolver.findLockedPencilValue();
+      expect(lockedValue).toBeDefined();
+      expect(lockedValue?.value).toBe(1);
+      expect(lockedValue?.rowIndex).toBe(0);
+      expect(lockedValue?.colIndex).toBeUndefined();
+      expect(lockedValue?.block).toBe(0);
+    })
   })
 })
