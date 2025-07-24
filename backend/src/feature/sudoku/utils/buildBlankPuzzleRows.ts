@@ -13,7 +13,7 @@ export function buildBlankPuzzleRows(rowLength: number) {
           cellId: `C${j}${i}`,
           type: 'blank',
           value: undefined,
-          pencilValues: []
+          pencilValues: new Set<number>()
         }
         row.push(cell)
       }
