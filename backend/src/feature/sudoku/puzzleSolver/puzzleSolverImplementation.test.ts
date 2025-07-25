@@ -405,5 +405,71 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleSolver.solvePuzzle();
       expect(puzzleSolver.isPuzzleSolved()).toBe(true);
     })
+    test('solvePuzzle solves puzzle with medium solution', () => {
+      const puzzleValues = [
+        [undefined,1,undefined,undefined,8,9,undefined,undefined,4],
+        [7,undefined,undefined,undefined,undefined,undefined,3,undefined,undefined],
+        [undefined,undefined,undefined,3,undefined,6,5,undefined,1],
+        [9,7,1,4,undefined,3,2,8,undefined],
+        [undefined,6,3,5,9,2,1,4,undefined],
+        [5,undefined,undefined,undefined,undefined,undefined,9,6,undefined],
+        [4,undefined,7,undefined,3,5,undefined,undefined,undefined],
+        [undefined,3,8,undefined,undefined,undefined,4,undefined,undefined],
+        [undefined,undefined,undefined,8,undefined,undefined,undefined,undefined,9]
+      ]
+      const puzzleRows = buildBlankPuzzleRows(9);
+      for(let i = 0; i < puzzleRows.length; i++) {
+        for(let j = 0; j < puzzleRows.length; j++) {
+          puzzleRows[i][j].value = puzzleValues[i][j]
+        }
+      }
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.solvePuzzle();
+      expect(puzzleSolver.isPuzzleSolved()).toBe(true);
+    })
+    test('solvePuzzle solves puzzle with hard solution', () => {
+      const puzzleValues = [
+        [5,undefined,undefined,undefined,undefined,undefined,2,7,undefined],
+        [6,undefined,undefined,undefined,5,undefined,undefined,3,undefined],
+        [undefined,2,7,undefined,undefined,3,9,undefined,undefined],
+        [undefined,undefined,2,3,7,8,undefined,1,undefined],
+        [1, undefined,5,4,2,undefined,undefined,undefined,undefined],
+        [undefined,undefined,undefined,undefined,undefined,undefined,8,undefined,undefined],
+        [undefined,9,undefined,undefined,3,undefined,undefined,5,undefined],
+        [2,undefined,undefined,7,undefined,undefined,undefined,9,3],
+        [7,undefined,undefined,1,undefined,undefined,undefined,8,undefined]
+      ]
+      const puzzleRows = buildBlankPuzzleRows(9);
+      for(let i = 0; i < puzzleRows.length; i++) {
+        for(let j = 0; j < puzzleRows.length; j++) {
+          puzzleRows[i][j].value = puzzleValues[i][j]
+        }
+      }
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      puzzleSolver.solvePuzzle();
+      expect(puzzleSolver.isPuzzleSolved()).toBe(true);
+    })
+    // test('solvePuzzle solves puzzle with expert solution', () => {
+    //   const puzzleValues = [
+    //     [9,8,4,6,undefined,undefined,5,undefined,1],
+    //     [undefined,undefined,undefined,5,undefined,undefined,undefined,undefined,7],
+    //     [undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,9],
+    //     [undefined,undefined,undefined,undefined,1,undefined,undefined,undefined,undefined],
+    //     [undefined,2,undefined,7,undefined,3,1,undefined,undefined],
+    //     [5,6,undefined,undefined,undefined,undefined,undefined,undefined,undefined],
+    //     [8,undefined,undefined,undefined,undefined,undefined,4,9,6],
+    //     [undefined,undefined,undefined,undefined,9,undefined,undefined,undefined,undefined],
+    //     [1,undefined,undefined,2,8,undefined,undefined,undefined,undefined]
+    //   ]
+    //   const puzzleRows = buildBlankPuzzleRows(9);
+    //   for(let i = 0; i < puzzleRows.length; i++) {
+    //     for(let j = 0; j < puzzleRows.length; j++) {
+    //       puzzleRows[i][j].value = puzzleValues[i][j]
+    //     }
+    //   }
+    //   const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+    //   puzzleSolver.solvePuzzle();
+    //   expect(puzzleSolver.isPuzzleSolved()).toBe(true);
+    // })
   })
 })

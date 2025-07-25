@@ -105,10 +105,10 @@ export class PuzzleSolverImplementation {
       }
       const lockedValue = this.findLockedPencilValue(puzzle);
       if(lockedValue) {
-        if(lockedValue.rowIndex) {
+        if(lockedValue.rowIndex !== undefined) {
           this.removePencilValueFromBlockRow(lockedValue.value, lockedValue.rowIndex, lockedValue.block, puzzle)
         } 
-        if(lockedValue.colIndex) {
+        if(lockedValue.colIndex !== undefined) {
           this.removePencilValueFromBlockCol(lockedValue.value, lockedValue.colIndex, lockedValue.block);
         }
         continue;
@@ -326,6 +326,12 @@ export class PuzzleSolverImplementation {
     }
     return -1;
   }
+  private findPairInRow(rowIndex: number, puzzleRows?: Row[]) {
+    const puzzle = puzzleRows ?? this.puzzle;
+    for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
+      
+    }
+  }
   private removePencilValueFromRow(value: number, rowIndex: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle
     for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
@@ -339,7 +345,7 @@ export class PuzzleSolverImplementation {
   }
   private removePencilValueFromCol(value: number, colIndex: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle
-    for(let rowIndex = 0; colIndex < puzzle.length; colIndex++) {
+    for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
       const cell = puzzle[rowIndex][colIndex];
       if(cell.value) {
         continue;
