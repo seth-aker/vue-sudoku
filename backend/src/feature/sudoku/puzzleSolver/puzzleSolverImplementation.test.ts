@@ -104,6 +104,106 @@ describe('PuzzleSolverImplementation Tests', () => {
       expect(puzzleSolver.getPuzzle()[0][0].pencilValues).toEqual(new Set([1,2,3,4,5,6,7,8,9]))
     })
   })
+  describe("findFullHouse() tests", () => {
+    test("findFullHouseRow() returns undefined when there is not a fullhouse in the puzzle", () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      for(let i = 0; i < puzzleRows.length; i++) {
+        expect((puzzleSolver as any).findFullHouseRow(i)).toBeUndefined();
+      }
+    })
+    test("findFullHouseRow() return correct values when a full house row exists", () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      for(let i = 0; i < 8; i++) {
+        puzzleRows[0][i].value = i + 1
+        puzzleRows[8][i].value = i + 1
+      }
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      const res = (puzzleSolver as any).findFullHouseRow(0);
+      const res2 = (puzzleSolver as any).findFullHouseRow(8);
+      expect(res.colIndex).toBe(8)
+      expect(res.value).toBe(9)
+      expect(res2.colIndex).toBe(8)
+      expect(res2.value).toBe(9)
+    })
+    test("findFullHouseCol() returns undefined when there is not a fullhouse in the puzzle", () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      for(let i = 0; i < puzzleRows.length; i++) {
+        expect((puzzleSolver as any).findFullHouseCol(i)).toBeUndefined();
+      }
+    })
+    test("findFullHouseCol() return correct values when a full house col exists", () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      for(let i = 0; i < 8; i++) {
+        puzzleRows[i][0].value = i + 1
+        puzzleRows[i][8].value = i + 1
+      }
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      const res = (puzzleSolver as any).findFullHouseCol(0);
+      const res2 = (puzzleSolver as any).findFullHouseCol(8);
+      expect(res.rowIndex).toBe(8)
+      expect(res.value).toBe(9)
+      expect(res2.rowIndex).toBe(8)
+      expect(res2.value).toBe(9)
+    })
+    test("findFullHouseBlock() returns undefined when there is not a fullhouse in the puzzle", () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      for(let i = 0; i < puzzleRows.length; i++) {
+        expect((puzzleSolver as any).findFullHouseBlock(i)).toBeUndefined();
+      }
+    })
+    test("findFullHouseBlock() return correct values when a full house block exists", () => {
+      const puzzleRows = buildBlankPuzzleRows(9);
+      puzzleRows[0][0].value = 1
+      puzzleRows[0][1].value = 2
+      puzzleRows[0][2].value = 3
+      puzzleRows[1][0].value = 4
+      puzzleRows[1][1].value = 5
+      puzzleRows[1][2].value = 6
+      puzzleRows[2][0].value = 7
+      puzzleRows[2][1].value = 8
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      const res = (puzzleSolver as any).findFullHouseBlock(0);
+      expect(res.rowIndex).toBe(2);
+      expect(res.colIndex).toBe(2);
+      expect(res.value).toBe(9)
+    })
+    test("findFullHouse() returns values for full houses", () => {
+      const puzzleRowsRow = buildBlankPuzzleRows(9);
+      for(let i = 0; i < 8; i++) {
+        puzzleRowsRow[8][i].value = i + 1
+      }
+      const puzzleRowsCol = buildBlankPuzzleRows(9);
+      for(let i = 0; i < 8; i++) {
+        puzzleRowsCol[i][8].value = i + 1
+      } 
+      const puzzleRowsBlock = buildBlankPuzzleRows(9);
+      puzzleRowsBlock[0][0].value = 1
+      puzzleRowsBlock[0][1].value = 2
+      puzzleRowsBlock[0][2].value = 3
+      puzzleRowsBlock[1][0].value = 4
+      puzzleRowsBlock[1][1].value = 5
+      puzzleRowsBlock[1][2].value = 6
+      puzzleRowsBlock[2][0].value = 7
+      puzzleRowsBlock[2][1].value = 8
+
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRowsRow)
+      const rowRes = (puzzleSolver as any).findFullHouse()
+      const colRes = (puzzleSolver as any).findFullHouse(puzzleRowsCol);
+      const blockRes = (puzzleSolver as any).findFullHouse(puzzleRowsBlock);
+      expect(rowRes.rowIndex).toBe(8);
+      expect(rowRes.colIndex).toBe(8);
+      expect(rowRes.value).toBe(9);
+      expect(colRes.rowIndex).toBe(8);
+      expect(colRes.colIndex).toBe(8);
+      expect(colRes.value).toBe(9);
+      expect(blockRes.rowIndex).toBe(2);
+      expect(blockRes.colIndex).toBe(2);
+      expect(blockRes.value).toBe(9)
+    })
+  })
   describe("findSingle() tests", () => {
     test('findSingle finds last digit single in row when there is one', () => {
       const puzzleRows = buildBlankPuzzleRows(9);
@@ -378,44 +478,25 @@ describe('PuzzleSolverImplementation Tests', () => {
           puzzleRows[i][j].value = puzzleValues[i][j]
         }
       }
+      const expectedInitialPuzzle = structuredClone(puzzleRows)
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.solvePuzzle();
+      const res = puzzleSolver.solvePuzzle();
       expect(puzzleSolver.isPuzzleSolved()).toBe(true);
-      expect(puzzleSolver.getPuzzle()[8][8].value).toBe(8)
+      expect(puzzleSolver.getPuzzle()[8][8].value).toBe(8);
+      expect(res.initialPuzzle).toEqual(expectedInitialPuzzle);
+      expect(res.strategiesUsed.fullHouses).toBe(1)
     })
     test('solvePuzzle solves puzzle with easy solution', () => {
       const puzzleValues = [
-          [undefined,undefined,9,5,undefined,undefined,undefined,3,7],
-          [1,3,7,9,undefined,undefined,undefined,5,2],
-          [2,undefined,undefined,undefined,undefined,3,6,9,undefined],
-          [3,5,2,undefined,1,undefined,undefined,undefined,6],
-          [undefined,undefined,undefined,4,5,2,3,undefined,undefined],
-          [undefined,8,1,undefined,3,undefined,2,undefined,undefined],
-          [6,undefined,3,undefined,4,undefined,8,undefined,9],
-          [5,2,undefined,undefined,undefined,1,undefined,6,undefined],
-          [undefined,undefined,undefined,3,undefined,7,undefined,undefined,undefined]
-        ]
-      const puzzleRows = buildBlankPuzzleRows(9);
-      for(let i = 0; i < puzzleRows.length; i++) {
-        for(let j = 0; j < puzzleRows.length; j++) {
-          puzzleRows[i][j].value = puzzleValues[i][j]
-        }
-      }
-      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.solvePuzzle();
-      expect(puzzleSolver.isPuzzleSolved()).toBe(true);
-    })
-    test('solvePuzzle solves puzzle with medium solution', () => {
-      const puzzleValues = [
-        [undefined,1,undefined,undefined,8,9,undefined,undefined,4],
-        [7,undefined,undefined,undefined,undefined,undefined,3,undefined,undefined],
-        [undefined,undefined,undefined,3,undefined,6,5,undefined,1],
-        [9,7,1,4,undefined,3,2,8,undefined],
-        [undefined,6,3,5,9,2,1,4,undefined],
-        [5,undefined,undefined,undefined,undefined,undefined,9,6,undefined],
-        [4,undefined,7,undefined,3,5,undefined,undefined,undefined],
-        [undefined,3,8,undefined,undefined,undefined,4,undefined,undefined],
-        [undefined,undefined,undefined,8,undefined,undefined,undefined,undefined,9]
+        [1, undefined, 6, undefined, undefined, 5, 9, undefined, 2],
+        [undefined, 7, 9, undefined, undefined, 6, undefined, undefined, 8],
+        [undefined, undefined, undefined, 8, undefined, 3, 1, undefined, 6],
+        [undefined, 6, undefined, undefined, 5, 8, 3, 2, undefined],
+        [7, 3, undefined, undefined, 1,undefined, undefined, 6, undefined],
+        [undefined, undefined, undefined, 6, 3, undefined, 5, 1, 9],
+        [5, undefined, 8, 9, undefined, undefined, undefined, undefined, 3],
+        [undefined, undefined, 3, 5, 7, undefined, undefined, undefined, undefined],
+        [undefined, 4, undefined, undefined, undefined, 1, 2, 9, undefined]
       ]
       const puzzleRows = buildBlankPuzzleRows(9);
       for(let i = 0; i < puzzleRows.length; i++) {
@@ -423,17 +504,47 @@ describe('PuzzleSolverImplementation Tests', () => {
           puzzleRows[i][j].value = puzzleValues[i][j]
         }
       }
+      const expectedInitialPuzzle = structuredClone(puzzleRows)
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.solvePuzzle();
-      expect(puzzleSolver.isPuzzleSolved()).toBe(true);
+      const res = puzzleSolver.solvePuzzle();
+      expect(puzzleSolver.isPuzzleSolved(res.initialPuzzle)).toBe(false)
+      expect(puzzleSolver.isPuzzleSolved(res.solvedPuzzle)).toBe(true);
+      expect(res.initialPuzzle).toEqual(expectedInitialPuzzle)
+    })
+    test('solvePuzzle solves puzzle with medium solution', () => {
+      const puzzleValues = [
+        [9, undefined, 4, undefined, 5, 3, undefined, undefined, undefined],
+        [undefined, undefined, undefined, undefined, 6, undefined, undefined, undefined, undefined],
+        [6, undefined, undefined, 7, 2, undefined, 5, undefined, undefined],
+        [2, 9, undefined, undefined, 8, undefined, 7, undefined, undefined],
+        [undefined, undefined, 3, undefined, undefined, undefined, undefined, 5, undefined],
+        [undefined, undefined, undefined, undefined, 1, undefined, undefined, 4, 8],
+        [undefined, undefined, 6, undefined, undefined, 2, undefined, 1, undefined],
+        [undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 7],
+        [undefined, undefined, undefined, undefined, 9, undefined, undefined, undefined, 6]
+      ]
+      const puzzleRows = buildBlankPuzzleRows(9);
+      for(let i = 0; i < puzzleRows.length; i++) {
+        for(let j = 0; j < puzzleRows.length; j++) {
+          puzzleRows[i][j].value = puzzleValues[i][j]
+        }
+      }
+      const expectedInitialPuzzle = structuredClone(puzzleRows)
+      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
+      const res = puzzleSolver.solvePuzzle();
+      console.log(res.strategiesUsed)
+
+      expect(puzzleSolver.isPuzzleSolved(res.initialPuzzle)).toBe(false)
+      expect(puzzleSolver.isPuzzleSolved(res.solvedPuzzle)).toBe(true);
+      expect(res.initialPuzzle).toEqual(expectedInitialPuzzle)
     })
     test('solvePuzzle solves puzzle with hard solution', () => {
       const puzzleValues = [
-        [5,undefined,undefined,undefined,undefined,undefined,2,7,undefined],
+        [undefined,undefined,undefined,undefined,undefined,undefined,2,7,undefined],
         [6,undefined,undefined,undefined,5,undefined,undefined,3,undefined],
         [undefined,2,7,undefined,undefined,3,9,undefined,undefined],
-        [undefined,undefined,2,3,7,8,undefined,1,undefined],
-        [1, undefined,5,4,2,undefined,undefined,undefined,undefined],
+        [undefined,undefined,2,3,undefined,8,undefined,1,undefined],
+        [undefined, undefined,5,4,2,undefined,undefined,undefined,undefined],
         [undefined,undefined,undefined,undefined,undefined,undefined,8,undefined,undefined],
         [undefined,9,undefined,undefined,3,undefined,undefined,5,undefined],
         [2,undefined,undefined,7,undefined,undefined,undefined,9,3],
@@ -445,9 +556,13 @@ describe('PuzzleSolverImplementation Tests', () => {
           puzzleRows[i][j].value = puzzleValues[i][j]
         }
       }
+      const expectedInitialPuzzle = structuredClone(puzzleRows)
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.solvePuzzle();
-      expect(puzzleSolver.isPuzzleSolved()).toBe(true);
+      const res = puzzleSolver.solvePuzzle();
+      console.log(res.strategiesUsed)
+      expect(puzzleSolver.isPuzzleSolved(res.initialPuzzle)).toBe(false)
+      expect(puzzleSolver.isPuzzleSolved(res.solvedPuzzle)).toBe(true);
+      expect(res.initialPuzzle).toEqual(expectedInitialPuzzle)
     })
     // test('solvePuzzle solves puzzle with expert solution', () => {
     //   const puzzleValues = [

@@ -4,8 +4,11 @@ import { Cell } from "../datasource/models/cell.ts"
 import { Row } from "../datasource/models/row.ts"
 import { PuzzleSolverError } from "../errors/puzzleSolverError.ts";
 import { cellSchema } from "../middleware/validation/schema/cell.ts";
+import { PuzzleSolver } from "./puzzleSolver.ts";
+import { StrategiesUsed, Strategies } from "./strategies.ts";
+import { M } from "vitest/dist/chunks/reporters.d.BFLkQcL6.js";
 
-export class PuzzleSolverImplementation {
+export class PuzzleSolverImplementation implements PuzzleSolver {
   private puzzle: Row[];
   private BLOCK_WIDTH: number
   private BLOCK_INDICES: BlockIndexSet[]
@@ -45,8 +48,12 @@ export class PuzzleSolverImplementation {
     }
   }
 
-  findSingle(puzzleRows?: Row[]) {
+  findSingle(puzzleRows?: Row[]): {value: number, rowIndex: number, colIndex: number , type: Strategies} | undefined {
     const puzzle = puzzleRows ?? this.puzzle;
+    const fullHouse = this.findFullHouse(puzzle);
+    if(fullHouse) {
+      return {value: fullHouse.value, rowIndex: fullHouse.rowIndex, colIndex: fullHouse.colIndex, type: 'fullHouses' }
+    }
     for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
       for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
         const cell = puzzle[rowIndex][colIndex];
@@ -54,53 +61,54 @@ export class PuzzleSolverImplementation {
           continue;
         }
         if(cell.pencilValues.size === 1) {
-          return {value: cell.pencilValues.values().next().value, rowIndex, colIndex}
+          return {value: cell.pencilValues.values().next().value, rowIndex, colIndex, type: 'nakedSingles'}
         }
         const hiddenSingle = this.findHiddenSingle(rowIndex, colIndex, puzzle);
         if(hiddenSingle !== -1) {
-          return {value: hiddenSingle, rowIndex, colIndex};
+          return {value: hiddenSingle, rowIndex, colIndex, type: 'hiddenSingles'};
         }
       }
     }
   }
 
-  findLockedPencilValue(puzzleRows?: Row[]): {value: number, rowIndex: number | undefined, colIndex: number | undefined, block: number} | undefined {
+  findLockedPencilValue(puzzleRows?: Row[]): {value: number, rowIndex: number | undefined, colIndex: number | undefined, block: number, type: Strategies} | undefined {
     const puzzle = puzzleRows ?? this.puzzle;
     // Search rows for locked pencil values
     for(let i = 0; i < puzzle.length; i++) {
       const lockedValueInRow = this.findLockedPencilValueInRowsType1(i, puzzle);
       if(lockedValueInRow) {
-        return lockedValueInRow;
+        return {...lockedValueInRow, type: 'lockedPairsType1'};
       }
       const lockedValueInCol = this.findLockedPencilValueInColsType1(i, puzzle);
       if(lockedValueInCol) {
-        return lockedValueInCol
+        return {...lockedValueInCol, type: 'lockedPairsType1'}
       }
     }
     const lockedValueInRow = this.findLockedPencilValueInRowsType2(puzzle);
     if(lockedValueInRow) {
-      return lockedValueInRow;
+      return {...lockedValueInRow, type: 'lockedPairsType2'
+      };
     }
     const lockedValueInCol = this.findLockedPencilValueInColsType2(puzzle);
     if(lockedValueInCol) {
-      return lockedValueInCol
+      return {...lockedValueInCol, type: 'lockedPairsType2'}
     }
     return undefined;
   }
 
   solvePuzzle(puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle
+    const initialPuzzle = structuredClone(puzzle);
     this.fillPuzzlePencilValues(puzzle);
-    let moves = 0;
+    let strategiesUsed = {} as StrategiesUsed
     while(!this.isPuzzleSolved(puzzle)) {
       const single = this.findSingle(puzzle);
       if(single) {
         puzzle[single.rowIndex][single.colIndex].value = single.value
-        puzzle[single.rowIndex][single.colIndex].type = 'edited';
         this.removePencilValueFromRow(single.value, single.rowIndex, puzzle);
         this.removePencilValueFromCol(single.value, single.colIndex, puzzle);
         this.removePencilValuesFromBlock(single.value, this.getCellsBlockNumber(single.rowIndex, single.colIndex, puzzle));
-        moves++
+        strategiesUsed[single.type] ? strategiesUsed[single.type]++ : strategiesUsed[single.type] = 1;
         continue;
       }
       const lockedValue = this.findLockedPencilValue(puzzle);
@@ -111,12 +119,14 @@ export class PuzzleSolverImplementation {
         if(lockedValue.colIndex !== undefined) {
           this.removePencilValueFromBlockCol(lockedValue.value, lockedValue.colIndex, lockedValue.block);
         }
+        strategiesUsed[lockedValue.type] ? strategiesUsed[lockedValue.type]++ : strategiesUsed[lockedValue.type] = 1;
         continue;
       }
       // If the code gets to this then it can't find any solutions.
       throw new PuzzleSolverError("Puzzle could not be solved with current tools");
     }
-
+    // if the code gets here then the puzzle has been solved
+    return {initialPuzzle, solvedPuzzle: puzzle, strategiesUsed}
   }
 
   isPuzzleSolved(puzzleRows?: Row[]) {
@@ -290,11 +300,100 @@ export class PuzzleSolverImplementation {
     }
     return undefined
   }
+  private findFullHouse(puzzleRows?: Row[]) {
+    const puzzle = puzzleRows ?? this.puzzle;
+    for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
+      const fullHouseRow = this.findFullHouseRow(rowIndex, puzzle);
+      if(fullHouseRow) {
+        return {rowIndex, colIndex: fullHouseRow.colIndex, value: fullHouseRow.value}
+      }
+    }
+    for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
+      const fullHouseCol = this.findFullHouseCol(colIndex, puzzle);
+      if(fullHouseCol) {
+        return {rowIndex: fullHouseCol.rowIndex, colIndex, value: fullHouseCol.value}
+      }
+    }
+    for(let blockNum = 0; blockNum < puzzle.length; blockNum++) {
+      const fullHouseBlock = this.findFullHouseBlock(blockNum, puzzle);
+      if(fullHouseBlock) {
+        return {rowIndex: fullHouseBlock.rowIndex, colIndex: fullHouseBlock.colIndex, value: fullHouseBlock.value}
+      }
+    }
+  }
+  private findFullHouseRow(rowIndex: number, puzzleRows?: Row[]) {
+    const puzzle = puzzleRows ?? this.puzzle;
+    let missingValuesCount = 0
+    const row = puzzle[rowIndex];
+    const expectedValues = this.generateExpectedSet(puzzle.length);
+    const missingValueIndex = [] as number[];
+    for(let i = 0; i < row.length; i++ ) {
+      const cell = row[i];
+      if(!cell.value) {
+        missingValuesCount++;
+        if(missingValuesCount > 1) return undefined;
+        missingValueIndex.push(i);
+      } else {
+        expectedValues.delete(cell.value)
+      }
+    }
+    if(expectedValues.size !== 1 || missingValueIndex.length !== 1) {
+      return undefined;
+    }
+    return {colIndex: missingValueIndex[0] , value: expectedValues.values().next().value }
+  }
+  private findFullHouseCol(colIndex: number, puzzleRows?: Row[]) {
+    const puzzle = puzzleRows ?? this.puzzle;
+    let missingValuesCount = 0
+    const col = this.getColumn(colIndex, puzzle)
+    const expectedValues = this.generateExpectedSet(puzzle.length);
+    const missingValueIndex = [] as number[];
+    for(let i = 0; i < col.length; i++ ) {
+      const cell = col[i];
+      if(!cell.value) {
+        missingValuesCount++;
+        if(missingValuesCount > 1) return undefined;
+        missingValueIndex.push(i);
+      } else {
+        expectedValues.delete(cell.value)
+      }
+    }
+    if(expectedValues.size !== 1 || missingValueIndex.length !== 1) {
+      return undefined;
+    }
+    return {rowIndex: missingValueIndex[0] , value: expectedValues.values().next().value }
+    
+  }
+  private findFullHouseBlock(blockNum: number, puzzleRows?: Row[]) {
+    const puzzle = puzzleRows ?? this.puzzle;
+    const {rowIndices, colIndices} = puzzleRows ? this.generateBlockIndices(puzzleRows)[blockNum] : this.BLOCK_INDICES[blockNum];
+    const missingValuesIndex = [] as {colIndex: number, rowIndex: number}[] 
+    let missingValueCount = 0
+    const expectedValues = this.generateExpectedSet(puzzle.length);
+    for(let rowIndex = rowIndices[0]; rowIndex <= rowIndices[rowIndices.length - 1]; rowIndex++) {
+      for(let colIndex = colIndices[0]; colIndex <= colIndices[colIndices.length - 1]; colIndex++) {
+        const cell = puzzle[rowIndex][colIndex];
+        if(!cell.value) {
+          missingValueCount++;
+          if(missingValueCount > 1) return undefined;
+          missingValuesIndex.push({colIndex, rowIndex})
+        } else {
+          expectedValues.delete(cell.value);
+        }
+      }
+    }
+    if(expectedValues.size !== 1 || missingValuesIndex.length !== 1) {
+      return undefined;
+    }
+    return {rowIndex: missingValuesIndex[0].rowIndex, colIndex: missingValuesIndex[0].colIndex, value: expectedValues.values().next().value}
+
+  }
 
   private findHiddenSingle( rowIndex: number, colIndex: number, puzzleRows: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
+    const blockIndices = puzzleRows ? this.generateBlockIndices(puzzleRows) : this.BLOCK_INDICES;
     const cell = puzzle[rowIndex][colIndex]
-    const blockNum = this.BLOCK_INDICES.findIndex((block) => block.colIndices.includes(colIndex) && block.rowIndices.includes(rowIndex))
+    const blockNum = blockIndices.findIndex((block) => block.colIndices.includes(colIndex) && block.rowIndices.includes(rowIndex))
     const pencilRow = puzzle[rowIndex].filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.pencilValues)
     const pencilCol = this.getColumn(colIndex, puzzle).filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.pencilValues)
     const pencilBlock = this.getBlock(blockNum, puzzle).filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.pencilValues)
@@ -475,5 +574,13 @@ export class PuzzleSolverImplementation {
         }
       }) 
     })
+  }
+
+  private generateExpectedSet(length: number) {
+    const set = new Set<number>();
+    for(let i = 1; i <= length; i++) {
+      set.add(i);
+    }
+    return set;
   }
 }
