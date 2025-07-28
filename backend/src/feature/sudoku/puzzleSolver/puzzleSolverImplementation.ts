@@ -6,7 +6,7 @@ import { PuzzleSolverError } from "../errors/puzzleSolverError.ts";
 import { cellSchema } from "../middleware/validation/schema/cell.ts";
 import { PuzzleSolver } from "./puzzleSolver.ts";
 import { StrategiesUsed, Strategies } from "./strategies.ts";
-import { M } from "vitest/dist/chunks/reporters.d.BFLkQcL6.js";
+import { deepEqual } from "../utils/deepEquals.ts";
 
 export class PuzzleSolverImplementation implements PuzzleSolver {
   private puzzle: Row[];
@@ -71,29 +71,29 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     }
   }
 
-  findLockedPencilValue(puzzleRows?: Row[]): {value: number, rowIndex: number | undefined, colIndex: number | undefined, block: number, type: Strategies} | undefined {
+  findAllLockedPencilValues(puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     // Search rows for locked pencil values
+    const lockedValues = [] as {value: number, rowIndex: number | undefined, colIndex: number | undefined, block: number, type: Strategies}[]
     for(let i = 0; i < puzzle.length; i++) {
       const lockedValueInRow = this.findLockedPencilValueInRowsType1(i, puzzle);
       if(lockedValueInRow) {
-        return {...lockedValueInRow, type: 'lockedPairsType1'};
+        lockedValues.push({...lockedValueInRow, type: 'lockedPairsType1'});
       }
       const lockedValueInCol = this.findLockedPencilValueInColsType1(i, puzzle);
       if(lockedValueInCol) {
-        return {...lockedValueInCol, type: 'lockedPairsType1'}
+        lockedValues.push({...lockedValueInCol, type: 'lockedPairsType1'});
+      }
+      const lockedValueInRow2 = this.findLockedPencilValueInRowsType2(i + 1, puzzle);
+      if(lockedValueInRow2) {
+        lockedValues.push({...lockedValueInRow2, type: 'lockedPairsType2'});
+      }
+      const lockedValueInCol2 = this.findLockedPencilValueInColsType2(i + 1, puzzle);
+      if(lockedValueInCol2) {
+        lockedValues.push( {...lockedValueInCol2, type: 'lockedPairsType2'})
       }
     }
-    const lockedValueInRow = this.findLockedPencilValueInRowsType2(puzzle);
-    if(lockedValueInRow) {
-      return {...lockedValueInRow, type: 'lockedPairsType2'
-      };
-    }
-    const lockedValueInCol = this.findLockedPencilValueInColsType2(puzzle);
-    if(lockedValueInCol) {
-      return {...lockedValueInCol, type: 'lockedPairsType2'}
-    }
-    return undefined;
+    return lockedValues;
   }
 
   solvePuzzle(puzzleRows?: Row[]) {
@@ -101,6 +101,13 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     const initialPuzzle = structuredClone(puzzle);
     this.fillPuzzlePencilValues(puzzle);
     let strategiesUsed = {} as StrategiesUsed
+    let lockedValuesUsed = [] as {
+      value: number,
+      rowIndex: number | undefined,
+      colIndex: number | undefined,
+      block: number,
+      type: Strategies
+    } [];
     while(!this.isPuzzleSolved(puzzle)) {
       const single = this.findSingle(puzzle);
       if(single) {
@@ -111,15 +118,20 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
         strategiesUsed[single.type] ? strategiesUsed[single.type]++ : strategiesUsed[single.type] = 1;
         continue;
       }
-      const lockedValue = this.findLockedPencilValue(puzzle);
+      let lockedValues = this.findAllLockedPencilValues(puzzle);
+      lockedValues = lockedValues.filter((each) => {
+        return lockedValuesUsed.find((eachUsed) => deepEqual(eachUsed, each)) ? false : true;
+      })
+      const lockedValue = lockedValues.shift()
       if(lockedValue) {
         if(lockedValue.rowIndex !== undefined) {
-          this.removePencilValueFromBlockRow(lockedValue.value, lockedValue.rowIndex, lockedValue.block, puzzle)
+          this.removePencilValueFromRowExceptBlock(lockedValue.value, lockedValue.rowIndex, lockedValue.block, puzzle)
         } 
         if(lockedValue.colIndex !== undefined) {
-          this.removePencilValueFromBlockCol(lockedValue.value, lockedValue.colIndex, lockedValue.block);
+          this.removePencilValueFromColExceptBlock(lockedValue.value, lockedValue.colIndex, lockedValue.block);
         }
         strategiesUsed[lockedValue.type] ? strategiesUsed[lockedValue.type]++ : strategiesUsed[lockedValue.type] = 1;
+        lockedValuesUsed.push(lockedValue)
         continue;
       }
       // If the code gets to this then it can't find any solutions.
@@ -150,7 +162,7 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     }
     return !this.numberWorksInCell(rowIndex, colIndex, cell.value, puzzle);
   }
-  private findLockedPencilValueInRowsType1( blockNum: number, puzzleRows?: Row[]) {
+  private findLockedPencilValueInRowsType1(blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const block = this.BLOCK_INDICES[blockNum]
     for(let rowIndex = block.rowIndices[0]; rowIndex <= block.rowIndices[block.rowIndices.length - 1]; rowIndex++) {
@@ -188,10 +200,9 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     }
     return undefined;
   }
-  private findLockedPencilValueInRowsType2(puzzleRows?: Row[]) {
+  private findLockedPencilValueInRowsType2(candidate: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
-    for(let candidate = 0; candidate < puzzle.length; candidate++ ){
-      for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
+    for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
         const cellsWithCandidate = [] as {rowIndex: number, colIndex: number}[]
         for(let colIndex = 0; colIndex < puzzle.length; colIndex++){
           if(cellsWithCandidate.length > this.BLOCK_WIDTH) {
@@ -220,8 +231,7 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
           return {value: candidate, rowIndex, colIndex: undefined, block: blocksCandidateIsIn.values().next().value as number}
         }
       }
-    }
-    return undefined;
+      return undefined;
   }
   
   private findLockedPencilValueInColsType1(blockNum: number, puzzleRows?: Row[]) {
@@ -265,9 +275,8 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     }
     return undefined;
   }
-  private findLockedPencilValueInColsType2(puzzleRows?: Row[]) {
+  private findLockedPencilValueInColsType2(candidate: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
-    for(let candidate = 0; candidate < puzzle.length; candidate++ ) {
       for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
         const cellsWithCandidate = [] as { rowIndex: number, colIndex: number}[]
         for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++ ) {
@@ -297,7 +306,6 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
           return {value: candidate, rowIndex: undefined, colIndex, block: blocksCandidateIsIn.values().next().value as number}
         }
       }
-    }
     return undefined
   }
   private findFullHouse(puzzleRows?: Row[]) {
@@ -462,23 +470,25 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
       cell.pencilValues.delete(value);
     }
   }
-  private removePencilValueFromBlockRow(value: number, rowIndex: number, blockNum: number, puzzleRows?: Row[]) {
+  private removePencilValueFromRowExceptBlock(value: number, rowIndex: number, blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const blockIndexSet = puzzleRows ? this.generateBlockIndices(puzzleRows)[blockNum] : this.BLOCK_INDICES[blockNum];
-    for(let colIndex = blockIndexSet.colIndices[0]; colIndex <= blockIndexSet.colIndices[blockIndexSet.colIndices.length - 1]; colIndex++) {
-      const cell = puzzle[rowIndex][colIndex]
-      if(cell.value) {
+    const row = puzzle[rowIndex];
+    for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
+      const cell = row[colIndex];
+      if(blockIndexSet.colIndices.includes(colIndex) || cell.value) {
         continue;
       }
       cell.pencilValues.delete(value);
     }
   }
-    private removePencilValueFromBlockCol(value: number, colIndex: number, blockNum: number, puzzleRows?: Row[]) {
+    private removePencilValueFromColExceptBlock(value: number, colIndex: number, blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const blockIndexSet = puzzleRows ? this.generateBlockIndices(puzzleRows)[blockNum] : this.BLOCK_INDICES[blockNum];
-    for(let rowIndex = blockIndexSet.rowIndices[0]; rowIndex <= blockIndexSet.rowIndices[blockIndexSet.rowIndices.length - 1]; rowIndex++) {
-      const cell = puzzle[rowIndex][colIndex]
-      if(cell.value) {
+    const col = this.getColumn(colIndex, puzzle);
+    for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
+      const cell = col[rowIndex];
+      if(blockIndexSet.rowIndices.includes(rowIndex) || cell.value) {
         continue;
       }
       cell.pencilValues.delete(value);

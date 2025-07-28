@@ -285,7 +285,7 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleRows[2][6].value = 1;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
       puzzleSolver.fillPuzzlePencilValues();
-      const lockedValue = puzzleSolver.findLockedPencilValue();
+      const lockedValue = (puzzleSolver as any).findLockedPencilValueInRowsType1(0);
       expect(lockedValue).toBeDefined();
       expect(lockedValue?.value).toBe(1);
       expect(lockedValue?.rowIndex).toBe(0);
@@ -303,7 +303,7 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleRows[3][0].value = 1;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
       puzzleSolver.fillPuzzlePencilValues();
-      const lockedValue = puzzleSolver.findLockedPencilValue();
+      const lockedValue = (puzzleSolver as any).findLockedPencilValueInColsType1(0);
       expect(lockedValue).toBeDefined();
       expect(lockedValue?.value).toBe(1);
       expect(lockedValue?.rowIndex).toBe(undefined);
@@ -319,7 +319,7 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleRows[0][8].value = 7;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
       puzzleSolver.fillPuzzlePencilValues();
-      const lockedValue = puzzleSolver.findLockedPencilValue();
+      const lockedValue = (puzzleSolver as any).findLockedPencilValueInRowsType2(1);
       expect(lockedValue).toBeDefined();
       expect(lockedValue?.value).toBe(1);
       expect(lockedValue?.rowIndex).toBe(0);
@@ -336,19 +336,19 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleRows[8][0].value = 7;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
       puzzleSolver.fillPuzzlePencilValues();
-      const lockedValue = puzzleSolver.findLockedPencilValue();
+      const lockedValue = (puzzleSolver as any).findLockedPencilValueInColsType2(1);
       expect(lockedValue).toBeDefined();
       expect(lockedValue?.value).toBe(1);
       expect(lockedValue?.rowIndex).toBeUndefined();
       expect(lockedValue?.colIndex).toBe(0);
       expect(lockedValue?.block).toBe(0);
     })
-    test('findLockedPencilValue return undefined when not locked pencil values exist', () => {
+    test('findAllLockedPencilValues returns empty array when locked pencil values do not exist', () => {
       const puzzleRows = buildBlankPuzzleRows(9);
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
       puzzleSolver.fillPuzzlePencilValues();
-      const lockedValue = puzzleSolver.findLockedPencilValue();
-      expect(lockedValue).toBeUndefined();
+      const lockedValues = puzzleSolver.findAllLockedPencilValues();
+      expect(lockedValues.length).toBe(0);
     })
   })
   describe('cellHasConflict tests', () => {
