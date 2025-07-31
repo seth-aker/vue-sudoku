@@ -1,12 +1,12 @@
 import z from "zod/v4";
-import { BlockIndice as BlockIndexSet } from "../datasource/models/blockIndexSet.ts";
-import { Cell } from "../datasource/models/cell.ts"
-import { Row } from "../datasource/models/row.ts"
-import { PuzzleSolverError } from "../errors/puzzleSolverError.ts";
-import { cellSchema } from "../middleware/validation/schema/cell.ts";
-import { PuzzleSolver } from "./puzzleSolver.ts";
-import { StrategiesUsed, Strategies } from "./strategies.ts";
-import { deepEqual } from "../utils/deepEquals.ts";
+import { BlockIndice as BlockIndexSet } from "../datasource/models/blockIndexSet";
+import { Cell } from "../datasource/models/cell"
+import { Row } from "../datasource/models/row"
+import { PuzzleSolverError } from "../errors/puzzleSolverError";
+import { cellSchema } from "../middleware/validation/schema/cell";
+import { PuzzleSolver } from "./puzzleSolver";
+import { StrategiesUsed, Strategies } from "./strategies";
+import { deepEqual } from "../utils/deepEquals";
 
 export class PuzzleSolverImplementation implements PuzzleSolver {
   private puzzle: Row[];
@@ -19,7 +19,7 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     this.BLOCK_INDICES = this.generateBlockIndices(this.puzzle);
   }
   
-  fillPuzzlePencilValues(puzzleRows?: Row[]): Row[] {
+  fillPuzzleCandidates(puzzleRows?: Row[]): Row[] {
     const puzzle = puzzleRows ?? this.puzzle
     for(let row = 0; row < puzzle.length; row++) {
       for(let col = 0; col < puzzle[row].length; col++){
@@ -27,23 +27,20 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
         if(cell.value) {
           continue;
         }
-        this.fillCellPencilValues(row, col, puzzle);
+        this.fillCellCandidates(row, col, puzzle);
       }
     }
     return puzzle;
   }
 
-  fillCellPencilValues(rowIndex: number, colIndex: number, puzzleRows?: Row[]) {
+  fillCellCandidates(rowIndex: number, colIndex: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const cell = puzzle[rowIndex][colIndex];
     for(let i = 0; i < puzzle.length; i++) {
       const potentialNum = i + 1;
       const numberWorksInCell = this.numberWorksInCell(rowIndex, colIndex, potentialNum, puzzle);
-      if(cell.pencilValues.has(potentialNum) && numberWorksInCell) {
-        continue;
-      }
       if(numberWorksInCell) {
-        cell.pencilValues.add(potentialNum)
+        cell.candidates.add(potentialNum)
       }
     }
   }
@@ -60,8 +57,8 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
         if(cell.value) {
           continue;
         }
-        if(cell.pencilValues.size === 1) {
-          return {value: cell.pencilValues.values().next().value, rowIndex, colIndex, type: 'nakedSingles'}
+        if(cell.candidates.size === 1) {
+          return {value: cell.candidates.values().next().value, rowIndex, colIndex, type: 'nakedSingles'}
         }
         const hiddenSingle = this.findHiddenSingle(rowIndex, colIndex, puzzle);
         if(hiddenSingle !== -1) {
@@ -71,24 +68,24 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     }
   }
 
-  findAllLockedPencilValues(puzzleRows?: Row[]) {
+  findAllLockedCandidates(puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
-    // Search rows for locked pencil values
+    // Search rows for locked candidate values
     const lockedValues = [] as {value: number, rowIndex: number | undefined, colIndex: number | undefined, block: number, type: Strategies}[]
     for(let i = 0; i < puzzle.length; i++) {
-      const lockedValueInRow = this.findLockedPencilValueInRowsType1(i, puzzle);
+      const lockedValueInRow = this.findLockedCandidateInRowsType1(i, puzzle);
       if(lockedValueInRow) {
         lockedValues.push({...lockedValueInRow, type: 'lockedPairsType1'});
       }
-      const lockedValueInCol = this.findLockedPencilValueInColsType1(i, puzzle);
+      const lockedValueInCol = this.findLockedCandidateInColsType1(i, puzzle);
       if(lockedValueInCol) {
         lockedValues.push({...lockedValueInCol, type: 'lockedPairsType1'});
       }
-      const lockedValueInRow2 = this.findLockedPencilValueInRowsType2(i + 1, puzzle);
+      const lockedValueInRow2 = this.findLockedCandidateInRowsType2(i + 1, puzzle);
       if(lockedValueInRow2) {
         lockedValues.push({...lockedValueInRow2, type: 'lockedPairsType2'});
       }
-      const lockedValueInCol2 = this.findLockedPencilValueInColsType2(i + 1, puzzle);
+      const lockedValueInCol2 = this.findLockedCandidateInColsType2(i + 1, puzzle);
       if(lockedValueInCol2) {
         lockedValues.push( {...lockedValueInCol2, type: 'lockedPairsType2'})
       }
@@ -99,7 +96,7 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
   solvePuzzle(puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle
     const initialPuzzle = structuredClone(puzzle);
-    this.fillPuzzlePencilValues(puzzle);
+    this.fillPuzzleCandidates(puzzle);
     let strategiesUsed = {} as StrategiesUsed
     let lockedValuesUsed = [] as {
       value: number,
@@ -112,23 +109,23 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
       const single = this.findSingle(puzzle);
       if(single) {
         puzzle[single.rowIndex][single.colIndex].value = single.value
-        this.removePencilValueFromRow(single.value, single.rowIndex, puzzle);
-        this.removePencilValueFromCol(single.value, single.colIndex, puzzle);
-        this.removePencilValuesFromBlock(single.value, this.getCellsBlockNumber(single.rowIndex, single.colIndex, puzzle));
+        this.removeCandidateFromRow(single.value, single.rowIndex, puzzle);
+        this.removeCandidatesFromCol(single.value, single.colIndex, puzzle);
+        this.removeCandidatesFromBlock(single.value, this.getCellsBlockNumber(single.rowIndex, single.colIndex, puzzle));
         strategiesUsed[single.type] ? strategiesUsed[single.type]++ : strategiesUsed[single.type] = 1;
         continue;
       }
-      let lockedValues = this.findAllLockedPencilValues(puzzle);
+      let lockedValues = this.findAllLockedCandidates(puzzle);
       lockedValues = lockedValues.filter((each) => {
         return lockedValuesUsed.find((eachUsed) => deepEqual(eachUsed, each)) ? false : true;
       })
       const lockedValue = lockedValues.shift()
       if(lockedValue) {
         if(lockedValue.rowIndex !== undefined) {
-          this.removePencilValueFromRowExceptBlock(lockedValue.value, lockedValue.rowIndex, lockedValue.block, puzzle)
+          this.removeCandidateFromRowExceptBlock(lockedValue.value, lockedValue.rowIndex, lockedValue.block, puzzle)
         } 
         if(lockedValue.colIndex !== undefined) {
-          this.removePencilValueFromColExceptBlock(lockedValue.value, lockedValue.colIndex, lockedValue.block);
+          this.removeCandidateFromColExceptBlock(lockedValue.value, lockedValue.colIndex, lockedValue.block);
         }
         strategiesUsed[lockedValue.type] ? strategiesUsed[lockedValue.type]++ : strategiesUsed[lockedValue.type] = 1;
         lockedValuesUsed.push(lockedValue)
@@ -146,7 +143,7 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
       for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
         const cell = puzzle[rowIndex][colIndex];
-        if(!cell.value || this.cellHasConflict(rowIndex, colIndex, puzzle)) {
+        if(!cell.value || !this.numberWorksInCell(rowIndex, colIndex, cell.value, puzzle)) {
           return false
         }
       }
@@ -154,29 +151,21 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     return true;
   }
 
-  private cellHasConflict(rowIndex: number, colIndex: number, puzzleRows?: Row[]) {
-    const puzzle = puzzleRows ?? this.puzzle;
-    const cell = puzzle[rowIndex][colIndex];
-    if(!cell.value) {
-      return false;
-    }
-    return !this.numberWorksInCell(rowIndex, colIndex, cell.value, puzzle);
-  }
-  private findLockedPencilValueInRowsType1(blockNum: number, puzzleRows?: Row[]) {
+  private findLockedCandidateInRowsType1(blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const block = this.BLOCK_INDICES[blockNum]
     for(let rowIndex = block.rowIndices[0]; rowIndex <= block.rowIndices[block.rowIndices.length - 1]; rowIndex++) {
-      const pencilValuesInBlockRow = new Set<number>();
+      const candidatesInBlockRow = new Set<number>();
       for(let colIndex = block.colIndices[0]; colIndex <= block.colIndices[block.colIndices.length - 1]; colIndex++) {
         const cell = puzzle[rowIndex][colIndex];
         if(cell.value) {
           continue;
         }
-        cell.pencilValues.forEach((value) => {
-          pencilValuesInBlockRow.add(value);
+        cell.candidates.forEach((value) => {
+          candidatesInBlockRow.add(value);
         })
       }
-      const otherBlockRowPencilValues = new Set<number>();
+      const otherBlockRowCandidates = new Set<number>();
       for(let i = block.rowIndices[0]; i <= block.rowIndices[block.rowIndices.length - 1]; i++) {
         if(i === rowIndex) {
           continue;
@@ -187,20 +176,20 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
             continue;
           }
           const cell = row[cellIndex]
-          cell.pencilValues.forEach((value) => {
-            otherBlockRowPencilValues.add(value);
+          cell.candidates.forEach((value) => {
+            otherBlockRowCandidates.add(value);
           })
         }
       }
-      for(const value of pencilValuesInBlockRow) {
-        if(!otherBlockRowPencilValues.has(value)) {
+      for(const value of candidatesInBlockRow) {
+        if(!otherBlockRowCandidates.has(value)) {
           return {value, rowIndex, colIndex: undefined, block: blockNum};
         }
       }
     }
     return undefined;
   }
-  private findLockedPencilValueInRowsType2(candidate: number, puzzleRows?: Row[]) {
+  private findLockedCandidateInRowsType2(candidate: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
         const cellsWithCandidate = [] as {rowIndex: number, colIndex: number}[]
@@ -212,7 +201,7 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
           if(cell.value) {
             continue;
           }
-          if(cell.pencilValues.has(candidate)) {
+          if(cell.candidates.has(candidate)) {
             cellsWithCandidate.push({rowIndex, colIndex})
           }
         }
@@ -234,21 +223,21 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
       return undefined;
   }
   
-  private findLockedPencilValueInColsType1(blockNum: number, puzzleRows?: Row[]) {
+  private findLockedCandidateInColsType1(blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const block = this.BLOCK_INDICES[blockNum];
     for(let colIndex = block.colIndices[0]; colIndex <= block.colIndices[block.colIndices.length - 1]; colIndex++ ) {
-      const pencilValueInBlockCol = new Set<number>();
+      const candidatesInBlockCol = new Set<number>();
       for(let rowIndex = block.rowIndices[0]; rowIndex <= block.rowIndices[block.rowIndices.length -1]; rowIndex++) {
         const cell = puzzle[rowIndex][colIndex];
         if(cell.value){
           continue;
         }
-        cell.pencilValues.forEach((value) => {
-          pencilValueInBlockCol.add(value);
+        cell.candidates.forEach((value) => {
+          candidatesInBlockCol.add(value);
         })
       }
-      const otherBlockPencilValues = new Set<number>();
+      const otherBlockCandidates = new Set<number>();
       for(let i = block.colIndices[0]; i <= block.colIndices[block.colIndices.length -1]; i++) {
         if(i === colIndex) {
           continue;
@@ -262,20 +251,20 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
           if(cell.value) {
             continue;
           }
-          cell.pencilValues.forEach((value) => {
-            otherBlockPencilValues.add(value)
+          cell.candidates.forEach((value) => {
+            otherBlockCandidates.add(value)
           })
         }
       }
-      for(const value of pencilValueInBlockCol) {
-        if(!otherBlockPencilValues.has(value)) {
+      for(const value of candidatesInBlockCol) {
+        if(!otherBlockCandidates.has(value)) {
           return { value, rowIndex: undefined, colIndex, block: blockNum}
         }
       }
     }
     return undefined;
   }
-  private findLockedPencilValueInColsType2(candidate: number, puzzleRows?: Row[]) {
+  private findLockedCandidateInColsType2(candidate: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
       for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
         const cellsWithCandidate = [] as { rowIndex: number, colIndex: number}[]
@@ -287,7 +276,7 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
           if(cell.value) {
             continue;
           }
-          if(cell.pencilValues.has(candidate)) {
+          if(cell.candidates.has(candidate)) {
             cellsWithCandidate.push({rowIndex, colIndex});
           }
         }
@@ -397,38 +386,38 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
 
   }
 
-  private findHiddenSingle( rowIndex: number, colIndex: number, puzzleRows: Row[]) {
+  private findHiddenSingle(rowIndex: number, colIndex: number, puzzleRows: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const blockIndices = puzzleRows ? this.generateBlockIndices(puzzleRows) : this.BLOCK_INDICES;
     const cell = puzzle[rowIndex][colIndex]
     const blockNum = blockIndices.findIndex((block) => block.colIndices.includes(colIndex) && block.rowIndices.includes(rowIndex))
-    const pencilRow = puzzle[rowIndex].filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.pencilValues)
-    const pencilCol = this.getColumn(colIndex, puzzle).filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.pencilValues)
-    const pencilBlock = this.getBlock(blockNum, puzzle).filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.pencilValues)
-    for(const pencilValue of cell.pencilValues) {
+    const candidateRow = puzzle[rowIndex].filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.candidates)
+    const candidateCol = this.getColumn(colIndex, puzzle).filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.candidates)
+    const candidateBlock = this.getBlock(blockNum, puzzle).filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.candidates)
+    for(const candidate of cell.candidates) {
       let singleInRow = true;
       let singleInCol = true;
       let singleInBlock = true;
-       for(const cellPencilValues of pencilRow) {
-        if(cellPencilValues.has(pencilValue)) {
+       for(const cellCandidates of candidateRow) {
+        if(cellCandidates.has(candidate)) {
           singleInRow = false;
           break;
         }
       }
-      for(const cellPencilValues of pencilCol) {
-        if(cellPencilValues.has(pencilValue)) {
+      for(const cellCandidates of candidateCol) {
+        if(cellCandidates.has(candidate)) {
           singleInCol = false;
           break;
         }
       }
-      for(const cellPencilValues of pencilBlock) {
-        if(cellPencilValues.has(pencilValue)) {
+      for(const cellCandidates of candidateBlock) {
+        if(cellCandidates.has(candidate)) {
           singleInBlock = false;
           break;
         }
       }
       if(singleInRow || singleInCol || singleInBlock) {
-        return pencilValue;
+        return candidate;
       }
     }
     return -1;
@@ -439,38 +428,38 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
       
     }
   }
-  private removePencilValueFromRow(value: number, rowIndex: number, puzzleRows?: Row[]) {
+  private removeCandidateFromRow(value: number, rowIndex: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle
     for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
       const cell = puzzle[rowIndex][colIndex];
       if(cell.value) {
         continue;
       }
-      cell.pencilValues.delete(value);
+      cell.candidates.delete(value);
 
     }
   }
-  private removePencilValueFromCol(value: number, colIndex: number, puzzleRows?: Row[]) {
+  private removeCandidatesFromCol(value: number, colIndex: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle
     for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
       const cell = puzzle[rowIndex][colIndex];
       if(cell.value) {
         continue;
       }
-      cell.pencilValues.delete(value);
+      cell.candidates.delete(value);
     }
   }
-  private removePencilValuesFromBlock(value: number, blockNum: number, puzzleRows?: Row[]) {
+  private removeCandidatesFromBlock(value: number, blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const block = this.getBlock(blockNum, puzzle);
     for(const cell of block) {
       if(cell.value) {
         continue;
       }
-      cell.pencilValues.delete(value);
+      cell.candidates.delete(value);
     }
   }
-  private removePencilValueFromRowExceptBlock(value: number, rowIndex: number, blockNum: number, puzzleRows?: Row[]) {
+  private removeCandidateFromRowExceptBlock(value: number, rowIndex: number, blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const blockIndexSet = puzzleRows ? this.generateBlockIndices(puzzleRows)[blockNum] : this.BLOCK_INDICES[blockNum];
     const row = puzzle[rowIndex];
@@ -479,10 +468,10 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
       if(blockIndexSet.colIndices.includes(colIndex) || cell.value) {
         continue;
       }
-      cell.pencilValues.delete(value);
+      cell.candidates.delete(value);
     }
   }
-    private removePencilValueFromColExceptBlock(value: number, colIndex: number, blockNum: number, puzzleRows?: Row[]) {
+    private removeCandidateFromColExceptBlock(value: number, colIndex: number, blockNum: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
     const blockIndexSet = puzzleRows ? this.generateBlockIndices(puzzleRows)[blockNum] : this.BLOCK_INDICES[blockNum];
     const col = this.getColumn(colIndex, puzzle);
@@ -491,18 +480,20 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
       if(blockIndexSet.rowIndices.includes(rowIndex) || cell.value) {
         continue;
       }
-      cell.pencilValues.delete(value);
+      cell.candidates.delete(value);
     }
   }
 
   getBlock(num: number, puzzleRows?: Row[]) {
     const puzzle = puzzleRows ?? this.puzzle;
-    const block = new Array<Cell>(puzzle.length);
+    const block = [] as Cell[];
     const blockWidth = Math.sqrt(puzzle.length); // this should be always an integer!!!
-    const yStartIndex = num - (num % blockWidth)
-    const xStartIndex = blockWidth * (num % blockWidth)
-    for(let i = 0; i < puzzle.length; i++) {
-      block[i] = puzzle[yStartIndex + Math.floor(i / blockWidth)][xStartIndex + (i % blockWidth)]
+    const startRow = Math.floor(num / blockWidth) * blockWidth;
+    const startCol = (num % blockWidth) * blockWidth;
+    for(let rowIndex = 0; rowIndex < blockWidth; rowIndex++) {
+      for(let colIndex = 0; colIndex < blockWidth; colIndex++) {
+        block.push(puzzle[startRow + rowIndex][startCol + colIndex])
+      }
     }
     return block
   }

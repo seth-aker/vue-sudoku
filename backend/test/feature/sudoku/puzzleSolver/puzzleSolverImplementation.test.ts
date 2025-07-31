@@ -1,15 +1,15 @@
 // deno-lint-ignore-file no-explicit-any
 import { expect, describe, test } from 'vitest'
 
-import { PuzzleSolverImplementation } from "./puzzleSolverImplementation.ts"
-import { Row } from "../datasource/models/row.ts"
-import { PuzzleSolverError } from '../errors/puzzleSolverError.ts'
-import { buildBlankPuzzleRows } from '../utils/buildBlankPuzzleRows.ts'
+import { PuzzleSolverImplementation } from "@/feature/sudoku/puzzleSolver/puzzleSolverImplementation"
+import { Row } from "@/feature/sudoku/datasource/models/row"
+import { PuzzleSolverError } from '@/feature/sudoku/errors/puzzleSolverError'
+import { buildBlankPuzzleRows } from '@/feature/sudoku/utils/buildBlankPuzzleRows'
 
 describe('PuzzleSolverImplementation Tests', () => {
   describe('Constructor Tests', () => {
     test('Constructor throws error when invalid puzzle is used', () => {
-      const oneRow = [[{cellId: 'test', value: 1, pencilValues: new Set<number>(), type: 'blank' }]] as Row[]; 
+      const oneRow = [[{cellId: 'test', value: 1, candidates: new Set<number>(), type: 'blank' }]] as Row[]; 
       const nineRowsNoCells = [[],[],[],[],[],[],[],[],[]] as Row[];
       expect(() => new PuzzleSolverImplementation(oneRow)).toThrow(PuzzleSolverError)
       expect(() => new PuzzleSolverImplementation(nineRowsNoCells)).toThrow(PuzzleSolverError)
@@ -37,26 +37,26 @@ describe('PuzzleSolverImplementation Tests', () => {
     test("fillPuzzlePencilValues fills all pencilValues for all cells", () => {
       const puzzleRows = buildBlankPuzzleRows(9);
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      const filledRows = puzzleSolver.fillPuzzlePencilValues();
+      const filledRows = puzzleSolver.fillPuzzleCandidates();
       
       const puzzleRows2 = buildBlankPuzzleRows(9)
       puzzleRows2[0][0].value = 1;
-      const filledRows2 = puzzleSolver.fillPuzzlePencilValues(puzzleRows2);
+      const filledRows2 = puzzleSolver.fillPuzzleCandidates(puzzleRows2);
       
       for(let i = 0; i < filledRows.length; i++) {
         for(let j = 0; j < filledRows.length; j++) {
-          expect(filledRows[i][j].pencilValues).not.toEqual(puzzleRows[i][j])
-          expect(filledRows[i][j].pencilValues).toEqual(new Set([1,2,3,4,5,6,7,8,9]))
+          expect(filledRows[i][j].candidates).not.toEqual(puzzleRows[i][j])
+          expect(filledRows[i][j].candidates).toEqual(new Set([1,2,3,4,5,6,7,8,9]))
         }
       }
       filledRows2[0].forEach((cell) => {
-        expect(cell.pencilValues).not.toContain(1)
+        expect(cell.candidates).not.toContain(1)
       })
       filledRows2.forEach((row) => {
-        expect(row[0].pencilValues).not.toContain(1)
+        expect(row[0].candidates).not.toContain(1)
       })
       puzzleSolver.getBlock(0, filledRows2).forEach((cell) => {
-        expect(cell.pencilValues).not.toContain(1)
+        expect(cell.candidates).not.toContain(1)
       })
     })
   })
@@ -64,8 +64,8 @@ describe('PuzzleSolverImplementation Tests', () => {
     test('fillCellPencilValues fills all cells when no numbers conflict', () => {
       const puzzleRows = buildBlankPuzzleRows(9);
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillCellPencilValues(0, 0);
-      expect(puzzleSolver.getPuzzle()[0][0].pencilValues).toEqual(new Set([1,2,3,4,5,6,7,8,9]))
+      puzzleSolver.fillCellCandidates(0, 0);
+      expect(puzzleSolver.getPuzzle()[0][0].candidates).toEqual(new Set([1,2,3,4,5,6,7,8,9]))
     })
     test('fillCellPencilValues only fills one number for cell that has one option in row', () => {
       const puzzleRows1 = buildBlankPuzzleRows(9);
@@ -89,19 +89,19 @@ describe('PuzzleSolverImplementation Tests', () => {
       const puzzleSolver1 = new PuzzleSolverImplementation(puzzleRows1);
       const puzzleSolver2 = new PuzzleSolverImplementation(puzzleRows2);
       const puzzleSolver3 = new PuzzleSolverImplementation(puzzleRows3)
-      puzzleSolver1.fillCellPencilValues(0,0);
-      puzzleSolver2.fillCellPencilValues(0,0);
-      puzzleSolver3.fillCellPencilValues(0,0);
-      expect(puzzleSolver1.getPuzzle()[0][0].pencilValues).toEqual(new Set([9]))
-      expect(puzzleSolver2.getPuzzle()[0][0].pencilValues).toEqual(new Set([9]))
-      expect(puzzleSolver3.getPuzzle()[0][0].pencilValues).toEqual(new Set([9]))
+      puzzleSolver1.fillCellCandidates(0,0);
+      puzzleSolver2.fillCellCandidates(0,0);
+      puzzleSolver3.fillCellCandidates(0,0);
+      expect(puzzleSolver1.getPuzzle()[0][0].candidates).toEqual(new Set([9]))
+      expect(puzzleSolver2.getPuzzle()[0][0].candidates).toEqual(new Set([9]))
+      expect(puzzleSolver3.getPuzzle()[0][0].candidates).toEqual(new Set([9]))
     })
     test('fillCellPencilValues doesn\'t duplicate pencil values', () => {
       const puzzleRows = buildBlankPuzzleRows(9);
-      puzzleRows[0][0].pencilValues = new Set<number>([1,2,3,4,5,6,7,8,9])
+      puzzleRows[0][0].candidates = new Set<number>([1,2,3,4,5,6,7,8,9])
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillCellPencilValues(0,0);
-      expect(puzzleSolver.getPuzzle()[0][0].pencilValues).toEqual(new Set([1,2,3,4,5,6,7,8,9]))
+      puzzleSolver.fillCellCandidates(0,0);
+      expect(puzzleSolver.getPuzzle()[0][0].candidates).toEqual(new Set([1,2,3,4,5,6,7,8,9]))
     })
   })
   describe("findFullHouse() tests", () => {
@@ -211,7 +211,7 @@ describe('PuzzleSolverImplementation Tests', () => {
         puzzleRows[0][i].value = i + 1
       }
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
+      puzzleSolver.fillPuzzleCandidates();
       const single = puzzleSolver.findSingle();
       expect(single).toBeDefined();
       expect(single?.value).toBe(9);
@@ -224,7 +224,7 @@ describe('PuzzleSolverImplementation Tests', () => {
         puzzleRows[i][0].value = i + 1
       }
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
+      puzzleSolver.fillPuzzleCandidates();
       const single = puzzleSolver.findSingle();
       expect(single).toBeDefined();
       expect(single?.value).toBe(9);
@@ -242,7 +242,7 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleRows[2][0].value = 7
       puzzleRows[2][1].value = 8
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues()
+      puzzleSolver.fillPuzzleCandidates()
       const single = puzzleSolver.findSingle();
       expect(single).toBeDefined();
       expect(single?.value).toBe(9);
@@ -252,7 +252,7 @@ describe('PuzzleSolverImplementation Tests', () => {
     test('findSingle returns undefined when there is no single to be found', () => {
       const puzzleRows = buildBlankPuzzleRows(9);
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
+      puzzleSolver.fillPuzzleCandidates();
       const single = puzzleSolver.findSingle();
       expect(single).toBeUndefined();
     })
@@ -263,9 +263,9 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleRows[0][6].value = 9;
       puzzleRows[3][7].value = 9;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
+      puzzleSolver.fillPuzzleCandidates();
       const single = puzzleSolver.findSingle();
-      expect(puzzleSolver.getPuzzle()[8][8].pencilValues).toEqual(new Set([1,2,3,4,5,6,7,8,9]));
+      expect(puzzleSolver.getPuzzle()[8][8].candidates).toEqual(new Set([1,2,3,4,5,6,7,8,9]));
       expect(single).not.toBeUndefined();
       expect(single?.value).toBe(9);
       expect(single?.rowIndex).toBe(8);
@@ -284,7 +284,7 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleRows[3][2].value = 7;
       puzzleRows[2][6].value = 1;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
+      puzzleSolver.fillPuzzleCandidates();
       const lockedValue = (puzzleSolver as any).findLockedPencilValueInRowsType1(0);
       expect(lockedValue).toBeDefined();
       expect(lockedValue?.value).toBe(1);
@@ -302,7 +302,7 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleRows[0][1].value = 7;
       puzzleRows[3][0].value = 1;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
+      puzzleSolver.fillPuzzleCandidates();
       const lockedValue = (puzzleSolver as any).findLockedPencilValueInColsType1(0);
       expect(lockedValue).toBeDefined();
       expect(lockedValue?.value).toBe(1);
@@ -318,7 +318,7 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleRows[0][7].value = 6;
       puzzleRows[0][8].value = 7;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
+      puzzleSolver.fillPuzzleCandidates();
       const lockedValue = (puzzleSolver as any).findLockedPencilValueInRowsType2(1);
       expect(lockedValue).toBeDefined();
       expect(lockedValue?.value).toBe(1);
@@ -335,7 +335,7 @@ describe('PuzzleSolverImplementation Tests', () => {
       puzzleRows[7][0].value = 6;
       puzzleRows[8][0].value = 7;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
+      puzzleSolver.fillPuzzleCandidates();
       const lockedValue = (puzzleSolver as any).findLockedPencilValueInColsType2(1);
       expect(lockedValue).toBeDefined();
       expect(lockedValue?.value).toBe(1);
@@ -346,45 +346,28 @@ describe('PuzzleSolverImplementation Tests', () => {
     test('findAllLockedPencilValues returns empty array when locked pencil values do not exist', () => {
       const puzzleRows = buildBlankPuzzleRows(9);
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
-      const lockedValues = puzzleSolver.findAllLockedPencilValues();
+      puzzleSolver.fillPuzzleCandidates();
+      const lockedValues = puzzleSolver.findAllLockedCandidates();
       expect(lockedValues.length).toBe(0);
     })
   })
-  describe('cellHasConflict tests', () => {
-    test('cellHasConflict() returns true when a cell has a row conflict', () => { 
+  describe('numberWorksInCell tests', () => {
+    test("numberWorksInCell returns false when there are conflicts", () => {
       const puzzleRows = buildBlankPuzzleRows(9);
-      puzzleRows[8][0].value = 1;
-      puzzleRows[8][8].value = 1;
+      puzzleRows[0][1].value = 1;
+      puzzleRows[3][3].value = 2;
+      puzzleRows[8][8].value = 3;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
-      const result = (puzzleSolver as any).cellHasConflict(8, 0);
-      expect(result).toBe(true);
-    }),
-    test('cellHasConflict() returns true when a cell has a column conflict', () => {
-      const puzzleRows = buildBlankPuzzleRows(9);
-      puzzleRows[0][0].value = 1;
-      puzzleRows[8][0].value = 1;
-      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
-      const result = (puzzleSolver as any).cellHasConflict(0,0);
-      expect(result).toBe(true);
+      expect(puzzleSolver.numberWorksInCell(0,0,1)).toBe(false); // Row conflict
+      expect(puzzleSolver.numberWorksInCell(8,3,2)).toBe(false); // Column conflict
+      expect(puzzleSolver.numberWorksInCell(6,6,3)).toBe(false); // Block conflict
     })
-    test('cellHasConflict() returns true when a cell has a column conflict', () => {
+    test('numberWorksInCell() returns true when a cell has no conflicts', () => {
       const puzzleRows = buildBlankPuzzleRows(9);
-      puzzleRows[8][8].value = 1;
-      puzzleRows[6][6].value = 1;
       const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
-      const result = (puzzleSolver as any).cellHasConflict(8,8);
+      puzzleSolver.fillPuzzleCandidates();
+      const result = puzzleSolver.numberWorksInCell(8,8,1);
       expect(result).toBe(true);
-    })
-    test('cellHasConflict() returns false when a cell has no conflicts', () => {
-      const puzzleRows = buildBlankPuzzleRows(9);
-      const puzzleSolver = new PuzzleSolverImplementation(puzzleRows);
-      puzzleSolver.fillPuzzlePencilValues();
-      const result = (puzzleSolver as any).cellHasConflict(8,8);
-      expect(result).toBe(false);
     })
   })
   describe('isPuzzleSolved() tests', () => {

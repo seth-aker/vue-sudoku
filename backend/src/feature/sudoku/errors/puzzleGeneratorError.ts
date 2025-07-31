@@ -1,7 +1,7 @@
-export class PuzzleSolverError extends Error {
+export class PuzzleGeneratorError extends Error {
   constructor(message: string) {
     super();
     this.message = `[PuzzleGenerator] ${message}`;
-    Object.setPrototypeOf(this, PuzzleSolverError.prototype)
+    Object.setPrototypeOf(this, PuzzleGeneratorError.prototype)
   }
 }

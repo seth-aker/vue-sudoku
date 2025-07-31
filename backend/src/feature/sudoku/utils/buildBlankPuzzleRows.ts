@@ -1,5 +1,5 @@
-import { Cell } from "../datasource/models/cell.ts"
-import { Row } from "../datasource/models/row.ts"
+import { Cell } from "../datasource/models/cell"
+import { Row } from "../datasource/models/row"
 
 export function buildBlankPuzzleRows(rowLength: number) {
     if(!Number.isInteger(Math.sqrt(rowLength))){
@@ -13,7 +13,7 @@ export function buildBlankPuzzleRows(rowLength: number) {
           cellId: `C${j}${i}`,
           type: 'blank',
           value: undefined,
-          pencilValues: new Set<number>()
+          candidates: new Set<number>()
         }
         row.push(cell)
       }

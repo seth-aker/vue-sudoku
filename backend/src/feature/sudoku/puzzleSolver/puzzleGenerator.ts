@@ -1,8 +1,9 @@
 import { Difficulty } from "../datasource/models/difficulty";
 import { PuzzleSolver } from "./puzzleSolver";
-import { buildBlankPuzzleRows} from '../utils/buildBlankPuzzleRows.ts'
-import { Row } from "../datasource/models/row.ts";
-import { PuzzleSolverError } from "../errors/puzzleSolverError.ts";
+import { buildBlankPuzzleRows} from '../utils/buildBlankPuzzleRows'
+import { Row } from "../datasource/models/row";
+import { PuzzleSolverError } from "../errors/puzzleSolverError";
+import { shuffleArray } from "../utils/shuffleArray";
 export class PuzzleGenerator {
   private puzzleSolver: PuzzleSolver
   constructor(puzzleSolver: PuzzleSolver) {
@@ -14,30 +15,43 @@ export class PuzzleGenerator {
     let attempts = 0;
     while(!puzzleGenerated) {
       const puzzle = buildBlankPuzzleRows(size);
-
+      this.fillPuzzleRandomly(puzzle)
+      
     } 
   }
 
   private fillPuzzleRandomly(puzzle: Row[]) {
-    while(!this.puzzleSolver.isPuzzleSolved(puzzle)) {
-      const rowIndex = Math.floor(Math.random() * 9);
-      const colIndex = Math.floor(Math.random() * 9);
-      const value = Math.floor(Math.random() * 9) + 1;
-      if(!this.puzzleSolver.numberWorksInCell(rowIndex, colIndex, value, puzzle)) {
-        continue;
+    const emptyCell = this.findEmptyCell(puzzle);
+    if(!emptyCell) {
+      return true
+    }
+    const potentialValues = [] as number[];
+    for(let i = 1; i <= puzzle.length; i++) {
+      potentialValues.push(i);
+    }
+    shuffleArray(potentialValues);
+    for(const value of potentialValues) {
+      if(this.puzzleSolver.numberWorksInCell(emptyCell.rowIndex, emptyCell.colIndex, value, puzzle)) {
+        puzzle[emptyCell.rowIndex][emptyCell.colIndex].value = value;
+        // Recursively fill puzzle
+        if(this.fillPuzzleRandomly(puzzle)) {
+          return true;
+        }
+        // backtrack if the puzzle value leads to a un-solvable puzzle
+        puzzle[emptyCell.rowIndex][emptyCell.colIndex].value = undefined;
       }
-      puzzle[rowIndex][colIndex].value = value;
-      try {
-        const result = this.puzzleSolver.solvePuzzle(puzzle);
-        
-      } catch (err) {
-        if(err instanceof PuzzleSolverError) {
-          continue;
-        } else {
-          throw err;
+    }
+    return false;
+  }
+  private findEmptyCell(puzzle: Row[]) {
+    for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
+      for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
+        if(!puzzle[rowIndex][colIndex].value) {
+          return {rowIndex, colIndex}
         }
       }
-
     }
+    return null;
   }
+  
 }
