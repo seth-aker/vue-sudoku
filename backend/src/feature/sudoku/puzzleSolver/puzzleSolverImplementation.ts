@@ -75,19 +75,19 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     for(let i = 0; i < puzzle.length; i++) {
       const lockedValueInRow = this.findLockedCandidateInRowsType1(i, puzzle);
       if(lockedValueInRow) {
-        lockedValues.push({...lockedValueInRow, type: 'lockedPairsType1'});
+        lockedValues.push({...lockedValueInRow, type: 'lockedCandidatePointing'});
       }
       const lockedValueInCol = this.findLockedCandidateInColsType1(i, puzzle);
       if(lockedValueInCol) {
-        lockedValues.push({...lockedValueInCol, type: 'lockedPairsType1'});
+        lockedValues.push({...lockedValueInCol, type: 'lockedCandidatePointing'});
       }
       const lockedValueInRow2 = this.findLockedCandidateInRowsType2(i + 1, puzzle);
       if(lockedValueInRow2) {
-        lockedValues.push({...lockedValueInRow2, type: 'lockedPairsType2'});
+        lockedValues.push({...lockedValueInRow2, type: 'lockedCandidateClaiming'});
       }
       const lockedValueInCol2 = this.findLockedCandidateInColsType2(i + 1, puzzle);
       if(lockedValueInCol2) {
-        lockedValues.push( {...lockedValueInCol2, type: 'lockedPairsType2'})
+        lockedValues.push( {...lockedValueInCol2, type: 'lockedCandidateClaiming'})
       }
     }
     return lockedValues;

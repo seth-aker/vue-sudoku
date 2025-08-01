@@ -6,6 +6,4 @@ export class PuzzleSolver {
   solvePuzzle: (puzzleRows?: Row[]) => {initialPuzzle: Row[], solvedPuzzle: Row[], strategiesUsed: StrategiesUsed}
   isPuzzleSolved: (puzzleRows?: Row[], validate?: boolean) => boolean
   numberWorksInCell: (rowIndex: number, colIndex: number, potentialNum: number, puzzleRows: Row[]) => boolean
-  getPuzzle: () => Row[];
-  setPuzzle: (puzzle: Row[]) => void
 }
