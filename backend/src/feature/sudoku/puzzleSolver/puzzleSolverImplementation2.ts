@@ -121,17 +121,45 @@ export class PuzzleSolverImplementation2 implements PuzzleSolver {
       puzzle[single.rowIndex][single.colIndex].value = single.value;
       this.removeCandidateInRow(single.value, single.rowIndex, puzzle);
       this.removeCandidateInCol(single.value, single.colIndex, puzzle);
-      this.removeCandidateInBlock(single.value, this.calcBlockNum(single.rowIndex, single.colIndex, Math.sqrt(puzzle.length)), puzzle);
+      this.removeCandidateInBlock(single.value, this.calcBlockNum(single.rowIndex, single.colIndex, puzzle), puzzle);
       strategiesUsed[single.type] ? strategiesUsed[single.type]++ : strategiesUsed[single.type] = 1;
       single = this.findSingle(puzzle);
     }
     if(this.findLockedCandidate(puzzle, strategiesUsed)) {
-      this._solve(puzzle, strategiesUsed);
+      if(this._solve(puzzle, strategiesUsed)) {
+        return true;
+      }
     }
-
-    
-    
-
+    if(this.findSubsets(puzzle, strategiesUsed)) {
+      if(this._solve(puzzle, strategiesUsed)){
+        return true;
+      }
+    }
+    // If the code gets here then we have to guess
+    const emptyCell = this.findEmptyCell(puzzle);
+    if(!emptyCell) {
+      return true;
+    }
+    const cell = puzzle[emptyCell.rowIndex][emptyCell.colIndex];
+    for(const value of cell.candidates) {
+        puzzle[emptyCell.rowIndex][emptyCell.colIndex].value = value;
+        const candidatesRemoved = [] as {rowIndex: number, colIndex: number, value: number}[];
+        candidatesRemoved.push(...this.removeCandidateInRow(value, emptyCell.rowIndex, puzzle));
+        candidatesRemoved.push(...this.removeCandidateInCol(value, emptyCell.colIndex, puzzle));
+        candidatesRemoved.push(...this.removeCandidateInBlock(value, this.calcBlockNum(emptyCell.rowIndex, emptyCell.colIndex, puzzle), puzzle));
+        strategiesUsed['guess'] ? strategiesUsed['guess']++ : strategiesUsed['guess'] = 1;
+        // Recursively attempt to solve the puzzle from here.
+        if(this._solve(puzzle, strategiesUsed)) {
+          return true;
+        }
+        // backtrack if the puzzle value leads to a un-solvable puzzle
+        puzzle[emptyCell.rowIndex][emptyCell.colIndex].value = undefined;
+        candidatesRemoved.forEach((candidateRemoved) => {
+          const cell = puzzle[candidateRemoved.rowIndex][candidateRemoved.colIndex]
+          cell.candidates.add(candidateRemoved.value)
+        })
+      }
+    return false;
   }
   private findSingle(puzzle: Row[]) {
     for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
@@ -154,7 +182,6 @@ export class PuzzleSolverImplementation2 implements PuzzleSolver {
   }
 
   private isFullHouse(rowIndex: number, colIndex: number, puzzle: Row[]) {
-    const blockWidth = Math.sqrt(puzzle.length);
     const rowValues = puzzle[rowIndex]
       .map((cell) => cell.value)
       .filter((each) => each !== undefined);
@@ -162,7 +189,7 @@ export class PuzzleSolverImplementation2 implements PuzzleSolver {
       .map((cell) => cell.value)
       .filter((each) => each !== undefined);
 
-    const blockNum = this.calcBlockNum(rowIndex, colIndex, blockWidth)
+    const blockNum = this.calcBlockNum(rowIndex, colIndex, puzzle)
     const blockValues = this.getBlock(blockNum, puzzle)
       .map((cell) => cell.value)
       .filter((each) => each !== undefined);
@@ -173,13 +200,9 @@ export class PuzzleSolverImplementation2 implements PuzzleSolver {
     return false;
 
   }
-  private calcBlockNum(rowIndex: number, colIndex: number, blockWidth: number) {
-    return (Math.floor(rowIndex / blockWidth) * blockWidth) + (colIndex % blockWidth)
-  }
   private findHiddenSingle(rowIndex: number, colIndex: number, puzzle: Row[]) {
     const cell = puzzle[rowIndex][colIndex];
-    const blockWidth = Math.sqrt(puzzle.length);
-    const blockNum = this.calcBlockNum(rowIndex, colIndex, blockWidth);
+    const blockNum = this.calcBlockNum(rowIndex, colIndex, puzzle);
     const candidateRow = puzzle[rowIndex].filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.candidates)
     const candidateCol = this.getColumn(colIndex, puzzle).filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.candidates)
     const candidateBlock = this.getBlock(blockNum, puzzle).filter((eachCell) => eachCell.cellId !== cell.cellId).map((eachCell) => eachCell.candidates)
@@ -303,7 +326,7 @@ export class PuzzleSolverImplementation2 implements PuzzleSolver {
             continue;
           }
           if(cell.candidates.has(digit)) {
-            rowLocations.push(digit);
+            rowLocations.push(colIndex);
           }
         }
         if(rowLocations.length > 1 && rowLocations.length < 4) {
@@ -344,7 +367,7 @@ export class PuzzleSolverImplementation2 implements PuzzleSolver {
             continue;
           }
           if(cell.candidates.has(digit)) {
-            colLocations.push(digit)
+            colLocations.push(rowIndex)
           }
         }
 
@@ -378,36 +401,201 @@ export class PuzzleSolverImplementation2 implements PuzzleSolver {
     return false;
   }
 
-  private findHiddenSubsets(puzzle: Row[], strategiesUsed: StrategiesUsed) {
-    // IN ROWS
-    for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
-      const row = puzzle[rowIndex];
-
+  private findSubsets(puzzle: Row[], strategiesUsed: StrategiesUsed) {
+    if(this.findNakedPair(puzzle)) {
+      strategiesUsed['nakedPairs'] ? strategiesUsed['nakedPairs']++ : strategiesUsed['nakedPairs'] = 1;
+      return true;
     }
   }
-  private findNakedPair(puzzle: Row[], strategiesUsed: StrategiesUsed) {
+  private findNakedPair(puzzle: Row[]) {
     // In Rows
+    const blockWidth = Math.sqrt(puzzle.length);
     for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
-      const nakedPairs = [] as Set<number>[]
+      const nakedPairLocs = [] as {rowIndex: number, colIndex: number, pair: Set<number>}[]
       for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
         const cell = puzzle[rowIndex][colIndex]
         if(cell.value) {
           continue;
         }
         if(cell.candidates.size === 2) {
-          nakedPairs.push(cell.candidates)
+          nakedPairLocs.push({rowIndex, colIndex, pair: cell.candidates})
         }
       }
-      if(nakedPairs.length > 2) {
-        for(let i = 0; i < nakedPairs.length; i++) {
-          const pair = nakedPairs[i];
-          for(const pair2 of nakedPairs) {
-            
+      if(nakedPairLocs.length > 1) {
+        for(let i = 0; i < nakedPairLocs.length; i++) {
+          const nakedPairLoc = nakedPairLocs[i];
+          const pairArray = Array.from(nakedPairLoc.pair)
+          const found = nakedPairLocs.find((loc, index) => {
+            if(index === i) {
+              return false
+            }
+            return pairArray.every((value) => loc.pair.has(value))
+          })
+          if(found) {
+            let eliminationMade = false;
+            for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
+              if(colIndex === found.colIndex || colIndex === nakedPairLoc.colIndex) {
+                continue;
+              }
+              const cell = puzzle[found.rowIndex][colIndex];
+              if(cell.value) {
+                continue;
+              }
+              found.pair.forEach((value) => {
+                if(cell.candidates.delete(value)) {
+                  eliminationMade = true;
+                }
+              })
+            }
+            // Check to see if they are in the same block
+            const blockNum1 = this.calcBlockNum(nakedPairLoc.rowIndex, nakedPairLoc.colIndex, puzzle)
+            const blockNum2 = this.calcBlockNum(found.rowIndex, found.colIndex, puzzle)
+            if(blockNum1 === blockNum2) {
+              const yStartIndex = blockNum1 - (blockNum1 % blockWidth);
+              const xStartIndex = blockWidth * (blockNum1 % blockWidth);
+              for(let row = yStartIndex; row < yStartIndex + blockWidth; row++) {
+                for(let col = xStartIndex; col < xStartIndex + blockWidth; col++) {
+                  if((row === found.rowIndex && col === found.colIndex) ||
+                    (row === nakedPairLoc.rowIndex && col === nakedPairLoc.colIndex)) {
+                      continue;
+                  }
+                  const cell = puzzle[row][col];
+                  if(cell.value) {
+                    continue;
+                  }
+                  found.pair.forEach((value) => {
+                    if(cell.candidates.delete(value)) {
+                      eliminationMade = true;
+                    }
+                  })
+                }
+              }
+            }  
+            if(eliminationMade) {
+              return true;
+            }
           }
         }
       }
-
     }
+    // In columns
+    for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
+      const nakedPairLocs = [] as {rowIndex: number, colIndex: number, pair: Set<number>}[]
+      for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
+        const cell = puzzle[rowIndex][colIndex]
+        if(cell.value) {
+          continue;
+        }
+        if(cell.candidates.size === 2) {
+          nakedPairLocs.push({rowIndex, colIndex, pair: cell.candidates})
+        }
+      }
+      if(nakedPairLocs.length < 2) {
+        continue;
+      }
+      for(let i = 0; i < nakedPairLocs.length; i++) {
+        const nakedPairLoc = nakedPairLocs[i];
+        const pairArray = Array.from(nakedPairLoc.pair);
+        const found = nakedPairLocs.find((loc, index) => {
+          if(index === i) {
+            return false;
+          }
+          return pairArray.every((value) => loc.pair.has(value));
+        })
+        if(found) {
+          let eliminationMade = false;
+          for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
+            if(rowIndex === found.rowIndex || rowIndex === nakedPairLoc.rowIndex) {
+              continue;
+            }
+            const cell = puzzle[rowIndex][found.colIndex];
+            if(cell.value) {
+              continue;
+            }
+            found.pair.forEach((value) => {
+              if(cell.candidates.delete(value)) {
+                eliminationMade = true;
+              }
+            })
+          }
+          // Check to see if they are in the same block
+          const blockNum1 = this.calcBlockNum(nakedPairLoc.rowIndex, nakedPairLoc.colIndex, puzzle)
+          const blockNum2 = this.calcBlockNum(found.rowIndex, found.colIndex, puzzle)
+          if(blockNum1 === blockNum2) {
+            const yStartIndex = blockNum1 - (blockNum1 % blockWidth);
+            const xStartIndex = blockWidth * (blockNum1 % blockWidth);
+            for(let row = yStartIndex; row < yStartIndex + blockWidth; row++) {
+              for(let col = xStartIndex; col < xStartIndex + blockWidth; col++) {
+                if((row === found.rowIndex && col === found.colIndex) ||
+                  (row === nakedPairLoc.rowIndex && col === nakedPairLoc.colIndex)) {
+                    continue;
+                }
+                const cell = puzzle[row][col];
+                if(cell.value) {
+                  continue;
+                }
+                found.pair.forEach((value) => {
+                  if(cell.candidates.delete(value)) {
+                    eliminationMade = true;
+                  }
+                })
+              }
+            }
+          }  
+          if(eliminationMade) {
+            return true;
+          }
+        }
+      }
+    }
+    // In blocks
+    for(let blockNum = 0; blockNum < puzzle.length; blockNum++) {
+      const block = this.getBlock(blockNum, puzzle);
+      const pairLocations = [] as {loc: number, pair: Set<number>}[];
+      for(let i = 0; i < block.length; i++) {
+        const cell = block[i];
+        if(cell.value) {
+          continue;
+        }
+        if(cell.candidates.size === 2) {
+          pairLocations.push({loc: i, pair: cell.candidates})
+        }
+      }
+      if(pairLocations.length < 2) {
+        continue;
+      }
+      for(let i = 0; i < pairLocations.length; i++) {
+        const pairLocation = pairLocations[i];
+        const pairArray = Array.from(pairLocation.pair)
+        const found = pairLocations.find((loc, index) => {
+          if(index === i) {
+            return false;
+          }
+          return pairArray.every((value) => loc.pair.has(value))
+        })
+        if(found) {
+          let eliminationMade = false;
+          for(let j = 0; j < block.length; j++) {
+            if(pairLocation.loc === j || found.loc === j) {
+              continue
+            }
+            const cell = block[j];
+            if(cell.value) {
+              continue;
+            }
+            found.pair.forEach((value) => {
+              if(cell.candidates.delete(value)) {
+                eliminationMade = true;
+              }
+            })
+          }
+          if(eliminationMade) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
   private findEmptyCell(puzzle: Row[]) {
     for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
@@ -420,22 +608,55 @@ export class PuzzleSolverImplementation2 implements PuzzleSolver {
     return null;
   }
   private removeCandidateInRow(value: number, rowIndex: number, puzzle: Row[]) {
-    const row = puzzle[rowIndex];
-    for(const cell of row) {
-      cell.candidates.delete(value);
+    const candidatesRemoved = [] as {rowIndex: number, colIndex: number, value: number}[]
+    for(let colIndex = 0; colIndex < puzzle.length; colIndex++) {
+      const cell = puzzle[rowIndex][colIndex];
+      if(cell.value) {
+        continue;
+      }
+      if(cell.candidates.delete(value)) {
+        candidatesRemoved.push({rowIndex, colIndex, value})
+      }
     }
+    return candidatesRemoved;
   }
   private removeCandidateInCol(value: number, colIndex: number, puzzle: Row[]) {
-    const col = this.getColumn(colIndex, puzzle);
-    for(const cell of col) {
-      cell.candidates.delete(value);
+    const candidatesRemoved = [] as {rowIndex: number, colIndex: number, value: number}[]
+    for(let rowIndex = 0; rowIndex < puzzle.length; rowIndex++) {
+      const cell = puzzle[rowIndex][colIndex];
+      if(cell.value) {
+        continue;
+      }
+      if(cell.candidates.delete(value)) {
+        candidatesRemoved.push({rowIndex, colIndex, value})
+      }
     }
+    return candidatesRemoved;
   }
   private removeCandidateInBlock(value: number, blockNum: number, puzzle: Row[]) {
-    const block = this.getBlock(blockNum, puzzle);
-    for(const cell of block) {
-      cell.candidates.delete(value)
+    const blockWidth = Math.sqrt(puzzle.length);
+    const xStartIndex = blockWidth * (blockNum % blockWidth)
+    const yStartIndex = blockNum - (blockNum % blockWidth);
+    const candidatesRemoved = [] as {rowIndex: number, colIndex: number, value: number}[]
+    for(let rowIndex = yStartIndex; rowIndex < yStartIndex + blockWidth; rowIndex++) {
+      for(let colIndex = xStartIndex; colIndex < xStartIndex + blockWidth; colIndex++) {
+        const cell = puzzle[rowIndex][colIndex];
+        if(cell.value) {
+          continue
+        }
+        if(cell.candidates.delete(value)) {
+          candidatesRemoved.push({rowIndex, colIndex, value})
+        }
+      }
     }
+    return candidatesRemoved;
+  }
+  private calcBlockNum(rowIndex: number, colIndex: number, puzzle: Row[]) {
+    const blockWidth = Math.sqrt(puzzle.length);
+    const blockX = Math.floor(colIndex / blockWidth);
+    const blockY = Math.floor(rowIndex / blockWidth);
+    const blockNumber = blockX + (blockY * blockWidth);
+    return blockNumber;
   }
   private validatePuzzle(puzzleRows?: Row[]) {
     if(!puzzleRows) {

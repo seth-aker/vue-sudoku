@@ -9,7 +9,8 @@ export interface StrategiesUsed {
   nakedPairs: number,
   lockedPairs: number,
   nakedTriples: number,
-  lockedTriples: number
+  lockedTriples: number,
+  guess: number
 }
 
 export type Strategies = keyof StrategiesUsed
