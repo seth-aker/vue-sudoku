@@ -10,6 +10,8 @@ export interface StrategiesUsed {
   lockedPairs: number,
   nakedTriples: number,
   lockedTriples: number,
+  nakedQuads: number,
+  hiddenQuads: number,
   guess: number
 }
 

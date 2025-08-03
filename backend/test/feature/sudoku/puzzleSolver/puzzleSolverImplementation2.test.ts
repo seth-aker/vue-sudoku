@@ -115,6 +115,7 @@ describe("PuzzleSolverImplementation2 tests", () => {
       const puzzleSolver = new PuzzleSolverImplementation2();
       const res = puzzleSolver.solvePuzzle(puzzleRows);
       console.log(res.strategiesUsed)
+      console.log(res.solvedPuzzle)
       expect(puzzleSolver.isPuzzleSolved(res.initialPuzzle)).toBe(false)
       expect(puzzleSolver.isPuzzleSolved(res.solvedPuzzle)).toBe(true);
       expect(res.initialPuzzle).toEqual(expectedInitialPuzzle)
