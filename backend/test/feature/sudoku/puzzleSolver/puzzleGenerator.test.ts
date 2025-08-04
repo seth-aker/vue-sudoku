@@ -8,15 +8,14 @@ describe("PuzzleGenerator Tests", () => {
   let puzzleGenerator: PuzzleGenerator;
   let puzzleSolver: PuzzleSolverImplementation
   beforeEach(() => {
-    const rows = buildBlankPuzzleRows(9);
-    puzzleSolver = new PuzzleSolverImplementation(rows);
+    puzzleSolver = new PuzzleSolverImplementation();
     puzzleGenerator = new PuzzleGenerator(puzzleSolver);
   })
   describe("fillPuzzleRandomly Tests", () => {
     test('fillPuzzleRandomly fills puzzle', () => {
-      const puzzle = buildBlankPuzzleRows(9)
-      const filledPuzzle = (puzzleGenerator as any).fillPuzzleRandomly(puzzle);
-      expect(puzzleSolver.isPuzzleSolved(filledPuzzle)).toBe(true);
+      const puzzle = buildBlankPuzzleRows(9);
+      (puzzleGenerator as any).fillPuzzleRandomly(puzzle);
+      expect(puzzleSolver.isPuzzleSolved(puzzle)).toBe(true);
       puzzle.forEach((row: Row) => {
         expect(row.length).toBe(9);
         row.forEach((cell) => {
