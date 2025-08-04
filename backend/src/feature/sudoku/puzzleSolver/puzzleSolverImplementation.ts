@@ -6,6 +6,7 @@ import { PuzzleSolver } from "./puzzleSolver";
 import { Strategies, StrategiesUsed } from "./strategies";
 import { Cell } from "../datasource/models/cell";
 import { Step } from "./step";
+import { shuffleArray } from "../utils/shuffleArray";
 
 export class PuzzleSolverImplementation implements PuzzleSolver {
   solvePuzzle(puzzle: Row[]) {
@@ -72,7 +73,7 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
     }
     return puzzle;
   }
-
+  
   getBlock(num: number, puzzle: Row[]) {
     const block = [] as Cell[];
     const blockWidth = Math.sqrt(puzzle.length);

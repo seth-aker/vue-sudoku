@@ -1,4 +1,4 @@
-import { Difficulty } from "./difficulty.ts";
+import { Difficulty } from "./difficulty";
 
 export default interface PuzzleOptions {
   difficulty: Difficulty,

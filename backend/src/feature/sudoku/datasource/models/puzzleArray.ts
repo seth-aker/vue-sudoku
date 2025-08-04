@@ -1,4 +1,4 @@
-import { SudokuPuzzle } from "./sudokuPuzzle.ts"
+import { SudokuPuzzle } from "./sudokuPuzzle"
 
 export interface PuzzleArray {
     metadata: { 

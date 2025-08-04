@@ -7,12 +7,24 @@ export interface StrategiesUsed {
   hiddenPairs: number,
   hiddenTriples: number,
   nakedPairs: number,
-  lockedPairs: number,
   nakedTriples: number,
-  lockedTriples: number,
   nakedQuads: number,
   hiddenQuads: number,
   guess: number
 }
 
 export type Strategies = keyof StrategiesUsed
+
+export const strategyScoreMap = {
+  fullHouses: 1,
+  nakedSingles: 5,
+  hiddenSingles: 20,
+  lockedCandidatePointing: 75,
+  lockedCandidateClaiming: 75,
+  hiddenPairs: 150,
+  nakedTriples: 300,
+  hiddenTriples: 500,
+  nakedQuads: 1000,
+  hiddenQuads: 1500,
+  guess: 5000,
+};
