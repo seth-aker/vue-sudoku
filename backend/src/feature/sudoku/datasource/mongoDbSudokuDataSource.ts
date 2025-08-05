@@ -1,11 +1,12 @@
 import { Db, MongoClient, ObjectId } from 'mongodb'
-import { SudokuDataSource } from "./sudokuDataSource.ts";
-import PuzzleOptions from "./models/puzzleOptions.ts";
-import { CreatePuzzle, SudokuPuzzle, SudokuPuzzleResponse, UpdatePuzzle } from "./models/sudokuPuzzle.ts";
-import { config } from "../../../core/config/index.ts";
-import { DatabaseError } from "../../../core/errors/databaseError.ts";
-import { NotFoundError } from "../../../core/errors/notFoundError.ts";
-import { PuzzleArray } from "./models/puzzleArray.ts";
+import { SudokuDataSource } from "./sudokuDataSource";
+import PuzzleOptions from "./models/puzzleOptions";
+import { CreatePuzzle, SudokuPuzzle, SudokuPuzzleResponse, UpdatePuzzle } from "./models/sudokuPuzzle";
+import { config } from "../../../core/config/index";
+import { DatabaseError } from "../../../core/errors/databaseError";
+import { NotFoundError } from "../../../core/errors/notFoundError";
+import { PuzzleArray } from "./models/puzzleArray";
+import { User } from '@/feature/users/datasource/models/user';
 
 export class MongoDbSudokuDataSource implements SudokuDataSource {
   static instance: MongoDbSudokuDataSource | null = null;
@@ -24,12 +25,15 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
 
   async getPuzzle(requestedBy: string, options: PuzzleOptions): Promise<SudokuPuzzleResponse> {
       const db = this.connect();
-      const coll = db.collection<SudokuPuzzle>('puzzles');
-      const response = await coll.aggregate<SudokuPuzzleResponse>([
+      const puzzles = db.collection<SudokuPuzzle>('puzzles');
+      const users = db.collection<User>('users');
+      const user = await users.findOne({'_id': new ObjectId(requestedBy)})
+      const response = await puzzles.aggregate<SudokuPuzzleResponse>([
         { $match: {
-          $not: [{
-            $in: [requestedBy, "$requestedBy"]
-          }],
+          _id: {
+            $nin: user.puzzlesPlayed
+          },
+          difficulty: options.difficulty
         }},
         { $facet: {
           metadata: [{ $count: 'totalCount'}, {}],
@@ -37,12 +41,13 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
         }}
       ]).next();
       if(!response?.puzzle) {
-        throw new DatabaseError(new Error("No more puzzles"))
+        throw new DatabaseError("No more puzzles")
       }
-      response.puzzle.usedBy.push(new ObjectId(requestedBy));
-      const res = await coll.updateOne({_id: response.puzzle._id}, response.puzzle);
+      user.currentPuzzle = response.puzzle;
+      user.puzzlesPlayed.push(response.puzzle._id)
+      const res = await users.updateOne({_id: user._id }, user);
       if(!res.acknowledged) {
-        throw new DatabaseError(new Error("Failed to retrieve puzzle"))
+        throw new DatabaseError("Failed to retrieve puzzle")
       }
       return response
   }
@@ -50,7 +55,7 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
   async getPuzzleById(requestedBy: string, puzzleId: string): Promise<SudokuPuzzle> {
       const db = this.connect();
       const coll = db.collection<SudokuPuzzle>('puzzles');
-      const response = await coll.findOne({_id: puzzleId});
+      const response = await coll.findOne({_id: new ObjectId(puzzleId)});
       if(!response) {
         throw new NotFoundError(`Puzzle with id: '${puzzleId}' not found`);
       }
@@ -79,20 +84,19 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
     ]).next();
 
     if(!response) {
-      throw new DatabaseError(new Error("Error retrieving puzzles"))
+      throw new DatabaseError("Error retrieving puzzles")
     }
     return response
   }
 
-  async createPuzzle(puzzle: CreatePuzzle): Promise<SudokuPuzzle> {
+  async createPuzzles(puzzles: CreatePuzzle[]): Promise<number> {
     const db = this.connect();
     const coll = db.collection<SudokuPuzzle>('puzzles');
-    const response = await coll.insertOne(puzzle as SudokuPuzzle);
-    if(!response.acknowledged || !response.insertedId) {
-      throw new DatabaseError(new Error("Error saving puzzle"))
+    const response = await coll.insertMany(puzzles as SudokuPuzzle[]);
+    if(!response.acknowledged || !response.insertedIds) {
+      throw new DatabaseError("Error saving puzzle")
     }
-    (puzzle as SudokuPuzzle)._id = response.insertedId;
-    return puzzle as SudokuPuzzle
+    return response.insertedCount;
   }
 
   async updatePuzzle(puzzle: UpdatePuzzle): Promise<number> {
@@ -100,7 +104,7 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
     const coll = db.collection<SudokuPuzzle>('puzzles');
     const response = await coll.updateOne({_id: puzzle._id}, {$set: puzzle});
     if(!response.acknowledged || response.modifiedCount !== 1) {
-      throw new DatabaseError(new Error(`Error updating puzzle with id: ${puzzle._id}`));
+      throw new DatabaseError(`Error updating puzzle with id: ${puzzle._id}`);
     }
     return response.modifiedCount;
   }
@@ -108,9 +112,9 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
   async deletePuzzle(puzzleId: string | ObjectId): Promise<number> {
     const db = this.connect();
     const coll = db.collection<SudokuPuzzle>('puzzles');
-    const response = await coll.deleteOne({_id: puzzleId});
+    const response = await coll.deleteOne({_id: new ObjectId(puzzleId)});
     if(!response.acknowledged || response.deletedCount !== 1) {
-      throw new DatabaseError(new Error(`Error deleting puzzle: ${puzzleId}`))
+      throw new DatabaseError(`Error deleting puzzle: ${puzzleId}`)
     }
     return response.deletedCount
   }
@@ -123,7 +127,7 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
       }
       return this.db
     } catch(err) {
-      throw new DatabaseError(err as Error)
+      throw new DatabaseError(err?.message ?? 'Error connecting to database.')
     }
   }
 }

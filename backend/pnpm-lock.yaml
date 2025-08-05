@@ -26,6 +26,9 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@24.0.14)(tsx@4.20.3)
+      workerpool:
+        specifier: ^9.3.3
+        version: 9.3.3
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -1080,6 +1083,9 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
+  workerpool@9.3.3:
+    resolution: {integrity: sha512-slxCaKbYjEdFT/o2rH9xS1hf4uRDch1w7Uo+apxhZ+sf/1d9e0ZVkn42kPNGP2dgjIx6YFvSevj0zHvbWe2jdw==}
+
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
@@ -2040,6 +2046,8 @@ snapshots:
     dependencies:
       siginfo: 2.0.0
       stackback: 0.0.2
+
+  workerpool@9.3.3: {}
 
   wrappy@1.0.2: {}
 

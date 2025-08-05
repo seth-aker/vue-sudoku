@@ -5,7 +5,8 @@ import { Row } from "../datasource/models/row";
 import { shuffleArray } from "../utils/shuffleArray";
 import { strategyScoreMap } from "./strategies";
 export class PuzzleGenerator {
-  private puzzleSolver: PuzzleSolver
+  private puzzleSolver: PuzzleSolver;
+  DEFAULT_PUZZLE_SIZE = 9;
   constructor(puzzleSolver: PuzzleSolver) {
     this.puzzleSolver = puzzleSolver;
   }

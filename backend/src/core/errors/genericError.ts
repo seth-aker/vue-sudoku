@@ -1,4 +1,4 @@
-import { CustomError } from "./customError.ts";
+import { CustomError } from "./customError";
 
 export class GenericError extends CustomError {
     statusCode =  500;

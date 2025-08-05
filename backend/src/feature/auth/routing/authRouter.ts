@@ -1,5 +1,5 @@
 import Express from "express"
-import { AuthHandler } from "../handler/authHandler.ts"
+import { AuthHandler } from "../handler/authHandler"
 export default function AuthRouter(authHandler: AuthHandler) {
   const router = Express.Router()
 

@@ -3,10 +3,9 @@ import { Difficulty } from "./difficulty";
 import { Row } from "./row";
 
 export interface SudokuPuzzle {
-  _id: string | ObjectId,
+  _id: ObjectId,
   cells: Row[];
   difficulty: Difficulty
-  usedBy: ObjectId[]
 }
 
 export interface CreatePuzzle extends Omit<SudokuPuzzle, '_id'> {}
