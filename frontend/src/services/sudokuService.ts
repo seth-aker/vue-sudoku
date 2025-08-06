@@ -14,4 +14,4 @@ async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle) {
   })
 }
 
-export default {fetchNewPuzzle}
+export default {fetchNewPuzzle, fetchPuzzle, updatePuzzle}
