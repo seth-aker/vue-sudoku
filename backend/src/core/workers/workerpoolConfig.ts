@@ -8,9 +8,9 @@ export interface WorkerPoolConfig {
 
 export const config: WorkerPoolConfig = {
   name: 'puzzleGenerator',
-  workerPath: `${cf.rootDir}\\backend\\src\\feature\\sudoku\\puzzleSolver\\puzzleGeneratorWorker.ts`,
+  workerPath: `${cf.rootDir}\\src\\feature\\sudoku\\puzzleSolver\\puzzleGeneratorWorker.ts`,
   options: {
-    maxWorkers: 8,
+    maxWorkers: 4,
     workerType: 'thread'
   }
 }

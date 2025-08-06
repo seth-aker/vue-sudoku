@@ -1,17 +1,27 @@
 import express, { NextFunction, Request, Response } from 'express';
-import { SudokuService } from "../service/sudokuService";
-import { createPuzzleValidator, deletePuzzleValidator, getPuzzleValidator, updatePuzzleValidator } from "../middleware/validation/validation";
-import { DatabaseError } from "../../../core/errors/databaseError";
-import { SudokuRequest } from './sudokuRequest';
+import { SudokuService } from "../service/sudokuService.ts";
+import { deletePuzzleValidator, getPuzzleByIdValidator, getPuzzleValidator, updatePuzzleValidator } from "../middleware/validation/validation.ts";
+import { DatabaseError } from "../../../core/errors/databaseError.ts";
+import { SudokuRequest } from './sudokuRequest.ts';
+import { type PuzzleOptions} from '../datasource/models/puzzleOptions.ts';
 
 export default function SudokuRouter(sudokuService: SudokuService) {
   const router = express.Router();
   // /api/sudoku
   router.get('/', async (req: SudokuRequest, res: Response, next: NextFunction) => {
-    
+    const requestedBy = res.locals.session?.user?.id ?? ''
+    const puzzleOptions: PuzzleOptions = {
+      difficulty: req.query.difficulty ?? 'medium'
+    }
+    try {
+       const puzzle = await sudokuService.getNewPuzzle(requestedBy, puzzleOptions);
+       res.send(puzzle)
+    } catch (err) {
+      next(err)
+    }
   })
   
-  router.get('/:puzzleId', getPuzzleValidator, async (req: Request, res: Response, next: NextFunction) => {
+  router.get('/:puzzleId', getPuzzleByIdValidator, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const puzzleId = req.params.puzzleId;
       const puzzle = await sudokuService.getPuzzleById("userId", puzzleId);

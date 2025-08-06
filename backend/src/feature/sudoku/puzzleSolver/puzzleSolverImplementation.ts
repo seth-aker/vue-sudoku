@@ -1,12 +1,11 @@
 import z from "zod/v4";
-import { Row } from "../datasource/models/row";
-import { PuzzleSolverError } from "../errors/puzzleSolverError";
-import { cellSchema } from "../middleware/validation/schema/cell";
-import { PuzzleSolver } from "./puzzleSolver";
-import { Strategies, StrategiesUsed } from "./strategies";
-import { Cell } from "../datasource/models/cell";
-import { Step } from "./step";
-import { shuffleArray } from "../utils/shuffleArray";
+import { type Row } from "../datasource/models/row.ts";
+import { PuzzleSolverError } from "../errors/puzzleSolverError.ts";
+import { cellSchema } from "../middleware/validation/schema/cell.ts";
+import { PuzzleSolver } from "./puzzleSolver.ts";
+import { type Strategies, type StrategiesUsed } from "./strategies.ts";
+import { type Cell } from "../datasource/models/cell.ts";
+import { type Step } from "./step.ts";
 
 export class PuzzleSolverImplementation implements PuzzleSolver {
   solvePuzzle(puzzle: Row[]) {

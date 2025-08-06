@@ -18,16 +18,16 @@ export class MongoDbUserDataSource implements UserDataSource {
     }
     return MongoDbUserDataSource.instance;
   }
-  async createUser(user: CreateUser) {
-    const db = this.connect();
-    const coll = db.collection<User>('users');
-    const response = await coll.insertOne(user as User);
-    if(!response.acknowledged || !response.insertedId) {
-      throw new DatabaseError('Error creating new user')
-    }
-    (user as User)._id = response.insertedId;
-    return user as User;
-  };
+  // async createUser(user: CreateUser) {
+  //   const db = this.connect();
+  //   const coll = db.collection<User>('users');
+  //   const response = await coll.insertOne(user as User);
+  //   if(!response.acknowledged || !response.insertedId) {
+  //     throw new DatabaseError('Error creating new user')
+  //   }
+  //   (user as User)._id = response.insertedId;
+  //   return user as User;
+  // };
   async getUser(userId: string) {
     const db = this.connect();
     const coll = db.collection<User>('users');

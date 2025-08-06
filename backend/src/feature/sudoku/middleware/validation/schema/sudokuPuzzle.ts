@@ -1,11 +1,14 @@
 import z from "zod/v4"
-import { objectIdSchema } from "./objectId"
-import { cellSchema } from "./cell"
-import { difficultySchema } from "./difficulty"
+import { objectIdSchema } from "./objectId.ts"
+import { cellSchema } from "./cell.ts"
+import { difficultySchema } from "./difficulty.ts"
 
-export const getPuzzleSchema = z.object({
+export const getPuzzleByIdSchema = z.object({
     puzzleId: objectIdSchema
 })
+export const getPuzzleSchema = z.optional(z.object({
+    difficulty: difficultySchema
+}))
 export const createPuzzleSchema = z.object({
     cells: z.array(z.array(cellSchema, 'Invalid cell array'), 'Invalid row array'),
     difficulty: difficultySchema,

@@ -1,10 +1,12 @@
 import { SudokuDataSource } from "../datasource/sudokuDataSource";
 import { PuzzleArray } from "../datasource/models/puzzleArray";
-import PuzzleOptions from "../datasource/models/puzzleOptions";
+import { type PuzzleOptions} from "../datasource/models/puzzleOptions";
 import { SudokuPuzzle, CreatePuzzle, UpdatePuzzle } from "../datasource/models/sudokuPuzzle";
 import { SudokuService } from "./sudokuService";
 import { BaseService } from "../../../core/service/baseService";
 import { WorkerPoolManager } from "@/core/workers/workerpoolManager";
+import { DatabaseError } from "@/core/errors/databaseError";
+import { config } from "@/core/workers/workerpoolConfig";
 export class SudokuServiceImplementation extends BaseService implements SudokuService {
   private sudokuDataSource: SudokuDataSource;
   private workerpoolManager: WorkerPoolManager;
@@ -12,6 +14,7 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
     super();
     this.sudokuDataSource = dataSource;
     this.workerpoolManager = new WorkerPoolManager();
+    this.workerpoolManager.configure(config)
   }
   static instance: SudokuService | null = null;
   static create(dataSource: SudokuDataSource) {
@@ -21,13 +24,31 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
     return SudokuServiceImplementation.instance
   }
 
-  async getPuzzle(requestedBy: string, options: PuzzleOptions): Promise<SudokuPuzzle>{
+  async getNewPuzzle(requestedBy: string, options: PuzzleOptions): Promise<SudokuPuzzle>{
     return await this.callDataSource(async () => {
-      const response = await this.sudokuDataSource.getPuzzle(requestedBy, options);
-      if(response.metadata.totalCount < 100) {
-        this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, {difficulty: {rating: options.difficulty.rating}} as PuzzleOptions])
+      try {
+        const response = await this.sudokuDataSource.getNewPuzzle(requestedBy, options);
+        if(response.metadata.totalCount < 100) {
+          this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, options])
+          .then(async (newPuzzles) => {
+              const result = await this.createPuzzles(newPuzzles);
+              console.log(`${result} puzzles created!`)
+            })
+        }
+        return response.puzzle[0]
+
+      } catch (err) {
+        console.log(err.message)
+        if(err instanceof DatabaseError && err.message.includes('No more puzzles')) {
+          this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, options])
+            .then(async (newPuzzles) => {
+              const result = await this.createPuzzles(newPuzzles);
+              console.log(`${result} puzzles created!`)
+            })
+          
+        } 
+        throw err
       }
-      return response.puzzle
     });
   };
   async getPuzzleById(requestedBy: string, puzzleId: string): Promise<SudokuPuzzle> {

@@ -1,4 +1,4 @@
-import { Strategies } from "./strategies";
+import { type Strategies } from "./strategies.ts";
 
 export interface Step {
   rowIndex: number | undefined,

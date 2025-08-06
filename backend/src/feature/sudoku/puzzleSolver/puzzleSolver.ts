@@ -1,5 +1,5 @@
-import { Row } from "../datasource/models/row";
-import { StrategiesUsed } from "./strategies";
+import { type Row } from "../datasource/models/row.ts";
+import { type StrategiesUsed } from "./strategies.ts";
 
 export class PuzzleSolver {
   fillPuzzleCandidates: (puzzleRows?: Row[]) => Row[];

@@ -1,9 +1,9 @@
-import { Difficulty, difficultyScoreMin } from "../datasource/models/difficulty";
-import { PuzzleSolver } from "./puzzleSolver";
-import { buildBlankPuzzleRows} from '../utils/buildBlankPuzzleRows'
-import { Row } from "../datasource/models/row";
-import { shuffleArray } from "../utils/shuffleArray";
-import { strategyScoreMap } from "./strategies";
+import { type Difficulty, difficultyScoreMin } from "../datasource/models/difficulty.ts";
+import { PuzzleSolver } from "./puzzleSolver.ts";
+import { buildBlankPuzzleRows} from '../utils/buildBlankPuzzleRows.ts'
+import { type Row } from "../datasource/models/row.ts";
+import { shuffleArray } from "../utils/shuffleArray.ts";
+import { strategyScoreMap } from "./strategies.ts";
 export class PuzzleGenerator {
   private puzzleSolver: PuzzleSolver;
   DEFAULT_PUZZLE_SIZE = 9;

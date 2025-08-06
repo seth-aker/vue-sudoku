@@ -18,9 +18,9 @@
   "dependencies": {
     "@auth/express": "^0.11.0",
     "@auth/mongodb-adapter": "^3.10.0",
-    "dotenv": "^17.1.0",
+    "dotenv": "^17.2.1",
     "express": "^5.1.0",
-    "mongodb": "^6.17.0",
+    "mongodb": "^6.18.0",
     "vitest": "^3.2.4",
     "workerpool": "^9.3.3",
     "zod": "^3.25.76"
@@ -31,6 +31,6 @@
     "nodemon": "^3.1.10",
     "tsc": "^2.0.4",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   }
 }

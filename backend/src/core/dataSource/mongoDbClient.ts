@@ -1,6 +1,6 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
-import { config } from "../config/index.ts";
 import process from "node:process";
+import { config } from "../config/index.ts";
 
 const uri = config.dbConnectionString;
 const options = {
@@ -8,7 +8,7 @@ const options = {
       version: ServerApiVersion.v1,
       strict: true,
       deprecationErrors: true,
-    }
+    },
   }
 
 let client: MongoClient;
@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === "development") {
   client = globalWithMongo._mongoClient
 } else {
   // In production do not use global variable
-  client = new MongoClient(uri, )
+  client = new MongoClient(uri, options)
 }
 
 export default client
