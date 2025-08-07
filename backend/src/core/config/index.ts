@@ -10,6 +10,8 @@ export const config = {
   port: process.env.PORT || 3000,
   dbConnectionString: process.env.DB_CONNECTION_STRING,
   dbName: process.env.DB_NAME || 'dev',
+  issuerBaseUrl: process.env.ISSUER_BASE_URL || 'http://localhost:5173',
+  audience: process.env.AUDIENCE || 'https://localhost:6666',
   rootDir: process.cwd(),
   authSecret: process.env.AUTH_SECRET || ''
 }

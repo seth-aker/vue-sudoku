@@ -1,15 +1,16 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { SudokuService } from "../service/sudokuService.ts";
-import { deletePuzzleValidator, getPuzzleByIdValidator, getPuzzleValidator, updatePuzzleValidator } from "../middleware/validation/validation.ts";
+import { deletePuzzleValidator, getPuzzleByIdValidator, updatePuzzleValidator } from "../middleware/validation/validation.ts";
 import { DatabaseError } from "../../../core/errors/databaseError.ts";
 import { SudokuRequest } from './sudokuRequest.ts';
 import { type PuzzleOptions} from '../datasource/models/puzzleOptions.ts';
+import { parseAuthHeader } from '@/feature/users/utils/parseAuthHeader.ts';
 
 export default function SudokuRouter(sudokuService: SudokuService) {
   const router = express.Router();
   // /api/sudoku
-  router.get('/', async (req: SudokuRequest, res: Response, next: NextFunction) => {
-    const requestedBy = res.locals.session?.user?.id ?? ''
+  router.get('/new', async (req: SudokuRequest, res: Response, next: NextFunction) => {
+    const requestedBy = parseAuthHeader(req.headers.authorization).sub ?? '';
     const puzzleOptions: PuzzleOptions = {
       difficulty: req.query.difficulty ?? 'medium'
     }

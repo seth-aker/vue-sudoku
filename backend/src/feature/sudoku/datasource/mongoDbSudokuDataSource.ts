@@ -27,7 +27,9 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
       const db = this.connect();
       const puzzles = db.collection<SudokuPuzzle>('puzzles');
       const users = db.collection<User>('users');
-      let user = {} as User;
+      let user = {
+        puzzlesPlayed: []
+      } as User;
       if(requestedBy !== '') {
         user = await users.findOne({'_id': new ObjectId(requestedBy)});
         if(!user.puzzlesPlayed) {
@@ -51,11 +53,12 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
         throw new DatabaseError("No more puzzles")
       }
       user.currentPuzzle = response.puzzle;
-      user.currentPuzzle.solved = false;
       user.puzzlesPlayed.push(response.puzzle._id)
-      const res = await users.updateOne({_id: user._id }, {$set: { currentPuzzle: user.currentPuzzle, puzzlesPlayed: user.puzzlesPlayed}});
-      if(!res.acknowledged) {
-        throw new DatabaseError("Failed to retrieve puzzle")
+      if(user._id) {
+        const res = await users.updateOne({_id: user._id }, {$set: { currentPuzzle: user.currentPuzzle, puzzlesPlayed: user.puzzlesPlayed}});
+        if(!res.acknowledged) {
+          throw new DatabaseError("Failed to retrieve puzzle")
+        }
       }
       return response
   }

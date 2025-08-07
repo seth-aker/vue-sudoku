@@ -1,9 +1,9 @@
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, MongoClientOptions, ServerApiVersion } from "mongodb";
 import process from "node:process";
 import { config } from "../config/index.ts";
 
 const uri = config.dbConnectionString;
-const options = {
+const options: MongoClientOptions = {
     serverApi: {
       version: ServerApiVersion.v1,
       strict: true,

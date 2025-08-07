@@ -1,15 +1,14 @@
 import { SudokuPuzzle, type SudokuOptions } from "@/stores/models/puzzle";
-import { buildBlankPuzzleRows, buildStandardPuzzleRows } from "@/utils/buildPuzzle";
 import { config } from '@/config/index'
-const {API_URL} = config;
+const {API_BASE_URL} = config;
 async function fetchNewPuzzle(options?: SudokuOptions) {
-  await fetch(`${API_URL}/sudoku?difficulty=${options?.difficulty}`)
+  await fetch(`${API_BASE_URL}/sudoku/new?difficulty=${options?.difficulty}`)
 }
 async function fetchPuzzle(puzzleId: string) {
-  await fetch(`${API_URL}/sudoku/${puzzleId}`)
+  await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`)
 }
 async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle) {
-  await fetch(`${API_URL}/sudoku/${puzzleId}`, {
+  await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`, {
     body: JSON.stringify(puzzle)
   })
 }

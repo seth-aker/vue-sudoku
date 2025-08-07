@@ -16,11 +16,12 @@
   "packageManager": "pnpm@10.14.0",
   "type": "module",
   "dependencies": {
-    "@auth/express": "^0.11.0",
-    "@auth/mongodb-adapter": "^3.10.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "express-oauth2-jwt-bearer": "^1.6.1",
+    "jose": "^6.0.12",
     "mongodb": "^6.18.0",
+    "mongoose": "^8.17.0",
     "vitest": "^3.2.4",
     "workerpool": "^9.3.3",
     "zod": "^3.25.76"

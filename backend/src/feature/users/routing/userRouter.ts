@@ -1,42 +1,43 @@
-import { authenticateUser } from "@/feature/auth/middleware/authenticateUser";
+import { RequireAuth } from "@/feature/auth/middleware/requireAuth";
 import { UserService } from "../service/userService";
 import Express, {NextFunction, Request, Response} from "express";
-export function UserRouter(userService: UserService) {
+import { SyncUser } from "../middleware/syncUser";
+import { updateUserValidator } from "../middleware/validation/validation";
+export function UserRouter(userService: UserService, requireAuth: RequireAuth) {
   const router = Express.Router();
 
-  router.use(authenticateUser)
+  router.use(requireAuth)
+  router.use(SyncUser(userService))
 
   router.get('/:userId', async (req: Request, res: Response, next: NextFunction) => {
-    const {session} = res.locals
-    if(session.user.id !== req.params.userId) {
+    // Function SycnUser middleware automatically fetches the user based on the access token sub and then attaches it to the request object so no need to perform another database query.
+    if(!req.user || req.user._id !== req.params.userId) {
       res.sendStatus(403)
     } else {
       try {
-        return await userService.getUser(session.user.id)
+        return req.user
       } catch (err) {
         next(err);
       }
     }
   })
-  router.put('/:userId', async (req: Request, res: Response, next: NextFunction) => {
-    const { session } = res.locals;
-    if(session.user.id !== req.params.userId) {
+  router.put('/:userId', updateUserValidator, async (req: Request, res: Response, next: NextFunction) => {
+    if(!req.user || req.user._id !== req.params.userId) {
       res.sendStatus(403)
     } else {
       try {
-        return await userService.updateUser(session.user.id, req.body)
+        return await userService.updateUser(req.user._id, req.body)
       } catch (err) {
         next(err);
       }
     }
   })
   router.delete('/:userId', async (req: Request, res: Response, next: NextFunction) => {
-    const { session } = res.locals;
-    if(session.user.id !== req.params.userId) {
+    if(!req.user || req.user._id !== req.params.userId) {
       res.sendStatus(403)
     } else {
       try {
-        return await userService.deleteUser(session.user.id)
+        return await userService.deleteUser(req.user._id)
       } catch (err) {
         next(err);
       }

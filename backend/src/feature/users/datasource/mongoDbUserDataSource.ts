@@ -18,22 +18,31 @@ export class MongoDbUserDataSource implements UserDataSource {
     }
     return MongoDbUserDataSource.instance;
   }
-  // async createUser(user: CreateUser) {
-  //   const db = this.connect();
-  //   const coll = db.collection<User>('users');
-  //   const response = await coll.insertOne(user as User);
-  //   if(!response.acknowledged || !response.insertedId) {
-  //     throw new DatabaseError('Error creating new user')
-  //   }
-  //   (user as User)._id = response.insertedId;
-  //   return user as User;
-  // };
+  async createUser(user: CreateUser) {
+    const db = this.connect();
+    const coll = db.collection<User>('users');
+    const response = await coll.insertOne(user as User);
+    if(!response.acknowledged || !response.insertedId) {
+      throw new DatabaseError('Error creating new user')
+    }
+    (user as User)._id = response.insertedId;
+    return user as User;
+  };
   async getUser(userId: string) {
     const db = this.connect();
     const coll = db.collection<User>('users');
     const user = await coll.findOne({'_id': userId});
     if(!user) {
       throw new NotFoundError(`User with id: ${userId} not found`)
+    }
+    return user;
+  }
+  async getUserByAuthId(auth0_id: string) {
+    const db = this.connect()
+    const coll = db.collection<User>('users');
+    let user = await coll.findOne({auth0_id});
+    if(!user) {
+      throw new DatabaseError(`User with auth0_id ${auth0_id} not found`)
     }
     return user;
   }
