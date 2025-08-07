@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "bash start.sh DEV"
+    "dev": "bash start.sh DEV",
+    "install": "bash install.sh"
   },
   "keywords": [],
   "author": "",
