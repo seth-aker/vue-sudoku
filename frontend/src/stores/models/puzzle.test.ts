@@ -13,8 +13,8 @@ describe('SudokuPuzzle Tests', () => {
     const puzzle = new SudokuPuzzle(puzzleRows);
     expect(puzzle.cellsPerRow).toBe(9)
     expect(puzzle.rows).toEqual(puzzleRows)
-    expect(puzzle.originalCells).toEqual(puzzleRows)
-    expect(puzzle.difficulty).toBe('medium');
+    expect(puzzle.originalPuzzle).toEqual(puzzleRows)
+    expect(puzzle.options).toBe('medium');
   })
 
   it('puzzle with invalid row length throws error', () => {
@@ -47,7 +47,7 @@ describe('SudokuPuzzle Tests', () => {
     for(let i = 0; i < 9; i++) {
       let expectedColumn: Cell[] = []
       for(let j = 0; j < 9; j++) {
-        expectedColumn.push({cellId: `testCellId` ,type: 'prefilled', value: ((i + j) % 9) + 1, pencilValues: []})
+        expectedColumn.push({cellId: `testCellId` ,type: 'prefilled', value: ((i + j) % 9) + 1, candidates: []})
       }
       expect(puzzle.getColumn(i)).toEqual(expectedColumn)
     }

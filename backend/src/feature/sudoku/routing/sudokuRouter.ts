@@ -10,13 +10,13 @@ export default function SudokuRouter(sudokuService: SudokuService) {
   const router = express.Router();
   // /api/sudoku
   router.get('/new', async (req: SudokuRequest, res: Response, next: NextFunction) => {
-    const requestedBy = parseAuthHeader(req.headers.authorization).sub ?? '';
+    const requestedBy = parseAuthHeader(req.headers.authorization)?.sub ?? '';
     const puzzleOptions: PuzzleOptions = {
       difficulty: req.query.difficulty ?? 'medium'
     }
     try {
        const puzzle = await sudokuService.getNewPuzzle(requestedBy, puzzleOptions);
-       res.send(puzzle)
+       res.send(JSON.stringify(puzzle))
     } catch (err) {
       next(err)
     }

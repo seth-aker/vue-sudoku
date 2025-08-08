@@ -1,22 +1,25 @@
 import type { Cell } from "./cell";
 import type { Difficulty } from "./difficulty";
 import type { Row } from "./row";
+import lodash from 'lodash'
 export interface SudokuOptions {
   difficulty: Difficulty
 }
 export class SudokuPuzzle {
-    readonly originalCells: Array<Row>;
+    readonly originalPuzzle: Array<Row>;
     readonly cellsPerRow: number;
-    readonly difficulty: Difficulty;
+    readonly options: SudokuOptions;
     rows: Array<Row>;
-    constructor(rows: Array<Row>, options: SudokuOptions = {difficulty: 'medium'}) {
+    constructor(rows: Array<Row>, options?: SudokuOptions);
+    constructor(rows: Array<Row>, options: SudokuOptions, originalPuzzle: Row[])
+    constructor(rows: Array<Row>, options: SudokuOptions = {difficulty: 'medium'}, originalPuzzle?: Row[]) {
         if(!Number.isInteger(Math.sqrt(rows.length))) {
           throw new Error(`Row length of ${rows.length} is invalid for proper sudoku puzzles.`)
         }
         this.rows = rows,
-        this.originalCells = rows
+        this.originalPuzzle = originalPuzzle ?? lodash.cloneDeep(rows)
         this.cellsPerRow = rows.length
-        this.difficulty = options.difficulty;
+        this.options = options;
     }
     /**
      * Takes a number (0 - 8 for standard sudoku) and returns the block of digits from that space.
@@ -70,5 +73,17 @@ export class SudokuPuzzle {
         return
       }
       this.rows[y][x] = cell;
+    }
+
+    toJSON() {
+      return {
+        originalPuzzle: this.originalPuzzle,
+        rows: this.rows,
+        options: this.options
+      }
+    }
+    static fromJSON(json: any): SudokuPuzzle {
+      const instance = new SudokuPuzzle(json.rows, json.options, json.originalPuzzle);
+      return instance
     }
 }

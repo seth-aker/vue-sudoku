@@ -6,8 +6,16 @@
     "cypress.config.*",
     "nightwatch.conf.*",
     "playwright.config.*",
-    "eslint.config.*"
-, "frontend/eslint.config.ts", "frontend/vite.config.ts", "frontend/playwright.config.ts", "frontend/vitest.config.ts", "frontend/eslint.config.ts", "frontend/vite.config.ts", "frontend/playwright.config.ts", "frontend/vitest.config.ts"  ],
+    "eslint.config.*", 
+    "frontend/eslint.config.ts", 
+    "frontend/vite.config.ts", 
+    "frontend/playwright.config.ts", 
+    "frontend/vitest.config.ts", 
+    "frontend/eslint.config.ts", 
+    "frontend/vite.config.ts", 
+    "frontend/playwright.config.ts", 
+    "frontend/vitest.config.ts"  
+  ],
   "compilerOptions": {
     "noEmit": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",

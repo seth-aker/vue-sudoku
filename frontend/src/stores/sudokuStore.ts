@@ -9,8 +9,9 @@ import lodash from 'lodash'
 import { cellHasError } from "@/utils/cellHasError";
 export type Rows = Map<number, Row>
 const blankPuzzle = new SudokuPuzzle(buildBlankPuzzleRows())
-export default defineStore('sudoku', {
+export const useSudokuStore = defineStore('sudoku', {
     state: () => ({
+        puzzleId: '',
         puzzle: blankPuzzle as SudokuPuzzle,
         usingPencil: false,
         selectedCell: {
@@ -20,13 +21,44 @@ export default defineStore('sudoku', {
         actions: [] as Action[]
     }),
     actions: {
+      retrieveLocalState() {
+        const state = sudokuService.retrieveLocalState();
+        if(state !== null) {
+          this.$patch(state)
+          return true;
+        }
+        return false
+      },
+      saveGameStateLocal() {
+        const state = {
+          puzzleId: this.puzzleId,
+          puzzle: this.puzzle,
+          usingPencil: this.usingPencil,
+          selectedCell: this.selectedCell,
+          actions: this.actions
+        }
+        sudokuService.saveGameStateLocally(state)
+      },
       async getNewPuzzle(options: SudokuOptions) {
-        this.puzzle = await sudokuService.fetchPuzzle(options)
+        const response = await sudokuService.fetchNewPuzzle(options);
+        if(response) {
+          this.$patch({
+            puzzleId: response._id,
+            puzzle: new SudokuPuzzle(response.cells, { difficulty: response.difficulty.rating }),
+            selectedCell: {
+              x: undefined,
+              y: undefined
+            },
+            actions: []
+          })
+          this.saveGameStateLocal();
+        }
       },
       setCell(cell: Cell, x: number, y: number) {
         const prevCell = this.puzzle.getCell(x, y);
         this.actions.push({prevCell, x, y})
         this.puzzle.setCell(cell, x, y);
+        this.saveGameStateLocal();
       },
       getCell(x:number | undefined, y: number | undefined) {
         const cell = this.puzzle.getCell(x,y)
@@ -39,6 +71,7 @@ export default defineStore('sudoku', {
         }
         this.puzzle.setCell(action.prevCell, action.x, action.y)
         this.selectedCell = { x: action.x, y: action.y}
+        this.saveGameStateLocal()
       }
     },
     getters: {

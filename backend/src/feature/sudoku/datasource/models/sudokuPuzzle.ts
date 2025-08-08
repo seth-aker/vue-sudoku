@@ -1,7 +1,6 @@
 import { ObjectId } from "mongodb";
 import { type Difficulty } from "./difficulty.ts";
-import { type Row, rowSchema } from "./row.ts";
-import mongoose from "mongoose";
+import { type Row } from "./row.ts";
 
 export interface SudokuPuzzle {
   _id: ObjectId,

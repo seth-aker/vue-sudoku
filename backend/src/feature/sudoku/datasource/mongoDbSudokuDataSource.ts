@@ -1,4 +1,4 @@
-import { Db, MongoClient, ObjectId } from 'mongodb'
+import { Db, MongoClient, ObjectId, OptionalId } from 'mongodb'
 import { type SudokuDataSource } from "./sudokuDataSource.ts";
 import { type PuzzleOptions} from "./models/puzzleOptions.ts";
 import { type CreatePuzzle, type SudokuPuzzle, type SudokuPuzzleResponse, type UpdatePuzzle } from "./models/sudokuPuzzle.ts";
@@ -102,8 +102,15 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
 
   async createPuzzles(puzzles: CreatePuzzle[]): Promise<number> {
     const db = this.connect();
-    const coll = db.collection<SudokuPuzzle>('puzzles');
-    const response = await coll.insertMany(puzzles as SudokuPuzzle[]);
+    const coll = db.collection('puzzles');
+    const transformedPuzzles = puzzles.map((puzzle) => {
+      return {...puzzle, cells: puzzle.cells.map((row) => {
+        return row.map((cell) => {
+          return {...cell, candidates: Array.from(cell.candidates)}
+        })
+      })}
+    })
+    const response = await coll.insertMany(transformedPuzzles);
     if(!response.acknowledged || !response.insertedIds) {
       throw new DatabaseError("Error saving puzzle")
     }

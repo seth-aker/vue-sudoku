@@ -7,11 +7,10 @@ import CardHeader from '@/components/ui/card/CardHeader.vue';
 import CardTitle from '@/components/ui/card/CardTitle.vue';
 import { useRouter } from 'vue-router';
 const router = useRouter()
-
 </script>
 
 <template>
-  <main class="w-screen h-screen flex items-center justify-center">
+  <main class="w-full h-full flex items-center justify-center my-20">
     <Card class="w-100">
       <CardHeader class="flex flex-col items-center justify-center">
         <CardTitle class="text-4xl">Sudoku</CardTitle>

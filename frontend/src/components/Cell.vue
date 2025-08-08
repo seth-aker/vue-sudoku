@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Cell } from '@/stores/models/cell';
-import useSudokuStore from '@/stores/sudokuStore'
+import { useSudokuStore } from '@/stores/sudokuStore'
 import { computed } from 'vue';
 const props = defineProps<{
   cell: Cell,
@@ -13,7 +13,7 @@ const sudokuStore = useSudokuStore()
 const visablePencilArray = computed(() => {
   const isVisableArray: boolean[] = new Array(sudokuStore.puzzle.cellsPerRow).fill(false);
   return isVisableArray.map((isVisible, index) => {
-    return props.cell.value !== undefined ? false : props.cell.pencilValues.includes(index + 1);
+    return props.cell.value !== undefined ? false : props.cell.candidates.includes(index + 1);
   })
 })
 

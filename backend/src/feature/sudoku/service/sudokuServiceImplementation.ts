@@ -28,6 +28,7 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
     return await this.callDataSource(async () => {
       try {
         const response = await this.sudokuDataSource.getNewPuzzle(requestedBy, options);
+        console.log(response)
         if(response.metadata.totalCount < 100) {
           this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, options])
           .then(async (newPuzzles) => {
@@ -35,7 +36,7 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
               console.log(`${result} puzzles created!`)
             })
         }
-        return response.puzzle[0]
+        return response.puzzle
 
       } catch (err) {
         console.log(err.message)

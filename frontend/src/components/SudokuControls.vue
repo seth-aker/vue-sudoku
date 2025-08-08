@@ -2,7 +2,7 @@
 import { Icon } from '@iconify/vue'
 import { Button } from './ui/button';
 import Toggle from './ui/toggle/Toggle.vue';
-import useSudokuStore from '@/stores/sudokuStore'
+import { useSudokuStore } from '@/stores/sudokuStore'
 import Numpad from './Numpad.vue';
 const sudokuStore = useSudokuStore()
 const eraseValue = () => {
@@ -16,7 +16,7 @@ const eraseValue = () => {
     return;
   }
   if (cell.value === undefined) {
-    cell.pencilValues = [];
+    cell.candidates = [];
   }
   cell.value = undefined;
   sudokuStore.setCell(cell, x, y)

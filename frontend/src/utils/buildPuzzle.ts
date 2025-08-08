@@ -10,7 +10,7 @@ export function buildStandardPuzzleRows() {
           cellId: `C${j}${i}`,
           type: 'prefilled',
           value: ((i + j) % 9) + 1,
-          pencilValues: []
+          candidates: []
         }
         row.push(cell)
       }
@@ -27,7 +27,7 @@ export function buildBlankPuzzleRows() {
           cellId: `C${j}${i}`,
           type: 'blank',
           value: undefined,
-          pencilValues: []
+          candidates: []
         }
         row.push(cell)
       }

@@ -4,7 +4,7 @@ import type { GameState } from "./models/gameState";
 
 const ONE_MINUTE_SECONDS = 60;
 const ONE_HOUR_SECONDS = 60 * ONE_MINUTE_SECONDS;
-export default defineStore('gameStore', {
+export const useGameStore = defineStore('gameStore', {
     state: () => ({
         difficulty: undefined as Difficulty | undefined,
         elapsedSeconds: 0,

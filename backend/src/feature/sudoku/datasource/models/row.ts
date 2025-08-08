@@ -1,6 +1,3 @@
-import mongoose from "mongoose";
-import { type Cell, cellSchema } from "./cell.ts";
+import { type Cell } from "./cell.ts";
 
 export type Row = Cell[]
-
-export const rowSchema = new mongoose.Schema<Row>([cellSchema])

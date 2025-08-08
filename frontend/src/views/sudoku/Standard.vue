@@ -1,8 +1,8 @@
 <script setup lang='ts'>
 import SudokuControls from '@/components/SudokuControls.vue';
 import SudokuPuzzle from '@/components/SudokuPuzzle.vue';
-import useSudokuStore from '@/stores/sudokuStore'
-import useGameStore from '@/stores/gameStore'
+import { useSudokuStore } from '@/stores/sudokuStore'
+import { useGameStore } from '@/stores/gameStore'
 import { Dialog } from '@/components/ui/dialog';
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue';
@@ -19,11 +19,14 @@ const sudokuStore = useSudokuStore();
 const gameStore = useGameStore()
 const router = useRouter();
 const difficulty = router.currentRoute.value.name?.toString() as Difficulty
+const dialogOpen = ref(false);
 
-sudokuStore.getNewPuzzle({ difficulty: difficulty });
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('keyup', handleKeyPress);
+  if (!sudokuStore.retrieveLocalState()) {
+    await sudokuStore.getNewPuzzle({ difficulty })
+  }
   gameStore.startTimer();
   gameStore.gameState = 'playing'
 })
@@ -33,7 +36,6 @@ onUnmounted(() => {
   gameStore.gameState = 'not-started'
 })
 
-const dialogOpen = ref(false);
 watch(() => sudokuStore.isPuzzleSolved, () => {
   if (sudokuStore.isPuzzleSolved) {
     gameStore.stopTimer();
@@ -86,7 +88,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
       const cell = sudokuStore.getCell(sudokuStore.selectedCell.x, sudokuStore.selectedCell.y);
       if (!cell) return;
       if (sudokuStore.usingPencil) {
-        cell.pencilValues = [];
+        cell.candidates = [];
         cell.value = undefined
       } else {
         cell.value = undefined;
@@ -103,7 +105,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
           const cell = sudokuStore.getCell(sudokuStore.selectedCell.x, sudokuStore.selectedCell.y);
           if (!cell) return;
           if (sudokuStore.usingPencil) {
-            cell.pencilValues.includes(i + 1) ? cell.pencilValues = cell.pencilValues.filter((value) => value !== i + 1) : cell.pencilValues.push(i + 1)
+            cell.candidates.includes(i + 1) ? cell.candidates = cell.candidates.filter((value) => value !== i + 1) : cell.candidates.push(i + 1)
           } else {
             cell.value = (i + 1)
           }
@@ -116,7 +118,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
 </script>
 
 <template>
-  <div class="w-screen h-screen flex items-center justify-center">
+  <div class="flex items-center justify-center">
     <SudokuPuzzle v-if="sudokuStore.puzzle" :puzzle="sudokuStore.puzzle"
       v-model:selected-cell="sudokuStore.selectedCell" />
     <div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import useSudokuStore from '@/stores/sudokuStore';
+import { useSudokuStore } from '@/stores/sudokuStore';
 import { Button } from './ui/button';
 const sudokuStore = useSudokuStore();
 
@@ -15,10 +15,10 @@ const onNumberPress = (value: number) => {
   }
   if (sudokuStore.usingPencil) {
     // Edit pencilValues
-    if (cell.pencilValues.includes(value)) {
-      cell.pencilValues = cell.pencilValues.filter((pencilValue) => pencilValue !== value);
+    if (cell.candidates.includes(value)) {
+      cell.candidates = cell.candidates.filter((pencilValue) => pencilValue !== value);
     } else {
-      cell.pencilValues.push(value);
+      cell.candidates.push(value);
     }
   } else {
     // edit cell value
