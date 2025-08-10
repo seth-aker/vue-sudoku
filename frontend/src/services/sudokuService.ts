@@ -1,16 +1,17 @@
 import { SudokuPuzzle, type SudokuOptions } from "@/stores/models/puzzle";
 import { config } from '@/config/index'
 import type { SudokuStoreState } from "@/stores/models/sudokuStoreState";
-import { useAuth0 } from "@auth0/auth0-vue";
 const {API_BASE_URL} = config;
-async function fetchNewPuzzle(options?: SudokuOptions) {
-  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+async function fetchNewPuzzle(options?: SudokuOptions, token?: string) {
   const fetchOptions: RequestInit = {
     method: "GET",
+    headers: {"Content-Type": "application/json"}
   }
-  if(isAuthenticated.value) {
-    const token = await getAccessTokenSilently();
-    fetchOptions.headers = [['authorization', `Bearer ${token}`]]
+  if(token) {
+    fetchOptions.headers = {
+      "Content-Type": "application/json",
+      "authorization": `Bearer ${token}`
+    }
   }
   try {
     const response = await fetch(`${API_BASE_URL}/api/sudoku/new?difficulty=${options?.difficulty}`, fetchOptions)
@@ -38,6 +39,9 @@ function saveGameStateLocally(state: SudokuStoreState ) {
 }
 function retrieveLocalState(): SudokuStoreState | null {
   const stateString = localStorage.getItem('localState');
-  return stateString === null ? stateString : JSON.parse(stateString);
+  if(stateString === null) return null;
+  const stateObj: SudokuStoreState = JSON.parse(stateString);
+  stateObj.puzzle = SudokuPuzzle.fromJSON(stateObj.puzzle)
+  return stateObj;
 }
 export default {fetchNewPuzzle, fetchPuzzle, updatePuzzle, saveGameStateLocally, retrieveLocalState}

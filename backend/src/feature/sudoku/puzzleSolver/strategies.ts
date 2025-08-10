@@ -21,6 +21,7 @@ export const strategyScoreMap = {
   hiddenSingles: 20,
   lockedCandidatePointing: 75,
   lockedCandidateClaiming: 75,
+  nakedPairs: 150,
   hiddenPairs: 150,
   nakedTriples: 300,
   hiddenTriples: 500,

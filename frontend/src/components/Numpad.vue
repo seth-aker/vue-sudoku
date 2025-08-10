@@ -22,20 +22,38 @@ const onNumberPress = (value: number) => {
     }
   } else {
     // edit cell value
-    if (cell.value === undefined || cell.value !== value) {
+    if (cell.value === null || cell.value !== value) {
       cell.value = value;
     } else {
-      cell.value = undefined;
+      cell.value = null;
     }
   }
   cell.type = 'edited'
   sudokuStore.setCell(cell, x, y)
 }
+
+const numberInPuzzleCount = (number: number) => {
+  let count = 0;
+  for (const row of sudokuStore.puzzle.rows) {
+    if (count >= sudokuStore.puzzle.cellsPerRow) {
+      break;
+    }
+    for (const cell of row) {
+      if (cell.value === number) {
+        count++
+        break;
+      }
+    }
+  }
+  return count;
+}
 </script>
 
 <template>
-  <div class="grid"
+  <div class="grid gap-1"
     :style="{ gridTemplateColumns: `repeat(${Math.sqrt(sudokuStore.puzzle.cellsPerRow)}, minmax(0, 1fr))` }">
-    <Button size="icon" v-for="(input) in inputs" @click="onNumberPress(input)">{{ input }}</Button>
+    <Button size="icon" v-for="(input) in inputs"
+      :disabled="numberInPuzzleCount(input) === sudokuStore.puzzle.cellsPerRow" @click="onNumberPress(input)">{{ input
+      }}</Button>
   </div>
 </template>

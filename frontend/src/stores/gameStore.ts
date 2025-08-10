@@ -13,6 +13,9 @@ export const useGameStore = defineStore('gameStore', {
     }),
     actions: {
       startTimer() {
+        if(this.interval) {
+          clearInterval(this.interval)
+        }
         this.interval = setInterval(() => {
           this.elapsedSeconds++
         }, 1000)

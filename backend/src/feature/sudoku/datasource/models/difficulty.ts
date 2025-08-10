@@ -3,8 +3,8 @@ export interface Difficulty {
   rating: 'easy' | 'medium' | 'hard' | 'impossible';
 } 
 export const difficultyScoreMin = {
-  easy: 200,
-  medium: 500,
-  hard: 5500,
-  impossible: 25000
+  easy: 150,
+  medium: 400,
+  hard: 900,
+  impossible: 5000
 }

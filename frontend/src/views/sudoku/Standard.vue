@@ -15,18 +15,39 @@ import DialogClose from '@/components/ui/dialog/DialogClose.vue';
 import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router';
 import type { Difficulty } from '@/stores/models/difficulty';
+import { useAuth0 } from '@auth0/auth0-vue';
 const sudokuStore = useSudokuStore();
 const gameStore = useGameStore()
 const router = useRouter();
+const error = ref<string | null>(null)
 const difficulty = router.currentRoute.value.name?.toString() as Difficulty
 const dialogOpen = ref(false);
+const { isAuthenticated, getAccessTokenSilently } = useAuth0()
 
+const requestNewPuzzle = async () => {
+  let token = undefined;
+  if (isAuthenticated.value) {
+    token = await getAccessTokenSilently();
+  }
+  await sudokuStore.getNewPuzzle({ difficulty }, token);
+  gameStore.elapsedSeconds = 0;
+  gameStore.startTimer();
+}
 
 onMounted(async () => {
   window.addEventListener('keyup', handleKeyPress);
-  if (!sudokuStore.retrieveLocalState()) {
-    await sudokuStore.getNewPuzzle({ difficulty })
+  if (!sudokuStore.retrieveLocalState() || sudokuStore.puzzle.options.difficulty !== difficulty) {
+    try {
+      await requestNewPuzzle()
+    } catch (err) {
+      if (typeof err === 'string') {
+        error.value = err
+      } else if (typeof err === 'object' && err instanceof Error) {
+        error.value = err.message
+      }
+    }
   }
+
   gameStore.startTimer();
   gameStore.gameState = 'playing'
 })
@@ -89,9 +110,9 @@ const handleKeyPress = (event: KeyboardEvent) => {
       if (!cell) return;
       if (sudokuStore.usingPencil) {
         cell.candidates = [];
-        cell.value = undefined
+        cell.value = null
       } else {
-        cell.value = undefined;
+        cell.value = null;
       }
       sudokuStore.setCell(cell, sudokuStore.selectedCell.x, sudokuStore.selectedCell.y)
       break;
@@ -103,11 +124,11 @@ const handleKeyPress = (event: KeyboardEvent) => {
       for (let i = 0; i < sudokuStore.puzzle.cellsPerRow; i++) {
         if (`${i + 1}` === event.key) {
           const cell = sudokuStore.getCell(sudokuStore.selectedCell.x, sudokuStore.selectedCell.y);
-          if (!cell) return;
+          if (!cell || cell.type === 'prefilled') return;
           if (sudokuStore.usingPencil) {
             cell.candidates.includes(i + 1) ? cell.candidates = cell.candidates.filter((value) => value !== i + 1) : cell.candidates.push(i + 1)
           } else {
-            cell.value = (i + 1)
+            cell.value = cell.value ? null : (i + 1)
           }
           sudokuStore.setCell(cell, sudokuStore.selectedCell.x, sudokuStore.selectedCell.y)
           break;
@@ -115,20 +136,32 @@ const handleKeyPress = (event: KeyboardEvent) => {
       }
   }
 }
+const handleReset = () => {
+  if (confirm('This action cannot be undone, are you sure you want to continue?')) {
+    sudokuStore.resetPuzzle();
+  }
+}
 </script>
 
 <template>
-  <div class="flex items-center justify-center">
-    <SudokuPuzzle v-if="sudokuStore.puzzle" :puzzle="sudokuStore.puzzle"
-      v-model:selected-cell="sudokuStore.selectedCell" />
-    <div>
+  <div class="flex flex-col items-center justify-center">
+    <div class="w-full flex items-center justify-center my-4">
+      {{ difficulty.charAt(0).toUpperCase() + difficulty.substring(1) }}
       {{ gameStore.formattedElapsedTime }}
-      <Button @click="toggleTimer" variant="ghost">
-        <Icon v-if="gameStore.gameState === 'playing'" icon="material-symbols:pause-rounded" />
-        <Icon v-else icon="material-symbols:play-arrow-rounded" />
-      </Button>
+      <div class="mx-4">
+        <Button @click="toggleTimer" variant="ghost">
+          <Icon v-if="gameStore.gameState === 'playing'" icon="material-symbols:pause-rounded" />
+          <Icon v-else icon="material-symbols:play-arrow-rounded" />
+        </Button>
+        <Button @click="handleReset">Reset</Button>
+      </div>
     </div>
-    <SudokuControls />
+
+    <div class="flex">
+      <SudokuPuzzle v-if="sudokuStore.puzzle" :puzzle="sudokuStore.puzzle"
+        v-model:selected-cell="sudokuStore.selectedCell" />
+      <SudokuControls />
+    </div>
     <Dialog :open="dialogOpen" @update:open="(event) => dialogOpen = event">
       <DialogContent>
         <DialogHeader>
@@ -146,7 +179,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
               Close
             </Button>
           </DialogClose>
-          <Button @click="() => { sudokuStore.getNewPuzzle({ difficulty: difficulty }); dialogOpen = false }">
+          <Button @click="() => { requestNewPuzzle(); dialogOpen = false }">
             New Puzzle
           </Button>
         </DialogFooter>
