@@ -27,7 +27,16 @@ const loginOptions: RedirectLoginOptions<AppState> = {
             <NavigationMenuTrigger>New Puzzle</NavigationMenuTrigger>
             <NavigationMenuContent>
               <NavigationMenuLink as-child>
-
+                <RouterLink :to="{ name: 'easy' }">Easy</RouterLink>
+              </NavigationMenuLink>
+              <NavigationMenuLink as-child>
+                <RouterLink :to="{ name: 'medium' }">Medium</RouterLink>
+              </NavigationMenuLink>
+              <NavigationMenuLink as-child>
+                <RouterLink :to="{ name: 'hard' }">Hard</RouterLink>
+              </NavigationMenuLink>
+              <NavigationMenuLink as-child>
+                <RouterLink :to="{ name: 'impossible' }">Impossible</RouterLink>
               </NavigationMenuLink>
             </NavigationMenuContent>
           </NavigationMenuItem>
