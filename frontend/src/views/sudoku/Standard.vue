@@ -13,32 +13,32 @@ import DialogFooter from '@/components/ui/dialog/DialogFooter.vue';
 import Button from '@/components/ui/button/Button.vue';
 import DialogClose from '@/components/ui/dialog/DialogClose.vue';
 import { Icon } from '@iconify/vue';
-import { useRouter } from 'vue-router';
+import { onBeforeRouteUpdate, useRouter } from 'vue-router';
 import type { Difficulty } from '@/stores/models/difficulty';
 import { useAuth0 } from '@auth0/auth0-vue';
 const sudokuStore = useSudokuStore();
 const gameStore = useGameStore()
 const router = useRouter();
 const error = ref<string | null>(null)
-const difficulty = router.currentRoute.value.name?.toString() as Difficulty
+const difficulty = ref(router.currentRoute.value.name?.toString() as Difficulty)
 const dialogOpen = ref(false);
 const { isAuthenticated, getAccessTokenSilently } = useAuth0()
 
-const requestNewPuzzle = async () => {
+const requestNewPuzzle = async (newDifficulty: Difficulty) => {
   let token = undefined;
   if (isAuthenticated.value) {
     token = await getAccessTokenSilently();
   }
-  await sudokuStore.getNewPuzzle({ difficulty }, token);
+  await sudokuStore.getNewPuzzle({ difficulty: newDifficulty }, token);
   gameStore.elapsedSeconds = 0;
   gameStore.startTimer();
 }
 
 onMounted(async () => {
   window.addEventListener('keyup', handleKeyPress);
-  if (!sudokuStore.retrieveLocalState() || sudokuStore.puzzle.options.difficulty !== difficulty) {
+  if (!sudokuStore.retrieveLocalState() || sudokuStore.puzzle.options.difficulty !== difficulty.value) {
     try {
-      await requestNewPuzzle()
+      await requestNewPuzzle(difficulty.value)
     } catch (err) {
       if (typeof err === 'string') {
         error.value = err
@@ -47,10 +47,14 @@ onMounted(async () => {
       }
     }
   }
-
   gameStore.startTimer();
   gameStore.gameState = 'playing'
 })
+onBeforeRouteUpdate(async (to) => {
+  const newDifficulty = to.name?.toString() as Difficulty;
+  difficulty.value = newDifficulty;
+  await requestNewPuzzle(newDifficulty);
+});
 onUnmounted(() => {
   window.removeEventListener('keyup', handleKeyPress)
   gameStore.stopTimer();
@@ -179,7 +183,7 @@ const handleReset = () => {
               Close
             </Button>
           </DialogClose>
-          <Button @click="() => { requestNewPuzzle(); dialogOpen = false }">
+          <Button @click="() => { requestNewPuzzle(difficulty); dialogOpen = false }">
             New Puzzle
           </Button>
         </DialogFooter>

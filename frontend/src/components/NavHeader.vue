@@ -8,12 +8,22 @@ import NavigationMenuItem from './ui/navigation-menu/NavigationMenuItem.vue';
 import NavigationMenuTrigger from './ui/navigation-menu/NavigationMenuTrigger.vue';
 import NavigationMenuLink from './ui/navigation-menu/NavigationMenuLink.vue';
 import NavigationMenuContent from './ui/navigation-menu/NavigationMenuContent.vue';
+import { useSudokuStore } from '@/stores/sudokuStore';
+import type { Difficulty } from '@/stores/models/difficulty';
 const router = useRouter()
-const { isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
+const sudokuStore = useSudokuStore();
+const { isAuthenticated, isLoading, loginWithRedirect, logout, getAccessTokenSilently } = useAuth0();
 const loginOptions: RedirectLoginOptions<AppState> = {
   openUrl(url) {
     window.location.replace(url)
   }
+}
+
+const gotoPuzzle = (difficulty: Difficulty) => {
+  sudokuStore.$reset();
+  sudokuStore.deleteGameStateLocal()
+  console.log(difficulty)
+  router.push(`/sudoku/${difficulty}`)
 }
 </script>
 
@@ -26,18 +36,11 @@ const loginOptions: RedirectLoginOptions<AppState> = {
           <NavigationMenuItem>
             <NavigationMenuTrigger>New Puzzle</NavigationMenuTrigger>
             <NavigationMenuContent>
-              <NavigationMenuLink as-child>
-                <RouterLink :to="{ name: 'easy' }">Easy</RouterLink>
-              </NavigationMenuLink>
-              <NavigationMenuLink as-child>
-                <RouterLink :to="{ name: 'medium' }">Medium</RouterLink>
-              </NavigationMenuLink>
-              <NavigationMenuLink as-child>
-                <RouterLink :to="{ name: 'hard' }">Hard</RouterLink>
-              </NavigationMenuLink>
-              <NavigationMenuLink as-child>
-                <RouterLink :to="{ name: 'impossible' }">Impossible</RouterLink>
-              </NavigationMenuLink>
+              <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('easy')">Easy</Button>
+              <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('medium')">Medium</Button>
+              <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('hard')">Hard</Button>
+              <Button class="w-full items-start" variant="link"
+                @click="() => gotoPuzzle('impossible')">Impossible</Button>
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
@@ -54,7 +57,6 @@ const loginOptions: RedirectLoginOptions<AppState> = {
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
-
     </div>
   </header>
 </template>

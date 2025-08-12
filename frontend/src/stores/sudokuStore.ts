@@ -13,7 +13,7 @@ export type Rows = Map<number, Row>
 const blankPuzzle = new SudokuPuzzle(buildBlankPuzzleRows())
 export const useSudokuStore = defineStore('sudoku', {
     state: () => ({
-        puzzleId: '',
+        puzzleId: undefined as string | undefined,
         puzzle: blankPuzzle as SudokuPuzzle,
         usingPencil: false,
         selectedCell: {
@@ -21,7 +21,7 @@ export const useSudokuStore = defineStore('sudoku', {
           y: undefined as number | undefined,
         },
         actions: [] as Action[],
-        autoCandidateMode: false
+        autoCandidateMode: false,
     }),
     actions: {
       retrieveLocalState() {
@@ -43,7 +43,10 @@ export const useSudokuStore = defineStore('sudoku', {
         }
         sudokuService.saveGameStateLocally(state)
       },
-      async getNewPuzzle(options: SudokuOptions, token: string | undefined) {
+      deleteGameStateLocal() {
+        sudokuService.deleteGameStateLocally();
+      },
+      async getNewPuzzle(options: SudokuOptions, token?: string | undefined) {
         const response = await sudokuService.fetchNewPuzzle(options, token);
         if(response) {
           this.$patch({
@@ -129,7 +132,7 @@ export const useSudokuStore = defineStore('sudoku', {
     },
     getters: {
       loading(state) {
-        return state.puzzle === undefined
+        return state.puzzleId === undefined
       },
       isPuzzleSolved(state) {
         if(state.puzzle.rows.some((row) => row.some((cell) => cell.value === null))) {

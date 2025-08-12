@@ -35,13 +35,16 @@ async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle) {
 }
 function saveGameStateLocally(state: SudokuStoreState ) {
   const stateString = JSON.stringify(state);
-  localStorage.setItem('localState', stateString);
+  localStorage.setItem('localGameState', stateString);
 }
 function retrieveLocalState(): SudokuStoreState | null {
-  const stateString = localStorage.getItem('localState');
+  const stateString = localStorage.getItem('localGameState');
   if(stateString === null) return null;
   const stateObj: SudokuStoreState = JSON.parse(stateString);
   stateObj.puzzle = SudokuPuzzle.fromJSON(stateObj.puzzle)
   return stateObj;
 }
-export default {fetchNewPuzzle, fetchPuzzle, updatePuzzle, saveGameStateLocally, retrieveLocalState}
+function deleteGameStateLocally() {
+  localStorage.removeItem('localGameState')
+}
+export default {fetchNewPuzzle, fetchPuzzle, updatePuzzle, saveGameStateLocally, retrieveLocalState, deleteGameStateLocally}

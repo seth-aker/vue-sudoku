@@ -14,7 +14,7 @@ function generatePuzzles(number: number, options: PuzzleOptions) {
       const puzzle = generator.generatePuzzle(puzzleSize, options.difficulty);
       puzzles.push({cells: puzzle.puzzle, difficulty: puzzle.difficulty});
     }
-    console.log(`[Puzzle Generator] generated ${number}} puzzles of difficulty: ${options.difficulty}`);
+    console.log(`[Puzzle Generator] generated ${number} puzzles of difficulty: ${options.difficulty}`);
     return puzzles;
   }
 

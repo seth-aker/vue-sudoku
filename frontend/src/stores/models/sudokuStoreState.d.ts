@@ -3,7 +3,7 @@ import type { SudokuPuzzle } from "./puzzle";
 
 export interface SudokuStoreState {
   puzzle: SudokuPuzzle,
-  puzzleId: string,
+  puzzleId: string | undefined,
   usingPencil: boolean,
   selectedCell: {
     x: number | undefined,
