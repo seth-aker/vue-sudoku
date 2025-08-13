@@ -1,11 +1,25 @@
 import {config } from '@/config/index'
 const API_BASE = config.API_BASE_URL
-export async function getUser(csrfToken: string) {
-  const res = await fetch(`${API_BASE}/api/auth/session`, {
-    method: 'POST',
-    headers: {'X-CSRF-Token': csrfToken}
+export async function getUser(userId: string, accessToken: string) {
+  const res = await fetch(`${API_BASE}/api/user/${userId}`, {
+    method: 'GET',
+    headers: {'Authorization': `Bearer ${accessToken}`}
   })
-  console.log(res)
   const body = await res.json();
-  console.log(body)
+  console.log(body);
+  return body;
+}
+
+export async function updateUser(userId: string, accessToken: string, body: any) {
+  const res = await fetch(`${API_BASE}/api/user/${userId}`, {
+    method: "PUT",
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessToken}`
+    },
+    body: JSON.stringify(body)
+  })
+  if(res.status !== 200) {
+    throw new Error("An error occured updating the user")
+  }
 }

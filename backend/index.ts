@@ -7,7 +7,7 @@ const app = express();
 
 app.use(express.json())
 app.use(cors({
-  origin: config.issuerBaseUrl
+  origin: config.origin
 }))
 configureRouting(app)
 

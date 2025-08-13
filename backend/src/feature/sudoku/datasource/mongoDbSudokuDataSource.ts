@@ -6,7 +6,7 @@ import { config } from "../../../core/config/index.ts";
 import { DatabaseError } from "../../../core/errors/databaseError.ts";
 import { NotFoundError } from "../../../core/errors/notFoundError.ts";
 import { type PuzzleArray } from "./models/puzzleArray.ts";
-import { type User } from '@/feature/users/datasource/models/user.ts';
+import { type MongoUser } from '@/feature/users/datasource/models/user.ts';
 
 export class MongoDbSudokuDataSource implements SudokuDataSource {
   static instance: MongoDbSudokuDataSource | null = null;
@@ -26,12 +26,12 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
   async getNewPuzzle(requestedBy: string, options: PuzzleOptions): Promise<SudokuPuzzleResponse> {
       const db = this.connect();
       const puzzles = db.collection<SudokuPuzzle>('puzzles');
-      const users = db.collection<User>('users');
+      const users = db.collection<MongoUser>('users');
       let user = {
         puzzlesPlayed: []
-      } as User;
+      } as MongoUser;
       if(requestedBy !== '') {
-        user = await users.findOne({'_id': new ObjectId(requestedBy)});
+        user = await users.findOne({'auth0_id': requestedBy});
         if(!user.puzzlesPlayed) {
           user.puzzlesPlayed = []
         }

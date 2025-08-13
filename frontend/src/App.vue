@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import NavHeader from './components/NavHeader.vue';
-import { ref, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useUserStore } from '@/stores/userStore'
 import LoadingOverlay from './components/LoadingOverlay.vue';
 import { useSudokuStore } from './stores/sudokuStore';
+const route = useRoute();
 const { isAuthenticated, user, isLoading } = useAuth0();
 const sudokuStore = useSudokuStore();
 const userStore = useUserStore()
-
+const puzzleLoading = computed(() => {
+  if (!route.path.includes('sudoku')) {
+    return false
+  }
+  return sudokuStore.loading || isLoading.value
+});
 watch(isAuthenticated, () => {
   if (isAuthenticated.value) {
     userStore.$patch({
@@ -26,7 +32,7 @@ watch(isAuthenticated, () => {
 <template>
   <div class="max-w-screen flex flex-col">
     <NavHeader />
-    <RouterView />
-    <LoadingOverlay v-if="sudokuStore.loading || isLoading" />
+    <RouterView :key="route.fullPath" />
+    <LoadingOverlay v-if="puzzleLoading" />
   </div>
 </template>

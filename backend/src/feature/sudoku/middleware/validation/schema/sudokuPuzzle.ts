@@ -16,6 +16,7 @@ export const createPuzzleSchema = z.object({
 export const updatePuzzleSchema = z.object({
     cells: z.optional(z.array(z.array(cellSchema, 'Invalid cell array'), 'Invalid row array')),
     difficulty: z.optional(difficultySchema),
+    solved: z.optional(z.boolean())
 })
 
 export const deletePuzzleSchema = z.object({

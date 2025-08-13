@@ -26,8 +26,8 @@ import { ObjectId, OptionalId } from "mongodb";
 // })
 
 // export const UserModel = mongoose.model('user', userSchema);
-export interface User {
-  _id: ObjectId | string,
+export interface MongoUser {
+  _id: ObjectId,
   name?: string,
   email?: string,
   image?: string,
@@ -35,6 +35,9 @@ export interface User {
   puzzlesPlayed: ObjectId[];
   currentPuzzle: SudokuPuzzle,
 }
-export interface CreateUser extends OptionalId<User> {}
-export interface UpdateUser extends Partial<User> {};
+export interface CreateUser extends OptionalId<MongoUser> {}
+export interface UpdateUser extends Partial<MongoUser> {};
 
+export interface FrontendUser extends Omit<MongoUser, '_id'> {
+  _id: string
+}

@@ -22,7 +22,6 @@ const loginOptions: RedirectLoginOptions<AppState> = {
 const gotoPuzzle = (difficulty: Difficulty) => {
   sudokuStore.$reset();
   sudokuStore.deleteGameStateLocal()
-  console.log(difficulty)
   router.push(`/sudoku/${difficulty}`)
 }
 </script>
@@ -36,11 +35,19 @@ const gotoPuzzle = (difficulty: Difficulty) => {
           <NavigationMenuItem>
             <NavigationMenuTrigger>New Puzzle</NavigationMenuTrigger>
             <NavigationMenuContent>
-              <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('easy')">Easy</Button>
-              <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('medium')">Medium</Button>
-              <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('hard')">Hard</Button>
-              <Button class="w-full items-start" variant="link"
-                @click="() => gotoPuzzle('impossible')">Impossible</Button>
+              <NavigationMenuLink as-child>
+                <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('easy')">Easy</Button>
+              </NavigationMenuLink>
+              <NavigationMenuLink as-child>
+                <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('medium')">Medium</Button>
+              </NavigationMenuLink>
+              <NavigationMenuLink as-child>
+                <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('hard')">Hard</Button>
+              </NavigationMenuLink>
+              <NavigationMenuLink as-child>
+                <Button class="w-full items-start" variant="link"
+                  @click="() => gotoPuzzle('impossible')">Impossible</Button>
+              </NavigationMenuLink>
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>

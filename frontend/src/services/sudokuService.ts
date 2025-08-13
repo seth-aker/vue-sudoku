@@ -10,7 +10,7 @@ async function fetchNewPuzzle(options?: SudokuOptions, token?: string) {
   if(token) {
     fetchOptions.headers = {
       "Content-Type": "application/json",
-      "authorization": `Bearer ${token}`
+      "Authorization": `Bearer ${token}`
     }
   }
   try {

@@ -4,5 +4,5 @@ export const cellSchema = z.object({
     cellId: z.string(),
     type: z.enum(['prefilled', 'edited', 'blank'], "Invalid cell type"),
     value: z.optional(z.number('Cell value must be a number')),
-    candidates: z.set(z.number('Pencil value must be a number'), 'Invalid pencilValues set')
+    candidates: z.array(z.number('Candidate value must be a number'), 'Invalid candidates set')
 })

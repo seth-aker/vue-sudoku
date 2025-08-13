@@ -1,5 +1,5 @@
-import { Db, MongoClient } from "mongodb";
-import { CreateUser, UpdateUser, User } from "./models/user";
+import { Db, MongoClient, ObjectId } from "mongodb";
+import { CreateUser, UpdateUser, MongoUser } from "./models/user";
 import { UserDataSource } from "./userDataSource";
 import { config } from "@/core/config";
 import { DatabaseError } from "@/core/errors/databaseError";
@@ -20,18 +20,18 @@ export class MongoDbUserDataSource implements UserDataSource {
   }
   async createUser(user: CreateUser) {
     const db = this.connect();
-    const coll = db.collection<User>('users');
-    const response = await coll.insertOne(user as User);
+    const coll = db.collection<MongoUser>('users');
+    const response = await coll.insertOne(user as MongoUser);
     if(!response.acknowledged || !response.insertedId) {
       throw new DatabaseError('Error creating new user')
     }
-    (user as User)._id = response.insertedId;
-    return user as User;
+    (user as MongoUser)._id = response.insertedId;
+    return user as MongoUser;
   };
   async getUser(userId: string) {
     const db = this.connect();
-    const coll = db.collection<User>('users');
-    const user = await coll.findOne({'_id': userId});
+    const coll = db.collection<MongoUser>('users');
+    const user = await coll.findOne({'_id': new ObjectId(userId)});
     if(!user) {
       throw new NotFoundError(`User with id: ${userId} not found`)
     }
@@ -39,7 +39,7 @@ export class MongoDbUserDataSource implements UserDataSource {
   }
   async getUserByAuthId(auth0_id: string) {
     const db = this.connect()
-    const coll = db.collection<User>('users');
+    const coll = db.collection<MongoUser>('users');
     let user = await coll.findOne({auth0_id});
     if(!user) {
       throw new DatabaseError(`User with auth0_id ${auth0_id} not found`)
@@ -48,8 +48,9 @@ export class MongoDbUserDataSource implements UserDataSource {
   }
   async updateUser(userId: string, user: UpdateUser) {
     const db = this.connect();
-    const coll = db.collection<User>('users');
-    const result = await coll.updateOne({'_id': userId}, user);
+    const coll = db.collection<MongoUser>('users');
+    console.log(user)
+    const result = await coll.updateOne({'_id': new ObjectId(userId)}, { $set: {...user}});
     if(!result.acknowledged || result.modifiedCount !== 1) {
       throw new DatabaseError(`An error occured updating user with id: ${userId}`)
     }
@@ -57,8 +58,8 @@ export class MongoDbUserDataSource implements UserDataSource {
   }
   async deleteUser(userId: string) {
     const db = this.connect();
-    const coll = db.collection<User>('users');
-    const res = await coll.deleteOne({'_id': userId});
+    const coll = db.collection<MongoUser>('users');
+    const res = await coll.deleteOne({'_id': new ObjectId(userId)});
     if(!res.acknowledged || res.deletedCount !== 1) {
       throw new DatabaseError(`An error occured deleting user with id: ${userId}`)
     }
