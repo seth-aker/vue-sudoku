@@ -6,5 +6,5 @@ export function parseAuthHeader(header?: string) {
     if(!token) return undefined
 
     const parsedToken = jose.decodeJwt(token);
-    
+    return parsedToken;
 }

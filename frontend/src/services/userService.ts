@@ -1,16 +1,19 @@
 import {config } from '@/config/index'
 const API_BASE = config.API_BASE_URL
-export async function getUser(userId: string, accessToken: string) {
-  const res = await fetch(`${API_BASE}/api/user/${userId}`, {
+export async function getUser(userId: string | undefined, accessToken: string) {
+  console.log("Calling get user")
+  const res = await fetch(`${API_BASE}/api/user/${userId ? userId : ''}`, {
     method: 'GET',
-    headers: {'Authorization': `Bearer ${accessToken}`}
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+  }
   })
   const body = await res.json();
   console.log(body);
   return body;
 }
 
-export async function updateUser(userId: string, accessToken: string, body: any) {
+export async function updateUser(userId: string | undefined, accessToken: string, body: any) {
   const res = await fetch(`${API_BASE}/api/user/${userId}`, {
     method: "PUT",
     headers: {

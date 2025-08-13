@@ -26,18 +26,20 @@ import { ObjectId, OptionalId } from "mongodb";
 // })
 
 // export const UserModel = mongoose.model('user', userSchema);
-export interface MongoUser {
-  _id: ObjectId,
+export interface IUser {
+  _id: string,
   name?: string,
   email?: string,
   image?: string,
   auth0_id: string; 
-  puzzlesPlayed: ObjectId[];
+  puzzlesPlayed: string[];
   currentPuzzle: SudokuPuzzle,
 }
-export interface CreateUser extends OptionalId<MongoUser> {}
-export interface UpdateUser extends Partial<MongoUser> {};
+export interface CreateUser extends OptionalId<IUser> {}
+export interface UpdateUser extends Partial<Omit<IUser, '_id'>> {};
 
-export interface FrontendUser extends Omit<MongoUser, '_id'> {
-  _id: string
+export interface IMongoUser extends Omit<IUser, '_id' | 'puzzlesPlayed'> {
+  _id: ObjectId,
+  puzzlesPlayed: ObjectId[]
 }
+export interface IUpdateMongoUser extends Partial<IMongoUser> {};
