@@ -2,10 +2,8 @@ import * as userService from '@/services/userService'
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useSudokuStore } from "./sudokuStore";
-import { SudokuPuzzle } from './models/puzzle';
 
 export const useUserStore = defineStore('userStore', () => {
-  const sudokuStore = useSudokuStore();
   // state
   const id = ref<string | undefined>(undefined);
   const name = ref<string | undefined>();
@@ -19,9 +17,9 @@ export const useUserStore = defineStore('userStore', () => {
     const res = await userService.getUser(id.value, token);
     console.log(res)
     id.value = res._id
-    if(res.currentPuzzle) {
-      sudokuStore.puzzle = new SudokuPuzzle(res.currentPuzzle.cells, {difficulty: res.currentPuzzle.difficulty})
-    }
+    // if(res.currentPuzzle) {
+    //   sudokuStore.puzzle = new SudokuPuzzle(res.currentPuzzle.cells, {difficulty: res.currentPuzzle.difficulty})
+    // }
   }
   const updateUser = async (token: string | undefined) => {
     if(!token) {
@@ -33,6 +31,7 @@ export const useUserStore = defineStore('userStore', () => {
       email: email.value,
       image: image.value,
       currentPuzzle: {
+        _id: sudokuStore.puzzleId,
         cells: sudokuStore.puzzle.rows,
         difficulty: sudokuStore.puzzle.options.difficulty,
         solved: sudokuStore.isPuzzleSolved

@@ -81,12 +81,12 @@ export class MongoDbUserDataSource implements UserDataSource {
       ...mongoUser,
       _id: mongoUser._id.toString(),
       puzzlesPlayed: mongoUser.puzzlesPlayed.map(each => each.toString()),
-      // currentPuzzle: {...mongoUser.currentPuzzle, _id: mongoUser.currentPuzzle._id.toString()}
+      currentPuzzle: {...mongoUser.currentPuzzle, _id: mongoUser.currentPuzzle?._id.toString()}
     }
     return user;
   }
   private toIMongoUser(user: UpdateUser) {
-    const mongoUser = (user.puzzlesPlayed === undefined || user.puzzlesPlayed?.length > 0) ? {...user, puzzlesPlayed: user.puzzlesPlayed.map(each => new ObjectId(each))} : {...user}
+    const mongoUser = (user.puzzlesPlayed !== undefined || user.puzzlesPlayed?.length > 0) ? {...user, puzzlesPlayed: user.puzzlesPlayed.map(each => new ObjectId(each))} : {...user}
     return mongoUser as IUpdateMongoUser
   }
 }

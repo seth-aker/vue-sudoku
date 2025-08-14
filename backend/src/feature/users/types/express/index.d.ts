@@ -1,8 +1,8 @@
-import { FrontendUser } from "../../datasource/models/user";
+import { IUser } from "../../datasource/models/user";
 declare global {
     namespace Express {
         interface Request {
-            user?: FrontendUser
+            user?: IUser
         }
     }
 }

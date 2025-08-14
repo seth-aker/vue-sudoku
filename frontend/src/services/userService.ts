@@ -9,7 +9,6 @@ export async function getUser(userId: string | undefined, accessToken: string) {
   }
   })
   const body = await res.json();
-  console.log(body);
   return body;
 }
 

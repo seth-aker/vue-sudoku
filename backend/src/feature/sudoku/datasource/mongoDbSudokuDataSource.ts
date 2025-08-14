@@ -52,7 +52,7 @@ export class MongoDbSudokuDataSource implements SudokuDataSource {
       if(!response?.puzzle) {
         throw new DatabaseError("No more puzzles")
       }
-      console.log(response.puzzle)
+      // console.log(response.puzzle)
       user.currentPuzzle = response.puzzle;
       user.puzzlesPlayed.push(response.puzzle._id)
       if(user._id) {

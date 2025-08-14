@@ -151,7 +151,7 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
         if(step.candidateRemoved) {
           puzzle[step.rowIndex][step.colIndex].candidates.add(step.value);
         } else {
-          puzzle[step.rowIndex][step.colIndex].value = undefined;
+          puzzle[step.rowIndex][step.colIndex].value = null;
         }
       }
       // lastStepIndex + 1 because slice end index is exclusive
@@ -182,15 +182,15 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
   private isFullHouse(rowIndex: number, colIndex: number, puzzle: Row[]) {
     const rowValues = puzzle[rowIndex]
       .map((cell) => cell.value)
-      .filter((each) => each !== undefined);
+      .filter((each) => each !== null);
     const colValues = this.getColumn(colIndex, puzzle)
       .map((cell) => cell.value)
-      .filter((each) => each !== undefined);
+      .filter((each) => each !== null);
 
     const blockNum = this.calcBlockNum(rowIndex, colIndex, puzzle)
     const blockValues = this.getBlock(blockNum, puzzle)
       .map((cell) => cell.value)
-      .filter((each) => each !== undefined);
+      .filter((each) => each !== null);
 
     if(rowValues.length === 8 || colValues.length === 8 || blockValues.length === 8) {
       return true;
@@ -625,7 +625,7 @@ export class PuzzleSolverImplementation implements PuzzleSolver {
       row.forEach((cell) => {
         const res = cellSchema.safeParse(cell);
         if(res.error) {
-          throw new PuzzleSolverError(`Puzzle malformed: Cell validation error: ${z.flattenError(res.error)}`)
+          throw new PuzzleSolverError(`Puzzle malformed: Cell validation error: ${z.prettifyError(res.error)}`)
         }
       }) 
     })

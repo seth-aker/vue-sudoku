@@ -12,7 +12,7 @@ export function buildBlankPuzzleRows(rowLength: number) {
         const cell: Cell = {
           cellId: `r${i}c${j}`,
           type: 'blank',
-          value: undefined,
+          value: null,
           candidates: new Set<number>()
         }
         row.push(cell)

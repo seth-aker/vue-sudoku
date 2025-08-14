@@ -48,6 +48,7 @@ export const useSudokuStore = defineStore('sudoku', {
       },
       async getNewPuzzle(options: SudokuOptions, token?: string | undefined) {
         const response = await sudokuService.fetchNewPuzzle(options, token);
+        console.log(response)
         if(response) {
           this.$patch({
             puzzleId: response._id,

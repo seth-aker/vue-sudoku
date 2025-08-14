@@ -1,23 +1,25 @@
 <script setup lang="ts">
 import { RouterView, useRoute } from 'vue-router'
 import NavHeader from './components/NavHeader.vue';
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useUserStore } from '@/stores/userStore'
 import LoadingOverlay from './components/LoadingOverlay.vue';
 import { useSudokuStore } from './stores/sudokuStore';
 const route = useRoute();
 const { isAuthenticated, user, isLoading, getAccessTokenSilently } = useAuth0();
+const userLoading = ref(false);
 const sudokuStore = useSudokuStore();
 const userStore = useUserStore();
 const puzzleLoading = computed(() => {
   if (!route.path.includes('sudoku')) {
     return false
   }
-  return sudokuStore.loading || isLoading.value
+  return sudokuStore.loading || isLoading.value || userLoading.value
 });
-watch(isAuthenticated, async () => {
+watch(user, async () => {
   if (isAuthenticated.value) {
+    userLoading.value = true;
     console.log("isAuthenticated run")
     userStore.$patch({
       name: user.value?.name,
@@ -26,9 +28,10 @@ watch(isAuthenticated, async () => {
     })
     if (userStore.id === undefined) {
       const token = await getAccessTokenSilently()
-      userStore.getUser(token)
+      await userStore.getUser(token)
     }
   }
+  userLoading.value = false;
 })
 
 </script>

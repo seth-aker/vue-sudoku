@@ -60,7 +60,7 @@ export class PuzzleGenerator {
       const {rowIndex, colIndex} = filledCellLocations.pop();
       const cell = puzzle[rowIndex][colIndex];
       const backTrackValue = cell.value;
-      cell.value = undefined
+      cell.value = null
       if(!this.isUnique(puzzle)) {
         cell.value = backTrackValue;
       } else {
@@ -103,7 +103,7 @@ export class PuzzleGenerator {
           return true;
         }
         // backtrack if the puzzle value leads to a un-solvable puzzle
-        puzzle[emptyCell.rowIndex][emptyCell.colIndex].value = undefined;
+        puzzle[emptyCell.rowIndex][emptyCell.colIndex].value = null;
       }
     }
     return false;
@@ -146,7 +146,7 @@ export class PuzzleGenerator {
         this.countSolutionsRecursive(puzzle, solutions)
 
         // backtrack if the puzzle value leads to a un-solvable puzzle
-        puzzle[emptyCell.rowIndex][emptyCell.colIndex].value = undefined;
+        puzzle[emptyCell.rowIndex][emptyCell.colIndex].value = null;
       }
     }
   }
