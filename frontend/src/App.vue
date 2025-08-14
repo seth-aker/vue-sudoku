@@ -19,11 +19,12 @@ const puzzleLoading = computed(() => {
 watch(isAuthenticated, async () => {
   if (isAuthenticated.value) {
     console.log("isAuthenticated run")
-    userStore.name = user.value?.name;
-    userStore.image = user.value?.picture,
-    userStore.email = user.value?.email
-    console.log(userStore.id)
-    if(userStore.id === undefined) {
+    userStore.$patch({
+      name: user.value?.name,
+      email: user.value?.email,
+      image: user.value?.picture
+    })
+    if (userStore.id === undefined) {
       const token = await getAccessTokenSilently()
       userStore.getUser(token)
     }

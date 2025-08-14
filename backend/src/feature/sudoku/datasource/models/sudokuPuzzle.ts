@@ -3,7 +3,7 @@ import { type Difficulty } from "./difficulty.ts";
 import { type Row } from "./row.ts";
 
 export interface SudokuPuzzle {
-  _id: ObjectId,
+  _id: ObjectId | string,
   cells: Row[];
   difficulty: Difficulty,
 }

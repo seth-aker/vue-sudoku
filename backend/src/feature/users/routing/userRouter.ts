@@ -10,19 +10,15 @@ export function UserRouter(userService: UserService, requireAuth: RequireAuth) {
   router.use(requireAuth)
   router.use(SyncUser(userService))
 
-  router.get('/:userId', async (req: Request, res: Response, next: NextFunction) => {
+  router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     // Function SycnUser middleware automatically fetches the user based on the access token sub and then attaches it to the request object so no need to perform another database query.
-    if(!req.user || (req.params.userId !== "undefined" && req.user._id !== req.params.userId)) {
-      res.sendStatus(403)
-    } else {
-      try {
-        res.send(req.user)
-      } catch (err) {
-        next(err);
-      }
+    try {
+      res.send(JSON.stringify(req.user))
+    } catch (err) {
+      next(err);
     }
   })
-  router.put('/:userId', updateUserValidator, async (req: Request, res: Response, next: NextFunction) => {
+  router.put('/:userId', async (req: Request, res: Response, next: NextFunction) => {
     if(!req.user || (req.params.userId !== "undefined" && req.user._id !== req.params.userId)) {
       res.sendStatus(403)
     } else {

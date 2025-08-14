@@ -80,7 +80,8 @@ export class MongoDbUserDataSource implements UserDataSource {
     const user: IUser = { 
       ...mongoUser,
       _id: mongoUser._id.toString(),
-      puzzlesPlayed: mongoUser.puzzlesPlayed.map(each => each.toString())
+      puzzlesPlayed: mongoUser.puzzlesPlayed.map(each => each.toString()),
+      // currentPuzzle: {...mongoUser.currentPuzzle, _id: mongoUser.currentPuzzle._id.toString()}
     }
     return user;
   }
