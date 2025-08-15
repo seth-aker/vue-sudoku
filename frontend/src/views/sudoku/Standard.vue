@@ -1,5 +1,6 @@
 <script setup lang='ts'>
 import SudokuControls from '@/components/SudokuControls.vue';
+import ControlInstructions from '@/components/ControlInstructions.vue';
 import SudokuPuzzle from '@/components/SudokuPuzzle.vue';
 import { useSudokuStore } from '@/stores/sudokuStore'
 import { useGameStore } from '@/stores/gameStore'
@@ -16,7 +17,6 @@ import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router';
 import type { Difficulty } from '@/stores/models/difficulty';
 import { useAuth0 } from '@auth0/auth0-vue';
-import * as userService from '@/services/userService'
 import { useUserStore } from '@/stores/userStore';
 const sudokuStore = useSudokuStore();
 const gameStore = useGameStore()
@@ -34,7 +34,6 @@ const requestNewPuzzle = async (newDifficulty: Difficulty) => {
   }
   await sudokuStore.getNewPuzzle({ difficulty: newDifficulty }, token);
   gameStore.elapsedSeconds = 0;
-  gameStore.startTimer();
 }
 
 onMounted(async () => {
@@ -49,6 +48,9 @@ onMounted(async () => {
         error.value = err.message
       }
     }
+  } else {
+    // If sudokuStore.retrieveLocalState returns true, start game timer where it left off.
+    gameStore.loadElapsedSecondsLocal()
   }
   gameStore.startTimer();
   gameStore.gameState = 'playing'
@@ -126,6 +128,12 @@ const handleKeyPress = (event: KeyboardEvent) => {
     case 'P':
       sudokuStore.usingPencil = !sudokuStore.usingPencil
       break;
+    case 'z':
+    case 'Z':
+      if (event.ctrlKey) {
+        sudokuStore.undoAction()
+      }
+      break;
     default:
       for (let i = 0; i < sudokuStore.puzzle.cellsPerRow; i++) {
         if (`${i + 1}` === event.key) {
@@ -134,7 +142,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
           if (sudokuStore.usingPencil) {
             cell.candidates.includes(i + 1) ? cell.candidates = cell.candidates.filter((value) => value !== i + 1) : cell.candidates.push(i + 1)
           } else {
-            cell.value = cell.value ? null : (i + 1)
+            cell.value = cell.value === (i + 1) ? null : (i + 1)
           }
           sudokuStore.setCell(cell, sudokuStore.selectedCell.x, sudokuStore.selectedCell.y)
           break;
@@ -151,19 +159,20 @@ const handleReset = () => {
 
 <template>
   <div class="flex flex-col items-center justify-center">
-    <div class="w-full flex items-center justify-center my-4">
+    <div class="w-full flex items-center justify-center bg-gray-50">
       {{ difficulty.charAt(0).toUpperCase() + difficulty.substring(1) }}
       {{ gameStore.formattedElapsedTime }}
-      <div class="mx-4">
-        <Button @click="toggleTimer" variant="ghost">
+      <div class="flex items-center my-2">
+        <Button class="mx-2" @click="toggleTimer" variant="ghost">
           <Icon v-if="gameStore.gameState === 'playing'" icon="material-symbols:pause-rounded" />
           <Icon v-else icon="material-symbols:play-arrow-rounded" />
         </Button>
-        <Button @click="handleReset">Reset</Button>
+        <ControlInstructions />
+        <Button variant="ghost" class="mr-2 my-0 text-sm" @click="handleReset">Reset</Button>
       </div>
     </div>
 
-    <div class="flex">
+    <div class="flex pt-4">
       <SudokuPuzzle v-if="sudokuStore.puzzle" :puzzle="sudokuStore.puzzle"
         v-model:selected-cell="sudokuStore.selectedCell" />
       <SudokuControls />

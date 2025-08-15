@@ -18,13 +18,24 @@ export const useGameStore = defineStore('gameStore', {
         }
         this.interval = setInterval(() => {
           this.elapsedSeconds++
+          this.saveElapsedSecondsLocal();
         }, 1000)
       },
       stopTimer() {
         if(this.interval) {
           clearInterval(this.interval)
         }
+      },
+      saveElapsedSecondsLocal() {
+        localStorage.setItem('elapsedSeconds', this.elapsedSeconds.toString())
+      },
+      loadElapsedSecondsLocal() {
+        const secondString = localStorage.getItem('elapsedSeconds');
+        if(secondString !== null) {
+          this.elapsedSeconds = Number.parseInt(secondString)
+        }
       }
+
     },
     getters: {
         formattedElapsedTime: (state) => {

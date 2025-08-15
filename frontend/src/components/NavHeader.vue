@@ -27,7 +27,7 @@ const gotoPuzzle = (difficulty: Difficulty) => {
 </script>
 
 <template>
-  <header class="w-full p-4 flex justify-between border-b shadow mb-1">
+  <header class="w-full p-4 flex justify-between border-b shadow ">
     <h1 class="text-3xl">Vue Sudoku</h1>
     <div>
       <NavigationMenu>
