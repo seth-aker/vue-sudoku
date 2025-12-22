@@ -9,6 +9,7 @@ export const useUserStore = defineStore('userStore', () => {
   const name = ref<string | undefined>();
   const email = ref<string | undefined>();
   const image = ref<string | undefined>();
+  const userLoading = ref<boolean>(false);
 
   const getUser = async (token: string | undefined) => {
     if(!token) {
@@ -45,6 +46,6 @@ export const useUserStore = defineStore('userStore', () => {
     await userService.updateUser(id.value, token, user)
     console.log("User updated!")
   }
-  return { id, name, email, image, getUser, updateUser}
+  return { id, name, email, image, userLoading, getUser, updateUser}
 
 })

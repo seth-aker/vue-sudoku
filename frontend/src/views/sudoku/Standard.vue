@@ -4,7 +4,7 @@ import SudokuPuzzle from '@/components/SudokuPuzzle.vue';
 import { useSudokuStore } from '@/stores/sudokuStore'
 import { useGameStore } from '@/stores/gameStore'
 import { Dialog } from '@/components/ui/dialog';
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue';
 import DialogHeader from '@/components/ui/dialog/DialogHeader.vue';
 import DialogTitle from '@/components/ui/dialog/DialogTitle.vue';
@@ -16,7 +16,6 @@ import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router';
 import type { Difficulty } from '@/stores/models/difficulty';
 import { useAuth0 } from '@auth0/auth0-vue';
-import * as userService from '@/services/userService'
 import { useUserStore } from '@/stores/userStore';
 const sudokuStore = useSudokuStore();
 const gameStore = useGameStore()
@@ -25,8 +24,18 @@ const router = useRouter();
 const error = ref<string | null>(null)
 const difficulty = ref(router.currentRoute.value.name?.toString() as Difficulty)
 const dialogOpen = ref(false);
-const { isAuthenticated, getAccessTokenSilently } = useAuth0()
+const { isAuthenticated, getAccessTokenSilently, isLoading } = useAuth0()
 
+const loading = computed(() => {
+  return isLoading || userStore.userLoading || sudokuStore.loading
+})
+watch(() => loading, () => {
+  if(loading) {
+    gameStore.stopTimer()
+  } else {
+    gameStore.startTimer();
+  }
+})
 const requestNewPuzzle = async (newDifficulty: Difficulty) => {
   let token = undefined;
   if (isAuthenticated.value) {
@@ -50,8 +59,6 @@ onMounted(async () => {
       }
     }
   }
-  gameStore.startTimer();
-  gameStore.gameState = 'playing'
 })
 onUnmounted(() => {
   window.removeEventListener('keyup', handleKeyPress)
