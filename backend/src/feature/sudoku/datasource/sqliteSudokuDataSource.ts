@@ -8,6 +8,7 @@ import { Row } from "./models/row";
 import { puzzleScripts, userPuzzleScripts } from "@/core/dataSource/sqlite3";
 import { Cell } from "./models/cell";
 import {  DifficultyRating } from "./models/difficulty";
+import { CandidateSet } from "./models/candidateSet";
 
 interface SqlScripts {
   createPuzzle: Statement<{cells: string, difficultyScore: number, difficultyRating: string}>
@@ -136,7 +137,7 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
   }
   private deserializeCells(cellString: string, candidatesString?: string) {
     const cells: Row[] = []
-    const candidates: number[][] = candidatesString ? this.deserializeCandidates(candidatesString) : [];
+    const candidates: CandidateSet[] = candidatesString ? this.deserializeCandidates(candidatesString) : [] as CandidateSet[];
   
     if(cellString.length != 81) {
       throw new DatabaseError(`Puzzle Size is not 81 cells: Size ${cellString.length}`)
@@ -149,7 +150,7 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
         const cell: Cell = {
           cellId: `r${r}c${c}`,
           value: cellValue != 0 ? cellValue : null,
-          candidates: candidatesString ? candidates[cellIndex] : [] as number[],
+          candidates: candidatesString ? candidates[cellIndex] : new CandidateSet,
           type: cellValue > 0 ? 'prefilled': 'blank' 
         }
         row.push(cell)
@@ -165,7 +166,7 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
     }
     const candidates = raw.map((candidateString) => {
       const candidates = candidateString.split('').map(each => Number.parseInt(each));
-      return candidates;
+      return new CandidateSet(candidates);
     })
     return candidates
   }
