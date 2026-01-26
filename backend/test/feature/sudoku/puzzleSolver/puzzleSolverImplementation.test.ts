@@ -2,6 +2,7 @@ import { describe, test, expect } from "vitest";
 
 import { PuzzleSolverImplementation } from "@/feature/sudoku/puzzleSolver/puzzleSolverImplementation";
 import { buildBlankPuzzleRows } from "@/feature/sudoku/utils/buildBlankPuzzleRows";
+import { CandidateSet } from "@/feature/sudoku/datasource/models/candidateSet";
 
 describe("PuzzleSolverImplementation tests", () => {
    describe("fillPuzzleCandidates() Tests", () => {
@@ -61,7 +62,7 @@ describe("PuzzleSolverImplementation tests", () => {
       })
       test('fillCellPencilValues doesn\'t duplicate pencil values', () => {
         const puzzleRows = buildBlankPuzzleRows(9);
-        puzzleRows[0][0].candidates = new Set<number>([1,2,3,4,5,6,7,8,9])
+        puzzleRows[0][0].candidates = new CandidateSet([1,2,3,4,5,6,7,8,9])
         const puzzleSolver = new PuzzleSolverImplementation();
         puzzleSolver.fillPuzzleCandidates(puzzleRows);
         expect(puzzleRows[0][0].candidates).toEqual(new Set([1,2,3,4,5,6,7,8,9]))

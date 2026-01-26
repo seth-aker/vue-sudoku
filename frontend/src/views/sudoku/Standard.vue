@@ -48,6 +48,23 @@ const requestNewPuzzle = async (newDifficulty: Difficulty) => {
 
 onMounted(async () => {
   window.addEventListener('keyup', handleKeyPress);
+  // const puzzleValues = [
+  //       [null,null,null,null,null,null,2,7,null],
+  //       [6,null,null,null,5,null,null,3,null],
+  //       [null,2,7,null,null,3,9,null,null],
+  //       [null,null,2,3,null,8,null,1,null],
+  //       [null, null,5,4,2,null,null,null,null],
+  //       [null,null,null,null,null,null,8,null,null],
+  //       [null,9,null,null,3,null,null,5,null],
+  //       [2,null,null,7,null,null,null,9,3],
+  //       [7,null,null,1,null,null,null,8,null]
+  //     ]
+  // for(let i = 0; i < sudokuStore.puzzle.rows.length; i++) {
+  //       for(let j = 0; j < sudokuStore.puzzle.rows.length; j++) {
+  //         sudokuStore.puzzle.rows[i][j].value = puzzleValues[i][j]
+  //       }
+  //     }
+  // sudokuStore.puzzle
   if (!sudokuStore.retrieveLocalState() || sudokuStore.puzzle.options.difficulty !== difficulty.value) {
     try {
       await requestNewPuzzle(difficulty.value)

@@ -145,7 +145,6 @@ export class PuzzleGenerator {
 
         this.countSolutionsRecursive(puzzle, solutions)
 
-        // backtrack if the puzzle value leads to a un-solvable puzzle
         puzzle[emptyCell.rowIndex][emptyCell.colIndex].value = null;
       }
     }

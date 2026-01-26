@@ -1,6 +1,7 @@
 import workerpool from 'workerpool'
 import { WorkerPoolConfig, config} from './workerpoolConfig';
 import { WorkerPoolError } from '../errors/workerpoolError';
+
 export class WorkerPoolManager {
   // <functionName, argsTypes>
   private pool: workerpool.Pool | null = null;

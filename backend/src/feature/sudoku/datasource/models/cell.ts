@@ -1,4 +1,4 @@
-import { CandidateSet } from "./candidateSet";
+import { CandidateSet } from "./candidateSet.ts";
 
 export interface Cell {
     cellId: string;

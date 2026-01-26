@@ -18,4 +18,4 @@ function generatePuzzles(number: number, options: PuzzleOptions) {
     return puzzles;
   }
 
-workerpool.worker({generatePuzzles})
+// workerpool.worker({generatePuzzles})

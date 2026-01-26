@@ -1,6 +1,7 @@
 #!/bin/bash
 if [ "$1" == "DEV" ]; then
 
+export NODE_ENV=development
 (cd ./frontend 
 pnpm run dev) &
 
@@ -9,6 +10,7 @@ pnpm run dev) &
 pnpm run dev)
 
 elif [ "$1" == "PROD" ]; then
+export NODE_ENV=production
 (cd ./frontend 
 pnpm run build )
 
