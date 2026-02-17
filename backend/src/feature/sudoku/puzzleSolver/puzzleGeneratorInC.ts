@@ -32,6 +32,8 @@ export function generatePuzzles(number: number, options: PuzzleOptions) {
     difficulty
   ];
   return new Promise<void>((resolve, reject) => {
+    console.log(args)
+    console.log(generatorPath)
     const generator = spawn(generatorPath, args)
     let buffer = '';
     generator.stdout.on('data', (data) => {

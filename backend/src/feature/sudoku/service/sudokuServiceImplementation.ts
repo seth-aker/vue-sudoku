@@ -31,6 +31,9 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
         // console.log(response)
         if(response.metadata.totalCount < 100) {
           this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, options], async (newPuzzles) => {
+            if(process.env.NODE_ENV === 'development') {
+              console.log(`Puzzle created: ${newPuzzles.toString()}`)
+            }
             const result = await this.createPuzzles(newPuzzles);
             if(result !== 1) {
               console.log("A puzzle failed to be created in the database")
