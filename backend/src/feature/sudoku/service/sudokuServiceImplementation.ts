@@ -30,23 +30,23 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
         const response = await this.sudokuDataSource.getNewPuzzle(requestedBy, options);
         // console.log(response)
         if(response.metadata.totalCount < 100) {
-          this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, options])
-          .then(async (newPuzzles) => {
-              const result = await this.createPuzzles(newPuzzles);
-              console.log(`${result} puzzles created!`)
-            })
+          this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, options], async (newPuzzles) => {
+            const result = await this.createPuzzles(newPuzzles);
+            if(result !== 1) {
+              console.log("A puzzle failed to be created in the database")
+            }
+          })
         }
         return response.puzzle
-
       } catch (err) {
         console.log(err.message)
         if(err instanceof DatabaseError && err.message.includes('No more puzzles')) {
-          this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, options])
-            .then(async (newPuzzles) => {
-              const result = await this.createPuzzles(newPuzzles);
-              console.log(`${result} puzzles created!`)
-            })
-          
+          this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, options], async (newPuzzle) => {
+            const result = await this.createPuzzles([newPuzzle]);
+            if(result !== 1) {
+              console.log("A puzzle failed to be created in the database")
+            }
+          })
         } 
         throw err
       }

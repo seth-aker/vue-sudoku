@@ -10,7 +10,7 @@ export class WorkerPoolManager {
     this.config = {...this.config, ...config};
     this.pool = workerpool.pool(config.workerPath, config.options)
   }
-  async execute<T>(functionName: string, ...args: any[]): Promise<T> {
+  async execute<T>(functionName: string, args: any[], onUpdate?: (data: any) => void): Promise<T> {
     if(process.env.NODE_ENV === 'development') {
       console.log(`Calling ${functionName}`)
     }
@@ -18,7 +18,13 @@ export class WorkerPoolManager {
       this.pool = workerpool.pool(this.config.workerPath, this.config.options)
     }
     try {
-      return await this.pool.exec(functionName, ...args)
+      return await this.pool.exec(functionName, args, {
+        on: (payload: any) => {
+          if(onUpdate) {
+            onUpdate(payload);
+          }
+        }
+      })
     } catch (error) {
       const message = error instanceof Error ? error.message : `An error occured executing ${functionName}: ${String(error)}`
       throw new WorkerPoolError(message)

@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "Running pnpm install on frontend"
 
 cd ./frontend
