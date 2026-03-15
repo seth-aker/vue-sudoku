@@ -7,19 +7,18 @@ import { useUserStore } from '@/stores/userStore'
 import LoadingOverlay from './components/LoadingOverlay.vue';
 import { useSudokuStore } from './stores/sudokuStore';
 const route = useRoute();
-const { isAuthenticated, user, getAccessTokenSilently } = useAuth0();
-const userLoading = ref(false);
+const { isAuthenticated, user, isLoading, getAccessTokenSilently } = useAuth0();
 const sudokuStore = useSudokuStore();
 const userStore = useUserStore();
 const puzzleLoading = computed(() => {
   if (!route.path.includes('sudoku')) {
     return false
   }
-  return sudokuStore.loading || userLoading.value
+  return sudokuStore.loading || isLoading.value || userStore.userLoading
 });
 watch(user, async () => {
   if (isAuthenticated.value) {
-    userLoading.value = true;
+    userStore.userLoading = true;
     console.log("isAuthenticated run")
     userStore.$patch({
       name: user.value?.name,
@@ -31,7 +30,7 @@ watch(user, async () => {
       await userStore.getUser(token)
     }
   }
-  userLoading.value = false;
+  userStore.userLoading = false;
 })
 
 </script>

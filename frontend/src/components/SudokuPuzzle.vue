@@ -77,7 +77,8 @@ const isCellInBlock = (columnIndex: number, rowIndex: number) => {
         <div class="relative h-full w-full">
           <Cell v-for="(cell, columnIndex) in row" :key="`cell${columnIndex}`"
             @click="() => { selectedCell.x = columnIndex; selectedCell.y = rowIndex }"
-            :style="{ left: generateBlockSpacingOffset(columnIndex) }" class="absolute" :cell="cell"
+            :style="{ left: generateBlockSpacingOffset(columnIndex) }" class="absolute" 
+            :cell="cell"
             :width="cellHeightWidth" :highlighted="isCellHighlighted(columnIndex, rowIndex)"
             :selected="isCellSelected(columnIndex, rowIndex)"
             :has-error="cellHasError(puzzle, columnIndex, rowIndex)" />

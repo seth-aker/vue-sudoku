@@ -1,7 +1,8 @@
 export interface Difficulty {
   score?: number,
-  rating: 'easy' | 'medium' | 'hard' | 'impossible';
+  rating: DifficultyRating
 } 
+export type DifficultyRating = 'easy' | 'medium' | 'hard' | 'impossible';
 export const difficultyScoreMin = {
   easy: 150,
   medium: 400,

@@ -1,6 +1,6 @@
 export class CandidateSet extends Set<number> {
-  constructor() {
-    super()
+  constructor(values?: number[] | null) {
+    super(values)
   }
   toJSON() {
     return [...this]
