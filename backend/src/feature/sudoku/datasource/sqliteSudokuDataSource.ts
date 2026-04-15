@@ -14,7 +14,7 @@ interface SqlScripts {
   createPuzzle: Statement<{cells: string, difficultyScore: number, difficultyRating: string}>
   getUserPuzzle: Statement<{userId: string, puzzleId: string}, SqlUserPuzzle>,
   getPuzzleById: Statement<{puzzleId: string}, SqlPuzzle>,
-  getPuzzleByDifficulty: Statement<{difficultyRating: string, userId: string}, SqlPuzzle & {total_count: number}>,
+  getPuzzleByDifficulty: Statement<{difficultyRating: string, userId: string | null}, SqlPuzzle & {total_count: number}>,
   updatePuzzle: Statement<{isCompleted: boolean, cells: string, candidates: string, time: string, userId: string, puzzleId: string}>,
   createUserPuzzle: Statement<{userId: string, puzzleId: string, isCompleted: boolean, cells: string, candidates: string}>
 }
@@ -41,9 +41,9 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
   static instance: SqliteSudokuDataSource | null = null;
   private db: Database | null = null;
   private scripts: SqlScripts;
-  constructor(db: Database) {
+  private constructor(db: Database) {
     this.db = db;
-    this.prepareScripts();
+    this.scripts = this.prepareScripts() as SqlScripts;
   }
   static create(db: Database) {
     if(SqliteSudokuDataSource.instance === null) {
@@ -88,6 +88,9 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
       const result = this.scripts.getPuzzleById.get({
         puzzleId: puzzleId
       })
+      if(!result) {
+        throw new DatabaseError(`Could not find puzzle with id: ${puzzleId}`)
+      }
       const cells = this.deserializeCells(result.cells);
       return {
         _id: result.puzzle_id,
@@ -98,27 +101,33 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
         }
       }
     } catch (err) {
-
+      throw new DatabaseError(err as string);
     }
   }
-  getPuzzles: (options: PuzzleOptions, page?: number, limit?: number) => Promise<PuzzleArray>;
+  async getPuzzles(options: PuzzleOptions, page?: number, limit?: number): Promise<PuzzleArray> {
+    throw new DatabaseError("Fn getPuzzles() not implemented")
+  }
   async createPuzzles(puzzles: CreatePuzzle[]): Promise<number> {
     puzzles.forEach((puzzle) => {
       const {cellString} = this.serializePuzzleCells(puzzle.cells)
       try {
         this.scripts.createPuzzle.all({
           cells: cellString, 
-          difficultyScore: puzzle.difficulty.score ?? null, 
+          difficultyScore: puzzle.difficulty.score ?? 0, 
           difficultyRating: puzzle.difficulty.rating
         })
       } catch (err) {
-        throw new DatabaseError(err.message);
+        throw new DatabaseError((err as Error).message);
       }
     })
     return puzzles.length;
   }
-  updatePuzzle: (puzzle: UpdatePuzzle) => Promise<number>;
-  deletePuzzle: (puzzleId: string) => Promise<number>;
+  async updatePuzzle(puzzle: UpdatePuzzle): Promise<number> {
+    throw new DatabaseError("Fn updatePuzzle() not implemented")
+  }
+  async deletePuzzle(puzzleId: string): Promise<number> {
+    throw new DatabaseError("Fn deletePuzzle() not implemented")
+  }
 
   private serializePuzzleCells(cells: Row[]) {
     let cellString = ''
@@ -149,7 +158,7 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
         const cellValue = Number.parseInt(cellString.charAt(cellIndex));
         const cell: Cell = {
           cellId: `r${r}c${c}`,
-          value: cellValue != 0 ? cellValue : null,
+          value: cellValue != 0 ? cellValue : undefined,
           candidates: candidatesString ? candidates[cellIndex] : new CandidateSet,
           type: cellValue > 0 ? 'prefilled': 'blank' 
         }
@@ -171,7 +180,10 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
     return candidates
   }
   private prepareScripts() {
-    this.scripts = {
+    if(!this.db) {
+      throw new DatabaseError("Error: db instance is NULL")
+    }
+    const scripts = {
       createPuzzle: this.db.prepare(puzzleScripts.createPuzzle),
       getPuzzleById: this.db.prepare(puzzleScripts.getPuzzleById),
       createUserPuzzle: this.db.prepare(userPuzzleScripts.insertUserPuzzle),
@@ -179,5 +191,6 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
       getPuzzleByDifficulty: this.db.prepare(puzzleScripts.getPuzzleByDifficulty),
       updatePuzzle: this.db.prepare(userPuzzleScripts.updateUserPuzzle)
     }
+    return scripts
   }
 }

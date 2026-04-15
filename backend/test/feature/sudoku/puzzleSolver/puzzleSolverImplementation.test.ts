@@ -95,7 +95,7 @@ describe("PuzzleSolverImplementation tests", () => {
       expect(removed[0].colIndex).toBe(0);
       expect(removed[1].colIndex).toBe(1);
       expect(removed[2].colIndex).toBe(2);
-      removed.forEach((element) => expect(element.value).toBe(1))
+      removed.forEach((element: any) => expect(element.value).toBe(1))
       const block = solver.getBlock(0, rows);
       block.forEach((cell) => {
         expect(cell.candidates.size).toBe(8);

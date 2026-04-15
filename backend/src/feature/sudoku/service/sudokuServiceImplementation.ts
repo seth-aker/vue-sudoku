@@ -27,14 +27,17 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
   async getNewPuzzle(requestedBy: string, options: PuzzleOptions): Promise<SudokuPuzzle>{
     return await this.callDataSource(async () => {
       try {
+        if(options.difficulty == "hard" || options.difficulty === 'impossible') {
+          throw new Error("Cannot get difficulties of hard or impossible") 
+        }
         const response = await this.sudokuDataSource.getNewPuzzle(requestedBy, options);
         // console.log(response)
         if(response.metadata.totalCount < 100) {
-          this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, options], async (newPuzzles) => {
+          this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [100, options], async (newPuzzle) => {
             if(process.env.NODE_ENV === 'development') {
-              console.log(`Puzzle created: ${newPuzzles.toString()}`)
+              console.log(`Puzzle created: ${newPuzzle.toString()}`)
             }
-            const result = await this.createPuzzles(newPuzzles);
+            const result = await this.createPuzzles(newPuzzle);
             if(result !== 1) {
               console.log("A puzzle failed to be created in the database")
             }
@@ -42,9 +45,9 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
         }
         return response.puzzle
       } catch (err) {
-        console.log(err.message)
+        console.log(err)
         if(err instanceof DatabaseError && err.message.includes('No more puzzles')) {
-          this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [20, options], async (newPuzzle) => {
+          await this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [100, options], async (newPuzzle) => {
             const result = await this.createPuzzles([newPuzzle]);
             if(result !== 1) {
               console.log("A puzzle failed to be created in the database")

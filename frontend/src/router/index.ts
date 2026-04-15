@@ -18,6 +18,11 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
+      path: '/sudoku/beginner',
+      name: 'beginner',
+      component: () => import('../views/sudoku/Standard.vue')
+    },
+    {
       path: '/sudoku/easy',
       name: 'easy',
       component: () => import('../views/sudoku/Standard.vue')
@@ -27,16 +32,16 @@ const router = createRouter({
       name: 'medium',
       component: () => import('../views/sudoku/Standard.vue')
     },
-    {
-      path: '/sudoku/hard',
-      name: 'hard',
-      component: () => import('../views/sudoku/Standard.vue')
-    },
-    {
-      path: '/sudoku/impossible',
-      name: 'impossible',
-      component: () => import('../views/sudoku/Standard.vue')
-    }
+    // {
+    //   path: '/sudoku/hard',
+    //   name: 'hard',
+    //   component: () => import('../views/sudoku/Standard.vue')
+    // },
+    // {
+    //   path: '/sudoku/impossible',
+    //   name: 'impossible',
+    //   component: () => import('../views/sudoku/Standard.vue')
+    // }
   ],
 })
 

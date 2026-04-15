@@ -7,7 +7,7 @@ import { type DifficultyRating, difficultyScoreMin } from "../datasource/models/
 import { config } from "../../../core/config";
 import { PuzzleGeneratorError } from "../errors/puzzleGeneratorError";
 export function generatePuzzles(number: number, options: PuzzleOptions) {
-  const generatorPath = `${config.rootDir}/puzzle_generator`;
+  const generatorPath = `${config.rootDir}/puzzle_generator_app`;
   let difficulty: string;
   switch (options.difficulty) {
     case 'easy': 
@@ -28,13 +28,13 @@ export function generatePuzzles(number: number, options: PuzzleOptions) {
   }
 
   const args = [
-    `${number}`,
-    difficulty
+    difficulty,
+    `${number}`
   ];
   return new Promise<void>((resolve, reject) => {
     console.log(args)
     console.log(generatorPath)
-    const generator = spawn(generatorPath, args)
+    const generator = spawn(generatorPath, args, {env: process.env})
     let buffer = '';
     generator.stdout.on('data', (data) => {
       buffer += data.toString();
@@ -49,7 +49,7 @@ export function generatePuzzles(number: number, options: PuzzleOptions) {
       }  
     })
     generator.on('close', (code) => {
-      if(buffer.trim().length >0) {
+      if(buffer.trim().length > 0) {
         const puzzle = processPuzzle(buffer);
         workerEmit(puzzle);
       }
@@ -81,7 +81,7 @@ function processPuzzle(puzzleString: string): CreatePuzzle{
   const difficultyScore = Number.parseInt(difficultyScoreStr);
   let difficultyRating: DifficultyRating = 'easy';
   for(const key of Object.keys(difficultyScoreMin)) {
-    if(difficultyScoreMin[key] > difficultyScore) {
+    if(difficultyScoreMin[key as DifficultyRating] > difficultyScore) {
       difficultyRating = key as DifficultyRating;
     }
   }

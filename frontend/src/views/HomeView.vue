@@ -17,10 +17,11 @@ const router = useRouter()
         <CardDescription>Pick a difficulty to get started</CardDescription>
       </CardHeader>
       <CardContent class="flex flex-col items-center justify-center">
+        <Button @click="router.push('/sudoku/beginner')">Beginner</Button>
         <Button @click="router.push('/sudoku/easy')" class="w-40 m-1">Easy</Button>
         <Button @click="router.push('/sudoku/medium')" class="w-40 m-1">Medium</Button>
-        <Button @click="router.push('/sudoku/hard')" class="w-40 m-1">Hard</Button>
-        <Button @click="router.push('/sudoku/impossible')" class="w-40 m-1">Impossible</Button>
+        <Button disabled @click="router.push('/sudoku/hard')" class="w-40 m-1">Hard</Button>
+        <Button disabled @click="router.push('/sudoku/impossible')" class="w-40 m-1">Impossible</Button>
       </CardContent>
     </Card>
   </main>
