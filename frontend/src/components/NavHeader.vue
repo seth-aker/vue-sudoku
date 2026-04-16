@@ -36,7 +36,9 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
 
 <template>
   <header class="w-full p-4 flex justify-between border-b shadow ">
-    <h1 class="text-3xl">Vue Sudoku</h1>
+    <h1 class="text-3xl hover:cursor-pointer">
+      <a @click="router.push({ name: 'home' })">Vue Sudoku</a>
+    </h1>
     <div>
       <NavigationMenu>
         <NavigationMenuList>

@@ -49,6 +49,7 @@ const requestNewPuzzle = async (newDifficulty: Difficulty) => {
 }
 
 onMounted(async () => {
+  sudokuStore.$reset()
   window.addEventListener('keyup', handleKeyPress);
   // const puzzleValues = [
   //       [null,null,null,null,null,null,2,7,null],
