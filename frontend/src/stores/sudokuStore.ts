@@ -134,7 +134,7 @@ export const useSudokuStore = defineStore('sudoku', {
         return state.puzzleId === undefined
       },
       isPuzzleSolved(state) {
-        if(state.puzzle.rows.some((row) => row.some((cell) => cell.value === null))) {
+        if(state.puzzle.rows.some((row) => row.some((cell) => cell.value === undefined))) {
           return false;
         }
         let hasError = false;

@@ -60,6 +60,6 @@ describe('SudokuPuzzle Tests', () => {
 })
 
 const buildTestCellArray = (numOrder: number[]) => {
-  const block: Cell[] = numOrder.map((num) => ({cellId: `testCellId` ,type: 'prefilled', value: num, pencilValues: []}));
+  const block: Cell[] = numOrder.map((num) => ({cellId: `testCellId` ,type: 'prefilled', value: num, candidates: []}));
   return block;
 }

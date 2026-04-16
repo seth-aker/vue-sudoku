@@ -7,7 +7,7 @@ import type { SudokuPuzzle } from "@/stores/models/puzzle";
     const blockY = Math.floor(rowIndex / blockWidth)
     const blockNum = blockX + (blockY * blockWidth);
     const block = puzzle.getBlock(blockNum)?.filter((eachCell) => eachCell.cellId !== cell.cellId);
-    const row = puzzle.rows[rowIndex].filter((eachCell) => eachCell.cellId != cell.cellId)
+    const row = puzzle.rows[rowIndex].filter((eachCell) => eachCell.cellId !== cell.cellId)
     const col = puzzle.getColumn(colIndex)?.filter((eachCell) => eachCell.cellId !== cell.cellId)
 
     if(block?.some((eachCell) => eachCell.value === potentialNum)) {

@@ -24,8 +24,6 @@
     "express-oauth2-jwt-bearer": "^1.6.1",
     "glob": "^13.0.0",
     "jose": "^6.0.12",
-    "mongodb": "^6.18.0",
-    "mongoose": "^8.17.0",
     "vitest": "^3.2.4",
     "workerpool": "^9.3.3",
     "zod": "^3.25.76"

@@ -1,3 +1,4 @@
+import { CandidateSet } from "../datasource/models/candidateSet.ts"
 import { type Cell } from "../datasource/models/cell.ts"
 import { type Row } from "../datasource/models/row.ts"
 
@@ -12,8 +13,8 @@ export function buildBlankPuzzleRows(rowLength: number) {
         const cell: Cell = {
           cellId: `r${i}c${j}`,
           type: 'blank',
-          value: null,
-          candidates: new Set<number>()
+          value: undefined,
+          candidates: new CandidateSet()
         }
         row.push(cell)
       }

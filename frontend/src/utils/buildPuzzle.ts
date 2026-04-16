@@ -26,7 +26,7 @@ export function buildBlankPuzzleRows() {
         const cell: Cell = {
           cellId: `C${j}${i}`,
           type: 'blank',
-          value: null,
+          value: undefined,
           candidates: []
         }
         row.push(cell)

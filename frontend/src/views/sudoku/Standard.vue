@@ -18,6 +18,8 @@ import { useRouter } from 'vue-router';
 import type { Difficulty } from '@/stores/models/difficulty';
 import { useAuth0 } from '@auth0/auth0-vue';
 import { useUserStore } from '@/stores/userStore';
+import LoadingOverlay from '@/components/LoadingOverlay.vue';
+import ErrorDialog from '@/components/ErrorDialog.vue';
 const sudokuStore = useSudokuStore();
 const gameStore = useGameStore()
 const userStore = useUserStore();
@@ -28,10 +30,10 @@ const dialogOpen = ref(false);
 const { isAuthenticated, getAccessTokenSilently, isLoading } = useAuth0()
 
 const loading = computed(() => {
-  return isLoading || userStore.userLoading || sudokuStore.loading
+  return isLoading.value || userStore.userLoading || sudokuStore.loading
 })
 watch(() => loading, () => {
-  if(loading) {
+  if (loading) {
     gameStore.stopTimer()
   } else {
     gameStore.startTimer();
@@ -68,6 +70,7 @@ onMounted(async () => {
   if (!sudokuStore.retrieveLocalState() || sudokuStore.puzzle.options.difficulty !== difficulty.value) {
     try {
       await requestNewPuzzle(difficulty.value)
+      gameStore.startTimer();
     } catch (err) {
       if (typeof err === 'string') {
         error.value = err
@@ -78,12 +81,14 @@ onMounted(async () => {
   } else {
     // If sudokuStore.retrieveLocalState returns true, start game timer where it left off.
     gameStore.loadElapsedSecondsLocal()
+    gameStore.startTimer()
   }
 })
 onUnmounted(() => {
   window.removeEventListener('keyup', handleKeyPress)
   gameStore.stopTimer();
   gameStore.gameState = 'not-started'
+  gameStore.elapsedSeconds = 0;
 })
 
 watch(() => sudokuStore.isPuzzleSolved, () => {
@@ -99,7 +104,7 @@ const handlePuzzleSolved = async () => {
   userStore.updateUser(token);
 }
 const toggleTimer = () => {
-  if (gameStore.gameState === 'not-started' || gameStore.gameState === 'paused') {
+  if (gameStore.interval === null) {
     gameStore.startTimer();
     gameStore.gameState = 'playing'
   } else {
@@ -143,9 +148,9 @@ const handleKeyPress = (event: KeyboardEvent) => {
       if (!cell) return;
       if (sudokuStore.usingPencil) {
         cell.candidates = [];
-        cell.value = null
+        cell.value = undefined
       } else {
-        cell.value = null;
+        cell.value = undefined;
       }
       sudokuStore.setCell(cell, sudokuStore.selectedCell.x, sudokuStore.selectedCell.y)
       break;
@@ -167,7 +172,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
           if (sudokuStore.usingPencil) {
             cell.candidates.includes(i + 1) ? cell.candidates = cell.candidates.filter((value) => value !== i + 1) : cell.candidates.push(i + 1)
           } else {
-            cell.value = cell.value === (i + 1) ? null : (i + 1)
+            cell.value = cell.value === (i + 1) ? undefined : (i + 1)
           }
           sudokuStore.setCell(cell, sudokuStore.selectedCell.x, sudokuStore.selectedCell.y)
           break;
@@ -189,7 +194,7 @@ const handleReset = () => {
       {{ gameStore.formattedElapsedTime }}
       <div class="flex items-center my-2">
         <Button class="mx-2" @click="toggleTimer" variant="ghost">
-          <Icon v-if="gameStore.gameState === 'playing'" icon="material-symbols:pause-rounded" />
+          <Icon v-if="gameStore.interval" icon="material-symbols:pause-rounded" />
           <Icon v-else icon="material-symbols:play-arrow-rounded" />
         </Button>
         <ControlInstructions />
@@ -226,4 +231,6 @@ const handleReset = () => {
       </DialogContent>
     </Dialog>
   </div>
+  <LoadingOverlay v-if="loading" />
+  <ErrorDialog v-if="error" :message="error" />
 </template>

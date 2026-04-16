@@ -32,12 +32,9 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
         }
         const response = await this.sudokuDataSource.getNewPuzzle(requestedBy, options);
         // console.log(response)
-        if(response.metadata.totalCount < 100) {
+        if(response.metadata.totalCount < 1000) {
           this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [100, options], async (newPuzzle) => {
-            if(process.env.NODE_ENV === 'development') {
-              console.log(`Puzzle created: ${newPuzzle.toString()}`)
-            }
-            const result = await this.createPuzzles(newPuzzle);
+            const result = await this.createPuzzles([newPuzzle]);
             if(result !== 1) {
               console.log("A puzzle failed to be created in the database")
             }
@@ -47,14 +44,17 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
       } catch (err) {
         console.log(err)
         if(err instanceof DatabaseError && err.message.includes('No more puzzles')) {
-          await this.workerpoolManager.execute<CreatePuzzle[]>('generatePuzzles', [100, options], async (newPuzzle) => {
-            const result = await this.createPuzzles([newPuzzle]);
-            if(result !== 1) {
+          await this.workerpoolManager.execute('generatePuzzles', [100, options], async (newPuzzles) => {
+            const result = await this.createPuzzles([newPuzzles]);
+            if(result != 1) {
               console.log("A puzzle failed to be created in the database")
             }
           })
-        } 
-        throw err
+          const response = await this.sudokuDataSource.getNewPuzzle(requestedBy, options);
+          return response.puzzle;
+        } else {
+          throw err;
+        }
       }
     });
   };

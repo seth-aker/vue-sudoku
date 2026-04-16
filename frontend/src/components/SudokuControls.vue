@@ -16,10 +16,10 @@ const eraseValue = () => {
     console.error(`Cell at ${x}, ${y} could not be found.`)
     return;
   }
-  if (cell.value === null) {
+  if (cell.value === undefined) {
     cell.candidates = [];
   }
-  cell.value = null;
+  cell.value = undefined;
   sudokuStore.setCell(cell, x, y)
 }
 

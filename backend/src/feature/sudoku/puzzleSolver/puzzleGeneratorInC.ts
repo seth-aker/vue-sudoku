@@ -1,9 +1,10 @@
 import { type PuzzleOptions } from "../datasource/models/puzzleOptions";
 import { type CreatePuzzle } from "../datasource/models/sudokuPuzzle";
 import { spawn } from 'node:child_process'
+import { env } from 'node:process'
 import { workerEmit, worker } from "workerpool";
 import { buildBlankPuzzleRows } from "../utils/buildBlankPuzzleRows";
-import { type DifficultyRating, difficultyScoreMin } from "../datasource/models/difficulty";
+import { type DifficultyRating } from "../datasource/models/difficulty";
 import { config } from "../../../core/config";
 import { PuzzleGeneratorError } from "../errors/puzzleGeneratorError";
 export function generatePuzzles(number: number, options: PuzzleOptions) {
@@ -34,7 +35,8 @@ export function generatePuzzles(number: number, options: PuzzleOptions) {
   return new Promise<void>((resolve, reject) => {
     console.log(args)
     console.log(generatorPath)
-    const generator = spawn(generatorPath, args, {env: process.env})
+    console.log(env.LOG_DIR)
+    const generator = spawn(generatorPath, args, {env: env})
     let buffer = '';
     generator.stdout.on('data', (data) => {
       buffer += data.toString();
@@ -68,7 +70,7 @@ worker({generatePuzzles})
 
 function processPuzzle(puzzleString: string): CreatePuzzle{
   const puzzle = buildBlankPuzzleRows(9);
-  const [cellValues, difficultyScoreStr] = puzzleString.split(",");
+  const [cellValues, difficultyScoreStr, difficultyRatingNum] = puzzleString.split(":");
   puzzle.forEach((row, ri) => {
     const rowMod = ri * 9;
     row.forEach((cell, ci) => {
@@ -79,12 +81,25 @@ function processPuzzle(puzzleString: string): CreatePuzzle{
     })
   })
   const difficultyScore = Number.parseInt(difficultyScoreStr);
-  let difficultyRating: DifficultyRating = 'easy';
-  for(const key of Object.keys(difficultyScoreMin)) {
-    if(difficultyScoreMin[key as DifficultyRating] > difficultyScore) {
-      difficultyRating = key as DifficultyRating;
-    }
+  let difficultyRating: DifficultyRating;
+  switch (difficultyRatingNum) {
+    case '0':
+        difficultyRating = 'beginner'
+      break;
+    case '1':
+      difficultyRating = 'easy'
+      break;
+    case '2':
+      difficultyRating = 'medium'
+      break
+    case '3':
+      difficultyRating = 'hard'
+      break;
+    default:
+      difficultyRating = 'impossible'
+      break;
   }
+  
   return {
     cells: puzzle,
     difficulty: {

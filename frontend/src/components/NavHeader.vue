@@ -10,8 +10,10 @@ import NavigationMenuLink from './ui/navigation-menu/NavigationMenuLink.vue';
 import NavigationMenuContent from './ui/navigation-menu/NavigationMenuContent.vue';
 import { useSudokuStore } from '@/stores/sudokuStore';
 import type { Difficulty } from '@/stores/models/difficulty';
+import { useGameStore } from '@/stores/gameStore';
 const router = useRouter()
 const sudokuStore = useSudokuStore();
+const gameStore = useGameStore();
 const { isAuthenticated, isLoading, loginWithRedirect, logout, getAccessTokenSilently } = useAuth0();
 const loginOptions: RedirectLoginOptions<AppState> = {
   openUrl(url) {
@@ -19,10 +21,16 @@ const loginOptions: RedirectLoginOptions<AppState> = {
   }
 }
 
-const gotoPuzzle = (difficulty: Difficulty) => {
+const gotoPuzzle = async (difficulty: Difficulty) => {
   sudokuStore.$reset();
   sudokuStore.deleteGameStateLocal()
-  router.push(`/sudoku/${difficulty}`)
+  gameStore.clearElapsedSecondsLocal()
+  if (router.currentRoute.value.name !== difficulty) {
+    router.push(`/sudoku/${difficulty}`)
+  } else {
+    await sudokuStore.getNewPuzzle({ difficulty }, isAuthenticated.value ? await getAccessTokenSilently() : undefined)
+    gameStore.elapsedSeconds = 0;
+  }
 }
 </script>
 
@@ -36,16 +44,21 @@ const gotoPuzzle = (difficulty: Difficulty) => {
             <NavigationMenuTrigger>New Puzzle</NavigationMenuTrigger>
             <NavigationMenuContent>
               <NavigationMenuLink as-child>
+                <Button class="w-full items-start" variant="link"
+                  @click="() => gotoPuzzle('beginner')">Beginner</Button>
+              </NavigationMenuLink>
+              <NavigationMenuLink as-child>
                 <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('easy')">Easy</Button>
               </NavigationMenuLink>
               <NavigationMenuLink as-child>
                 <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('medium')">Medium</Button>
               </NavigationMenuLink>
               <NavigationMenuLink as-child>
-                <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('hard')">Hard</Button>
+                <Button disabled class="w-full items-start" variant="link"
+                  @click="() => gotoPuzzle('hard')">Hard</Button>
               </NavigationMenuLink>
               <NavigationMenuLink as-child>
-                <Button class="w-full items-start" variant="link"
+                <Button class="w-full items-start" variant="link" disabled
                   @click="() => gotoPuzzle('impossible')">Impossible</Button>
               </NavigationMenuLink>
             </NavigationMenuContent>
@@ -57,8 +70,8 @@ const gotoPuzzle = (difficulty: Difficulty) => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink as-child>
-              <Button v-if="!isAuthenticated" :disabled="isLoading"
-                @click="loginWithRedirect(loginOptions)">Login</Button>
+              <Button v-if="!isAuthenticated" :disabled="isLoading" @click="loginWithRedirect(loginOptions)"
+                class="hover:bg-orange-400">Login</Button>
               <Button v-else @click="logout()">Logout</Button>
             </NavigationMenuLink>
           </NavigationMenuItem>
