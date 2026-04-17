@@ -5,6 +5,7 @@ import Toggle from './ui/toggle/Toggle.vue';
 import { useSudokuStore } from '@/stores/sudokuStore'
 import Numpad from './Numpad.vue';
 import Checkbox from './ui/checkbox/Checkbox.vue';
+import { onMounted, onUnmounted } from 'vue';
 const sudokuStore = useSudokuStore()
 const eraseValue = () => {
   const { x, y } = sudokuStore.selectedCell;
@@ -33,7 +34,81 @@ const handleCheckboxChange = (isChecked: boolean | string) => {
     sudokuStore.clearPuzzleCandidates();
   }
 }
+const handleKeyPress = (event: KeyboardEvent) => {
+  if (sudokuStore.selectedCell.x === undefined || sudokuStore.selectedCell.y === undefined) return;
+  switch (event.key) {
+    case 'ArrowUp':
+      if (sudokuStore.selectedCell.y === 0) {
+        sudokuStore.selectedCell.y = sudokuStore.puzzle.cellsPerRow - 1;
+      } else {
+        sudokuStore.selectedCell.y--;
+      }
+      break;
+    case 'ArrowDown':
+      if (sudokuStore.selectedCell.y === sudokuStore.puzzle.cellsPerRow - 1) {
+        sudokuStore.selectedCell.y = 0;
+      } else {
+        sudokuStore.selectedCell.y++;
+      }
+      break;
+    case 'ArrowLeft':
+      if (sudokuStore.selectedCell.x === 0) {
+        sudokuStore.selectedCell.x = sudokuStore.puzzle.cellsPerRow - 1;
+      } else {
+        sudokuStore.selectedCell.x--;
+      }
+      break;
+    case 'ArrowRight':
+      if (sudokuStore.selectedCell.x === sudokuStore.puzzle.cellsPerRow - 1) {
+        sudokuStore.selectedCell.x = 0;
+      } else {
+        sudokuStore.selectedCell.x++
+      }
+      break;
+    case 'Backspace':
+      const cell = sudokuStore.getCell(sudokuStore.selectedCell.x, sudokuStore.selectedCell.y);
+      if (!cell) return;
+      if (sudokuStore.usingPencil) {
+        cell.candidates = [];
+        cell.value = undefined
+      } else {
+        cell.value = undefined;
+      }
+      sudokuStore.setCell(cell, sudokuStore.selectedCell.x, sudokuStore.selectedCell.y)
+      break;
+    case 'p':
+    case 'P':
+      sudokuStore.usingPencil = !sudokuStore.usingPencil
+      break;
+    case 'z':
+    case 'Z':
+      if (event.ctrlKey) {
+        sudokuStore.undoAction()
+      }
+      break;
+    default:
+      for (let i = 0; i < sudokuStore.puzzle.cellsPerRow; i++) {
+        if (`${i + 1}` === event.key) {
+          const cell = sudokuStore.getCell(sudokuStore.selectedCell.x, sudokuStore.selectedCell.y);
+          if (!cell || cell.type === 'prefilled') return;
+          if (sudokuStore.usingPencil) {
+            cell.candidates.includes(i + 1) ? cell.candidates = cell.candidates.filter((value) => value !== i + 1) : cell.candidates.push(i + 1)
+          } else {
+            cell.value = cell.value === (i + 1) ? undefined : (i + 1)
+          }
+          sudokuStore.setCell(cell, sudokuStore.selectedCell.x, sudokuStore.selectedCell.y)
+          break;
+        }
+      }
+  }
+}
 
+onMounted(() => {
+  window.addEventListener('keyup', handleKeyPress);
+})
+onUnmounted(() => {
+  window.removeEventListener('keyup', handleKeyPress);
+})
 </script>
 
 <template>

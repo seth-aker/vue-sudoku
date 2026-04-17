@@ -35,9 +35,9 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
 </script>
 
 <template>
-  <header class="w-full p-4 flex justify-between border-b shadow ">
+  <header class="w-full p-6 flex justify-between border-b shadow ">
     <h1 class="text-3xl hover:cursor-pointer">
-      <a @click="router.push({ name: 'home' })">Vue Sudoku</a>
+      <a @click="router.push({ name: 'home' })">Sudoku</a>
     </h1>
     <div>
       <NavigationMenu>
@@ -56,12 +56,12 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
                 <Button class="w-full items-start" variant="link" @click="() => gotoPuzzle('medium')">Medium</Button>
               </NavigationMenuLink>
               <NavigationMenuLink as-child>
-                <Button disabled class="w-full items-start" variant="link"
-                  @click="() => gotoPuzzle('hard')">Hard</Button>
+                <Button disabled class="w-full items-start" variant="link" @click="() => gotoPuzzle('hard')">Hard
+                  (Comming Soon!)</Button>
               </NavigationMenuLink>
               <NavigationMenuLink as-child>
                 <Button class="w-full items-start" variant="link" disabled
-                  @click="() => gotoPuzzle('impossible')">Impossible</Button>
+                  @click="() => gotoPuzzle('impossible')">Impossible (Comming Soon)</Button>
               </NavigationMenuLink>
             </NavigationMenuContent>
           </NavigationMenuItem>
@@ -70,13 +70,13 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
               <Button class="mx-2" variant="ghost" @click="router.push({ name: 'home' })">Home</Button>
             </NavigationMenuLink>
           </NavigationMenuItem>
-          <NavigationMenuItem>
+          <!-- <NavigationMenuItem>
             <NavigationMenuLink as-child>
               <Button v-if="!isAuthenticated" :disabled="isLoading" @click="loginWithRedirect(loginOptions)"
                 class="hover:bg-orange-400">Login</Button>
               <Button v-else @click="logout()">Logout</Button>
             </NavigationMenuLink>
-          </NavigationMenuItem>
+          </NavigationMenuItem> -->
         </NavigationMenuList>
       </NavigationMenu>
     </div>

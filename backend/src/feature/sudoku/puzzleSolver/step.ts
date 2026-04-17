@@ -1,9 +1,9 @@
-import { type Strategies } from "./strategies.ts";
+// import { type Strategies } from "./strategies.ts";
 
-export interface Step {
-  rowIndex: number | undefined,
-  colIndex: number | undefined,
-  value: number | undefined,
-  candidateRemoved: boolean;
-  type?: Strategies,
-}
+// export interface Step {
+//   rowIndex: number | undefined,
+//   colIndex: number | undefined,
+//   value: number | undefined,
+//   candidateRemoved: boolean;
+//   type?: Strategies,
+// }

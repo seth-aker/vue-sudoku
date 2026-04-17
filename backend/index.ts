@@ -2,13 +2,14 @@ import express from 'express'
 import { configureRouting } from "./src/core/routing/index";
 import { config } from "./src/core/config/index";
 import cors from 'cors'
-
+import helmet from 'helmet';
 const app = express();
 
 app.use(express.json())
 app.use(cors({
   origin: config.origin
 }))
+app.use(helmet())
 configureRouting(app)
 
 app.listen(config.port, () => {

@@ -50,7 +50,6 @@ const requestNewPuzzle = async (newDifficulty: Difficulty) => {
 
 onMounted(async () => {
   sudokuStore.$reset()
-  window.addEventListener('keyup', handleKeyPress);
   // const puzzleValues = [
   //       [null,null,null,null,null,null,2,7,null],
   //       [6,null,null,null,5,null,null,3,null],
@@ -86,7 +85,6 @@ onMounted(async () => {
   }
 })
 onUnmounted(() => {
-  window.removeEventListener('keyup', handleKeyPress)
   gameStore.stopTimer();
   gameStore.gameState = 'not-started'
   gameStore.elapsedSeconds = 0;
@@ -113,74 +111,7 @@ const toggleTimer = () => {
     gameStore.gameState = 'paused'
   }
 }
-const handleKeyPress = (event: KeyboardEvent) => {
-  if (sudokuStore.selectedCell.x === undefined || sudokuStore.selectedCell.y === undefined) return;
-  switch (event.key) {
-    case 'ArrowUp':
-      if (sudokuStore.selectedCell.y === 0) {
-        sudokuStore.selectedCell.y = sudokuStore.puzzle.cellsPerRow - 1;
-      } else {
-        sudokuStore.selectedCell.y--;
-      }
-      break;
-    case 'ArrowDown':
-      if (sudokuStore.selectedCell.y === sudokuStore.puzzle.cellsPerRow - 1) {
-        sudokuStore.selectedCell.y = 0;
-      } else {
-        sudokuStore.selectedCell.y++;
-      }
-      break;
-    case 'ArrowLeft':
-      if (sudokuStore.selectedCell.x === 0) {
-        sudokuStore.selectedCell.x = sudokuStore.puzzle.cellsPerRow - 1;
-      } else {
-        sudokuStore.selectedCell.x--;
-      }
-      break;
-    case 'ArrowRight':
-      if (sudokuStore.selectedCell.x === sudokuStore.puzzle.cellsPerRow - 1) {
-        sudokuStore.selectedCell.x = 0;
-      } else {
-        sudokuStore.selectedCell.x++
-      }
-      break;
-    case 'Backspace':
-      const cell = sudokuStore.getCell(sudokuStore.selectedCell.x, sudokuStore.selectedCell.y);
-      if (!cell) return;
-      if (sudokuStore.usingPencil) {
-        cell.candidates = [];
-        cell.value = undefined
-      } else {
-        cell.value = undefined;
-      }
-      sudokuStore.setCell(cell, sudokuStore.selectedCell.x, sudokuStore.selectedCell.y)
-      break;
-    case 'p':
-    case 'P':
-      sudokuStore.usingPencil = !sudokuStore.usingPencil
-      break;
-    case 'z':
-    case 'Z':
-      if (event.ctrlKey) {
-        sudokuStore.undoAction()
-      }
-      break;
-    default:
-      for (let i = 0; i < sudokuStore.puzzle.cellsPerRow; i++) {
-        if (`${i + 1}` === event.key) {
-          const cell = sudokuStore.getCell(sudokuStore.selectedCell.x, sudokuStore.selectedCell.y);
-          if (!cell || cell.type === 'prefilled') return;
-          if (sudokuStore.usingPencil) {
-            cell.candidates.includes(i + 1) ? cell.candidates = cell.candidates.filter((value) => value !== i + 1) : cell.candidates.push(i + 1)
-          } else {
-            cell.value = cell.value === (i + 1) ? undefined : (i + 1)
-          }
-          sudokuStore.setCell(cell, sudokuStore.selectedCell.x, sudokuStore.selectedCell.y)
-          break;
-        }
-      }
-  }
-}
+
 const handleReset = () => {
   if (confirm('This action cannot be undone, are you sure you want to continue?')) {
     sudokuStore.resetPuzzle();
