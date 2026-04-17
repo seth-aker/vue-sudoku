@@ -22,10 +22,10 @@ const onNumberPress = (value: number) => {
     }
   } else {
     // edit cell value
-    if (cell.value === null || cell.value !== value) {
+    if (cell.value === undefined || cell.value !== value) {
       cell.value = value;
     } else {
-      cell.value = null;
+      cell.value = undefined;
     }
   }
   cell.type = 'edited'
