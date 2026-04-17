@@ -36,4 +36,5 @@ export const deletePuzzleValidator = (req: Request, res: Response, next: NextFun
     if(!validationResult.success) {
         throw new ValidationError(validationResult.error)
     }
+    next();
 }

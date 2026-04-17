@@ -30,7 +30,7 @@ function loadScripts(paths: string[]) {
     })
     return obj
   } catch (err) {
-    throw new DatabaseError(err.message)
+    throw new DatabaseError((err as Error).message)
   }
 }
 

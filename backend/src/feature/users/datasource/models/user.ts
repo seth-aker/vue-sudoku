@@ -1,6 +1,6 @@
 import { SudokuPuzzle } from "@/feature/sudoku/datasource/models/sudokuPuzzle";
-import mongoose from "mongoose";
-import { ObjectId, OptionalId } from "mongodb";
+// import mongoose from "mongoose";
+// import { ObjectId, OptionalId } from "mongodb";
 
 // const userSchema = new mongoose.Schema({
 //   auth0_id: {
@@ -35,11 +35,11 @@ export interface IUser {
   puzzlesPlayed: string[];
   currentPuzzle: SudokuPuzzle,
 }
-export interface CreateUser extends OptionalId<IUser> {}
+export interface CreateUser extends Omit<IUser, '_id'> {}
 export interface UpdateUser extends Partial<Omit<IUser, '_id'>> {};
 
-export interface IMongoUser extends Omit<IUser, '_id' | 'puzzlesPlayed'> {
-  _id: ObjectId,
-  puzzlesPlayed: ObjectId[]
-}
-export interface IUpdateMongoUser extends Partial<IMongoUser> {};
+// export interface IMongoUser extends Omit<IUser, '_id' | 'puzzlesPlayed'> {
+//   _id: ObjectId,
+//   puzzlesPlayed: ObjectId[]
+// }
+// export interface IUpdateMongoUser extends Partial<IMongoUser> {};
