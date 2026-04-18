@@ -10,8 +10,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.14.0",
-  "dependencies": {
-    "helmet": "^8.1.0"
-  }
+  "packageManager": "pnpm@10.14.0"
 }

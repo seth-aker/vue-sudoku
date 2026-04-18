@@ -1,0 +1,20 @@
+services: 
+  backend-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3666:3666"
+    restart: unless-stopped
+    container_name: sudoku_backend
+
+  frontend-spa:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    depends_on:
+      - backend-api
+    container_name: sudoku_frontend

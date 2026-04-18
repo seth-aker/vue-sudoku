@@ -9,7 +9,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 export const config: WorkerPoolConfig = {
   name: 'puzzleGenerator',
-  workerPath: `${cf.rootDir}/src/feature/sudoku/puzzleSolver/puzzleGeneratorInC.ts`,
+  workerPath: cf.puzzleGeneratorWorkerPath,
   options: {
     maxWorkers: 4,
     workerType: isDev ? 'process' : 'thread',

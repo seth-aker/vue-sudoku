@@ -4,9 +4,10 @@
       "@/*": ["./src/*"]
     },
     "target": "es2022",
-    "module": "ESNext",
+    "module": "es2022",
     "moduleResolution":"bundler",
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["node"]
   }
 }

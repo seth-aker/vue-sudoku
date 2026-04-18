@@ -1,6 +1,6 @@
 import express from 'express'
-import { configureRouting } from "./src/core/routing/index";
-import { config } from "./src/core/config/index";
+import { configureRouting } from "./core/routing/index";
+import { config } from "./core/config/index";
 import cors from 'cors'
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';

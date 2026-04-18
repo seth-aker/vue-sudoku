@@ -13,5 +13,6 @@ export const config = {
   issuerBaseUrl: process.env.ISSUER_BASE_URL || 'https://dev-sethaker.us.auth0.com/',
   origin: process.env.ORIGIN || 'http://127.0.0.1:5173',
   audience: process.env.AUDIENCE || 'http://localhost:3666',
-  rootDir: process.cwd(),
+  rootDir: process.env.ROOT_DIR || process.cwd(),
+  puzzleGeneratorWorkerPath: process.env.WORKER_PATH || '/home/saker/workspace/vue-sudoku/backend/src/feature/sudoku/puzzleSolver/puzzleGeneratorInC.ts'
 }

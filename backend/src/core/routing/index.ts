@@ -1,9 +1,9 @@
-import express, { Application } from "express";
+import { Router, Application } from "express";
 import { sudokuRouter } from "../../feature/sudoku/routing/index";
 // import { userRouter } from "@/feature/users/routing";
 
 export const configureRouting = (app: Application) => {
-  const router = express.Router()
+  const router = Router()
   app.use('/api', router)
   // app.use('/ping', (req, res) => res.send('Pong'))
   router.use('/sudoku', sudokuRouter)
