@@ -13,13 +13,13 @@
     "lint": "eslint . --fix"
   },
   "dependencies": {
-    "@auth0/auth0-vue": "^2.4.0",
     "@tailwindcss/vite": "^4.1.11",
     "@vueuse/core": "^13.4.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lodash": "^4.17.21",
     "lucide-vue-next": "^0.525.0",
+    "markdown-it": "^14.1.1",
     "pinia": "^3.0.3",
     "reka-ui": "^2.3.1",
     "tailwind-merge": "^3.3.1",
@@ -33,6 +33,7 @@
     "@tsconfig/node22": "^22.0.2",
     "@types/jsdom": "^21.1.7",
     "@types/lodash": "^4.17.20",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.15.32",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vitest/eslint-plugin": "^1.2.7",
@@ -44,11 +45,11 @@
     "eslint-plugin-vue": "~10.2.0",
     "jiti": "^2.4.2",
     "jsdom": "^26.1.0",
-    "npm-run-all2": "^8.0.4",
     "typescript": "~5.8.0",
     "vite": "^7.0.0",
+    "vite-plugin-static-copy": "^4.1.0",
     "vitest": "^3.2.4",
     "vue-tsc": "^2.2.10"
   },
-  "packageManager": "pnpm@10.14.0"
+  "packageManager": "pnpm@10.33.0"
 }
