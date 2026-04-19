@@ -1,4 +1,4 @@
-# A sudoku puzzle server with a Vue frontent
+# A Sudoku Puzzle Server with a Vue Frontend
 
 ## Why write another sudoku app?
 Honestly, this was an excuse to display/use the results of my [Cdoku](https://github.com/seth-aker/cdoku) puzzle generator application. That application was designed to be *blazingly fast*, capable of generating hundreds of unique sudoku puzzles of various difficulties. This application is designed to compliment it.
