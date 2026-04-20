@@ -3,5 +3,5 @@ CREATE TABLE IF NOT EXISTS puzzle (
   cells TEXT NOT NULL,
   difficulty_score INTEGER,
   difficulty_rating TEXT NOT NULL,
-  createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
