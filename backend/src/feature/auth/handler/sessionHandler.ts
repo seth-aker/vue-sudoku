@@ -1,0 +1,23 @@
+import session from 'express-session'
+import { SqliteSessionStore } from '../datasource/sqliteSessionStore'
+import { db } from '@/core/dataSource/sqlite3'
+import { authConfig } from '../config'
+import { config } from '@/core/config'
+import { Request } from 'express'
+
+export const sessionHandler = () => {
+  return session({
+    secret: authConfig.secret,
+    store: new SqliteSessionStore({client: db}),
+    resave: false,
+    cookie: function (req: Request) {
+      return {
+        maxAge: 1000 * 60 * 60 * 24,
+        domain: config.audience,
+        secure: req.secure || process.env.NODE_ENV === 'production',
+      }
+      
+    },
+    name: 'sudoku',
+  })
+}

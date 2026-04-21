@@ -1,9 +1,11 @@
 -- SQLite
-CREATE TABLE IF NOT EXISTS user (
+CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY,
     name TEXT,
     email TEXT UNIQUE NOT NULL,
     email_verified BOOLEAN DEFAULT FALSE,
+    password_hash TEXT NOT NULL,
+    salt TEXT NOT NULL,
     image_url TEXT,
     current_puzzle TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP, -- YYYY-MM-DDTHH-MM-SS

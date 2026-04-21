@@ -4,20 +4,26 @@ import { config } from "./core/config/index";
 import cors from 'cors'
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { sessionHandler } from './feature/auth/handler/sessionHandler';
 const app = express();
 
 app.use(express.json())
-app.use(cors({
-  origin: config.origin
-}))
-app.use(helmet())
-app.set('trust proxy', 1)
-app.use(rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minute window
-  limit: 100,
-  standardHeaders: 'draft-8',
-  legacyHeaders: false
-}))
+
+if(process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1)
+  app.use(cors({
+    origin: config.origin
+  }))
+  app.use(helmet())
+  app.use(rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minute window
+    limit: 100,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false
+  }))
+}
+
+app.use(sessionHandler())
 configureRouting(app)
 
 app.listen(config.port, () => {

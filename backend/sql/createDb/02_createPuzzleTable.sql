@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS puzzle (
+CREATE TABLE IF NOT EXISTS puzzles (
   puzzle_id INTEGER PRIMARY KEY,
   cells TEXT NOT NULL,
   difficulty_score INTEGER,
