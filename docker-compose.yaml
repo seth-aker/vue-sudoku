@@ -7,8 +7,8 @@ services:
       - "3666:3666"
     restart: unless-stopped
     container_name: sudoku_backend
-    volumes:
-      - vue_sudoku_db: /data
+  #    volumes:
+  #      - vue_sudoku_db: /data
 
   frontend-spa:
     build: 
@@ -21,6 +21,6 @@ services:
       - backend-api
     container_name: sudoku_frontend
 
-volumes:
-  vue_sudoku_db: 
-    driver: local
+# volumes:
+#  vue_sudoku_db: 
+#    driver: local
