@@ -1,12 +1,13 @@
-SELECT 
-  p.puzzle_id,
-  up.isCompleted,
-  up.cells as current_cells,
-  up.candidates as current_candidates,
-  up.time,
-  p.cells as original_cells,
-  p.difficulty_rating,
-  p.difficulty_score
+SELECT
+    p.puzzle_id,
+    up.is_completed,
+    up.cells as current_cells,
+    up.candidates as current_candidates,
+    up.time,
+    p.cells as original_cells,
+    p.difficulty_rating,
+    p.difficulty_score
 FROM user_puzzles as up
-JOIN puzzle as p ON p.puzzle_id = up.puzzle_id
-WHERE up.user_id = $userId;
+    JOIN puzzle as p ON p.puzzle_id = up.puzzle_id
+WHERE
+    up.user_id = $userId;

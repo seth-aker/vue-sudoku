@@ -1,14 +1,13 @@
 -- SQLite
 CREATE TABLE IF NOT EXISTS user (
-  user_id INTEGER PRIMARY KEY,
-  name TEXT,
-  email TEXT UNIQUE NOT NULL,
-  image_url TEXT,
-  current_puzzle TEXT,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,  -- YYYY-MM-DDTHH-MM-SS
-  updated_at TEXT DEFAULT CURRENT_TIMESTAMP, -- YYYY-MM-DDTHH-MM-SS
-  deleted_at TEXT DEFAULT NULL, -- YY-MM-DDTHH-MM-SS 
-  CONSTRAINT FK_current_puzzle FOREIGN KEY (current_puzzle) REFERENCES puzzle (puzzle_id)
+    user_id INTEGER PRIMARY KEY,
+    name TEXT,
+    email TEXT UNIQUE NOT NULL,
+    email_verified BOOLEAN DEFAULT FALSE,
+    image_url TEXT,
+    current_puzzle TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP, -- YYYY-MM-DDTHH-MM-SS
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP, -- YYYY-MM-DDTHH-MM-SS
+    deleted_at TEXT DEFAULT NULL, -- YY-MM-DDTHH-MM-SS 
+    CONSTRAINT FK_current_puzzle FOREIGN KEY (current_puzzle) REFERENCES puzzle (puzzle_id)
 );
-
-

@@ -1,10 +1,10 @@
--- SQLite
-INSERT INTO user (
-  name,
-  email,
-  password_hash
-) VALUES (
-  $name,
-  $email,
-  $passwordHash
-) RETURNING user_id;
+-- -- SQLite
+-- INSERT INTO user (
+--   name,
+--   email,
+--   password_hash
+-- ) VALUES (
+--   $name,
+--   $email,
+--   $passwordHash
+-- ) RETURNING user_id;

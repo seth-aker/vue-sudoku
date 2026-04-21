@@ -1,14 +1,16 @@
 -- SQLite
-INSERT INTO user_puzzles (
-  user_id,
-  puzzle_id,
-  isCompleted,
-  cells,
-  candidates
-) VALUES (
-  $userId,
-  $puzzleId,
-  $isCompleted,
-  $cells,
-  $candidates
-);
+INSERT INTO
+    user_puzzles (
+        user_id,
+        puzzle_id,
+        is_completed,
+        cells,
+        candidates
+    )
+VALUES (
+        $userId,
+        $puzzleId,
+        $isCompleted,
+        $cells,
+        $candidates
+    );
