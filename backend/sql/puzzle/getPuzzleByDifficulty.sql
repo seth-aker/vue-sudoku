@@ -1,5 +1,5 @@
 SELECT p.puzzle_id, p.cells, p.difficulty_score, p.difficulty_rating, p.created_at, COUNT(*) OVER () as total_count
-FROM puzzle p
+FROM puzzles p
 WHERE
     p.difficulty_rating = $difficultyRating
     AND (

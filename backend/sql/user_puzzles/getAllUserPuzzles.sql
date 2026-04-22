@@ -8,6 +8,6 @@ SELECT
     p.difficulty_rating,
     p.difficulty_score
 FROM user_puzzles as up
-    JOIN puzzle as p ON p.puzzle_id = up.puzzle_id
+    JOIN puzzles as p ON p.puzzle_id = up.puzzle_id
 WHERE
     up.user_id = $userId;

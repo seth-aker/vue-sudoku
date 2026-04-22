@@ -1,7 +1,7 @@
 import { BaseService } from "@/core/service/baseService";
 import { UserService } from "./userService";
 import { UserDataSource } from "../datasource/userDataSource";
-import { CreateUser, IUser } from "../datasource/models/user";
+import { ISqliteCreateUser } from "../datasource/models/user";
 
 export class UserServiceImplementation extends BaseService implements UserService {
   private userDataSource: UserDataSource;
@@ -16,24 +16,14 @@ export class UserServiceImplementation extends BaseService implements UserServic
     }
     return UserServiceImplementation.instance;
   }
-  async createUser(user: CreateUser) {
+  async createUser(user: ISqliteCreateUser) {
     return await this.callDataSource(async () => {
-      return await this.userDataSource.createUser(user);
+      
     })
   }
   async getUser(userId: string) {
     return await this.callDataSource(async () => {
       return await this.userDataSource.getUser(userId);
-    })
-  }
-  async getUserByAuthId(auth0_id: string) {
-    return await this.callDataSource(async () => {
-      return await this.userDataSource.getUserByAuthId(auth0_id)
-    })
-  }
-  async updateUser(userId: string, user: IUser) {
-    return await this.callDataSource(async () => {
-      return await this.userDataSource.updateUser(userId, user);
     })
   }
   async deleteUser(userId: string) {

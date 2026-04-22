@@ -13,10 +13,9 @@ interface SessionRow {
 
 interface SqliteSessionScripts {
   clear: Statement
-  createTable: Statement
   get: Statement<{sid: string}, SessionRow>
   set: Statement<SessionRow>
-  destroy: Statement<{sid: string}>
+  destroy: Statement<string>
   all: Statement<unknown[], SessionRow[]>
   touch: Statement<{sid: string, expire: string}>
   length: Statement<unknown[], number>
@@ -37,9 +36,16 @@ export class SqliteSessionStore extends Store {
    
     this.client = options.client;
     this.sessionTableName = options.tableName ?? 'sessions'
-    
+    const createTableScript = `
+      CREATE TABLE IF NOT EXISTS ${this.sessionTableName}
+      (
+        sid TEXT NOT NULL PRIMARY KEY,
+        sess JSON NOT NULL,
+        expire TEXT NOT NULL
+      );
+    `
+    this.client.exec(createTableScript);
     this.scripts = this.prepareScripts()
-    this.scripts.createTable.run()
   }
   static create(options: SqliteSessionStoreOptions) {
     if(!SqliteSessionStore.instance) {
@@ -78,6 +84,7 @@ export class SqliteSessionStore extends Store {
 
     try {
       this.scripts.set.run(entry);
+      callback(null)
     } catch (err) {
       callback(err)
       console.log(err)
@@ -85,7 +92,8 @@ export class SqliteSessionStore extends Store {
   }
   destroy(sid: string, callback: (err?: any) => void = noop): void {
     try {
-      this.scripts.destroy.run({sid})
+      this.scripts.destroy.run(sid)
+      callback(null)
     } catch (err) {
       callback(err)
       console.error(err)
@@ -133,14 +141,7 @@ export class SqliteSessionStore extends Store {
 
   private prepareScripts() {
     const clearScript = `DELETE FROM ${this.sessionTableName} WHERE datetime('now') > datetime(expire)`
-    const createTableScript = `
-      CREATE TABLE IF NOT EXISTS ${this.sessionTableName}
-      (
-        sid TEXT NOT NULL PRIMARY KEY,
-        sess JSON NOT NULL,
-        expire TEXT NOT NULL
-      );
-    `
+    
     const getScript = `
       SELECT sess
       FROM ${this.sessionTableName}
@@ -173,7 +174,6 @@ export class SqliteSessionStore extends Store {
 
     const scripts: SqliteSessionScripts = {
       clear: this.client.prepare(clearScript),
-      createTable: this.client.prepare(createTableScript),
       get: this.client.prepare(getScript),
       set: this.client.prepare(setScript),
       destroy: this.client.prepare(destroyScript),

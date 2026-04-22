@@ -1,31 +1,4 @@
-import { SudokuPuzzle } from "@/feature/sudoku/datasource/models/sudokuPuzzle";
-// import mongoose from "mongoose";
-// import { ObjectId, OptionalId } from "mongodb";
 
-// const userSchema = new mongoose.Schema({
-//   auth0_id: {
-//     type: String,
-//     required: true,
-//     unique: true,
-//     index: true
-//   },
-//   email: {
-//     type: String,
-//     required: true,
-//     unique: true,
-//   },
-//   name: {
-//     type: String
-//   },
-//   puzzlesPlayed: [mongoose.Schema.Types.ObjectId],
-//   currentPuzzle: sudokuPuzzleSchema,
-//   createdAt: {
-//     type: Date,
-//     default: Date.now
-//   }
-// })
-
-// export const UserModel = mongoose.model('user', userSchema);
 export interface ISqliteUser {
   user_id: number,
   name?: string,
@@ -40,8 +13,9 @@ export interface ISqliteUser {
   deleted_at: string | null
 }
 
-// export interface IMongoUser extends Omit<IUser, '_id' | 'puzzlesPlayed'> {
-//   _id: ObjectId,
-//   puzzlesPlayed: ObjectId[]
-// }
-// export interface IUpdateMongoUser extends Partial<IMongoUser> {};
+export interface ISqliteCreateUser {
+  name?: string,
+  email: string,
+  passwordHash: Uint8Array,
+  salt: Uint8Array
+}

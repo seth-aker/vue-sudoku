@@ -10,10 +10,11 @@ export const sessionHandler = () => {
     secret: authConfig.secret,
     store: SqliteSessionStore.create({client: db}),
     resave: false,
+    saveUninitialized: false,
     cookie: function (req: Request) {
       return {
         maxAge: 1000 * 60 * 60 * 24,
-        domain: config.audience,
+        // domain: config.audience,
         secure: req.secure || process.env.NODE_ENV === 'production',
       }
       

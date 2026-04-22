@@ -1,4 +1,4 @@
-INSERT INTO puzzle (
+INSERT INTO puzzles (
   cells,
   difficulty_score,
   difficulty_rating

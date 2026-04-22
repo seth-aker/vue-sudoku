@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP, -- YYYY-MM-DDTHH-MM-SS
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP, -- YYYY-MM-DDTHH-MM-SS
     deleted_at TEXT DEFAULT NULL, -- YY-MM-DDTHH-MM-SS 
-    CONSTRAINT FK_current_puzzle FOREIGN KEY (current_puzzle) REFERENCES puzzle (puzzle_id)
+    CONSTRAINT FK_current_puzzle FOREIGN KEY (current_puzzle) REFERENCES puzzles (puzzle_id)
 );
