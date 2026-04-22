@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT,
     email TEXT UNIQUE NOT NULL,
     email_verified BOOLEAN DEFAULT FALSE,
-    password_hash TEXT NOT NULL,
-    salt TEXT NOT NULL,
+    password_hash BLOB,
+    salt BLOB,
     image_url TEXT,
     current_puzzle TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP, -- YYYY-MM-DDTHH-MM-SS

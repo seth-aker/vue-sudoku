@@ -26,13 +26,13 @@ export interface SqliteSessionStoreOptions extends EventEmitterOptions{
   client: Database,
   tableName?: string
 }
-
 export class SqliteSessionStore extends Store {
-  sessionTableName: string
-  client: Database;
-  scripts: SqliteSessionScripts
+  static instance: SqliteSessionStore | null = null;
+  private sessionTableName: string
+  private scripts: SqliteSessionScripts
   private oneDayMs = 1000 * 60 * 60 * 24;
-  constructor(options: SqliteSessionStoreOptions) {
+  client: Database;
+  private constructor(options: SqliteSessionStoreOptions) {
     super(options)
    
     this.client = options.client;
@@ -41,7 +41,13 @@ export class SqliteSessionStore extends Store {
     this.scripts = this.prepareScripts()
     this.scripts.createTable.run()
   }
-
+  static create(options: SqliteSessionStoreOptions) {
+    if(!SqliteSessionStore.instance) {
+      SqliteSessionStore.instance = new SqliteSessionStore(options)
+      
+    } 
+    return SqliteSessionStore.instance;
+  }
   clear(callback: (err?: any) => void = noop) {
     try {
       this.scripts.clear.run()

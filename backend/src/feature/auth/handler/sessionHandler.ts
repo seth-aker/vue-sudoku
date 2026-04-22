@@ -8,7 +8,7 @@ import { Request } from 'express'
 export const sessionHandler = () => {
   return session({
     secret: authConfig.secret,
-    store: new SqliteSessionStore({client: db}),
+    store: SqliteSessionStore.create({client: db}),
     resave: false,
     cookie: function (req: Request) {
       return {

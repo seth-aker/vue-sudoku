@@ -26,17 +26,19 @@ import { SudokuPuzzle } from "@/feature/sudoku/datasource/models/sudokuPuzzle";
 // })
 
 // export const UserModel = mongoose.model('user', userSchema);
-export interface IUser {
-  _id: string,
+export interface ISqliteUser {
+  user_id: number,
   name?: string,
-  email?: string,
-  image?: string,
-  auth0_id: string; 
-  puzzlesPlayed: string[];
-  currentPuzzle: SudokuPuzzle,
+  email: string,
+  email_verified: boolean,
+  password_hash?: Uint8Array,
+  salt?: Uint8Array,
+  image_url?: string,
+  current_puzzle?: string,
+  created_at: string,
+  updated_at: string,
+  deleted_at: string | null
 }
-export interface CreateUser extends Omit<IUser, '_id'> {}
-export interface UpdateUser extends Partial<Omit<IUser, '_id'>> {};
 
 // export interface IMongoUser extends Omit<IUser, '_id' | 'puzzlesPlayed'> {
 //   _id: ObjectId,

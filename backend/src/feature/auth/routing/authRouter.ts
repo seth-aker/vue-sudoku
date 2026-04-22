@@ -1,3 +1,10 @@
-import { UserDataSource } from "@/feature/users/datasource/userDataSource";
+// import { UserDataSource } from "@/feature/users/datasource/userDataSource";
+import { Router } from "express";
 
-// export class AuthRouter(userDataSource: UserDataSource, sessionDataSource: Session) 
+export function AuthRouter() {
+  const router = Router()
+
+  router.post('/login', (req, res, next) => {
+
+  })
+}
