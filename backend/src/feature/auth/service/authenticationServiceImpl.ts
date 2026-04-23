@@ -13,7 +13,8 @@ declare global {
     namespace Express {
         interface User {
             id: string,
-            email: string
+            email: string,
+            role: string
         }
     }
 }
@@ -33,7 +34,7 @@ export class AuthenticationServiceImpl implements AuthenticationService {
     }
     return AuthenticationServiceImpl.instance
   }
-  async verify(email: string, password: string): Promise<IVerifyResponse | undefined> {
+  async verify(email: string, password: string): Promise<IVerifyResponse> {
     try {
       const res = this.client.prepare<string, ISqliteUser>(`SELECT * FROM users WHERE email = ?`).get(email);
       if(!res || !res.password_hash || !res.salt) {
@@ -44,8 +45,14 @@ export class AuthenticationServiceImpl implements AuthenticationService {
         return {err: new AuthenticationError("Incorrect Email or Password")}
       }
       return {
-        id: res.user_id.toString(),
-        email: res.email
+        user: {
+          id: res.user_id.toString(),
+          email: res.email,
+          role: res.role,
+          name: res.name ?? undefined,
+          imageUrl: res.image_url ?? undefined,
+          currentPuzzleId: res.current_puzzle ?? undefined,
+        }
       }
     } catch (err) {
       return {err}
@@ -78,7 +85,7 @@ export class AuthenticationServiceImpl implements AuthenticationService {
   }
   serializeUser(user: Express.User, callback: (err?: any, user?: Express.User) => void) {
     process.nextTick(() => {
-      callback(null, {id: user.id, email: user.email})
+      callback(null, {id: user.id, email: user.email, role: user.role})
     })
   }
   deserializeUser(user: Express.User, callback: (err?: any, user?: Express.User) => void) {

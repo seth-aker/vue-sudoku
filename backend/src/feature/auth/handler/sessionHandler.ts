@@ -13,7 +13,7 @@ export const sessionHandler = () => {
     saveUninitialized: false,
     cookie: function (req: Request) {
       return {
-        maxAge: 1000 * 60 * 60 * 24,
+        maxAge: 1000 * 60 * 60 * 24, // 24 hours
         // domain: config.audience,
         secure: req.secure || process.env.NODE_ENV === 'production',
       }

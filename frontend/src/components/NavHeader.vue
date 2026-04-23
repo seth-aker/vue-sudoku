@@ -26,6 +26,8 @@ import { useColorMode } from '@vueuse/core';
 import Label from './ui/label/Label.vue';
 import Switch from './ui/switch/Switch.vue';
 import { useUserStore } from '@/stores/userStore';
+import LoginPopover from './LoginRegister/LoginPopover.vue';
+import LoginDrawer from './LoginRegister/LoginDrawer.vue';
 const router = useRouter()
 const sudokuStore = useSudokuStore();
 const userStore = useUserStore();
@@ -92,14 +94,14 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink as-child>
-              <Button v-if="!userStore.isAuthenticated" :disabled="userStore.userLoading" @click="router.push('login')"
-                class="hover:bg-orange-400">Login</Button>
+              <LoginPopover v-if="!userStore.isAuthenticated"/>
               <Button v-else @click="userStore.logout()">Logout</Button>
             </NavigationMenuLink>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
       <Toggle :model-value="colormode === 'dark'"
+        class="ml-1"
         @update:model-value="(val) => val ? colormode = 'dark' : colormode = 'light'">
         <Icon v-if="colormode === 'dark'" icon="line-md:moon-simple" />
         <Icon v-else icon="line-md:sunny" />
@@ -122,8 +124,14 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
           <Button @click="() => router.push({ name: 'about' })" variant="link">About</Button>
         </PopoverClose>
         <Accordion collapsible>
-          <AccordionItem value="new-puzzle-opts">
-            <AccordionTrigger class="justify-end py-2">New Puzzle</AccordionTrigger>
+          <AccordionItem value="new-puzzle-opts" v-slot="{open}">
+            <AccordionTrigger class="py-0 justify-end data-[state=open]:bg-sidebar-accent">
+              <Button variant="link" :data-state="open ? 'open': 'closed'"  >New Puzzle</Button>
+              <template v-slot:icon>
+                <!-- Overriding the default icon with nothing -->
+                {{ '' }}
+              </template>
+            </AccordionTrigger>
             <AccordionContent class="flex flex-col items-end">
               <PopoverClose as-child>
                 <Button @click="() => gotoPuzzle('beginner')" variant="link">Beginner</Button>
@@ -144,6 +152,7 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        <LoginDrawer />
         <div class="flex py-2">
           <Label class="pr-2 font-medium">Dark Mode:</Label>
           <Switch :model-value="colormode === 'dark'"

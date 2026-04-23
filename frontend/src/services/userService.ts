@@ -1,7 +1,9 @@
 import {config } from '@/config/index'
+import type { IUser } from '@/stores/userStore'
+import type { ServiceResult } from './baseService'
 const API_BASE = config.API_BASE_URL
 
-export async function login(email: string, password: string) {
+export async function login(email: string, password: string): Promise<ServiceResult<IUser>> {
   const body = {email, password}
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
@@ -11,20 +13,23 @@ export async function login(email: string, password: string) {
     body: JSON.stringify(body),
     credentials: 'include'
   })
-  if(res.ok) {
-    const cookies = res.headers.getSetCookie()
-    cookies.forEach((cookie) => console.log(cookie))
+  const result: ServiceResult<IUser> = {
+    message: res.statusText,
+    success: res.ok,
+    body: res.ok ? await res.json() : undefined
   }
-  return res
-  
+  return result
 }
 
-export async function logout() {
+export async function logout(): Promise<ServiceResult<undefined>> {
   const res = await fetch(`${API_BASE}/auth/logout`)
-  return res.status
+  return {
+    message: res.statusText,
+    success: res.ok
+  }
 }
 
-export async function register(email: string, password: string, name?: string) {
+export async function register(email: string, password: string, name?: string): Promise<ServiceResult<IUser>> {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: "POST",
     headers: {
@@ -37,7 +42,11 @@ export async function register(email: string, password: string, name?: string) {
     })
   })
 
-  return res.status
+  return {
+    message: res.statusText,
+    success: res.ok,
+    body: res.ok ? await res.json() : undefined
+  }
 }
 export async function getUser(userId: string | undefined, accessToken: string) {
   console.log("Calling get user")

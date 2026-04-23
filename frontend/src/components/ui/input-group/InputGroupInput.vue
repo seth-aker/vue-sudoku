@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { cn } from '@/utils/cn'
+import { Input } from '@/components/ui/input'
 
 const props = defineProps<{
   class?: HTMLAttributes["class"]
@@ -8,13 +9,11 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div
-    data-slot="field-content"
+  <Input
+    data-slot="input-group-control"
     :class="cn(
-      'group/field-content flex flex-1 flex-col gap-1 leading-snug',
+      'flex-1 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent',
       props.class,
     )"
-  >
-    <slot />
-  </div>
+  />
 </template>

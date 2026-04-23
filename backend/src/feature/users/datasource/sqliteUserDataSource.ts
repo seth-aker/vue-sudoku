@@ -6,6 +6,7 @@ import { userScripts } from "@/core/dataSource/sqlite3";
 
 export interface IUserScripts {
   createUser: Statement<ISqliteCreateUser, number>
+  getUser: Statement<string, ISqliteUser>
 }
 
 export class SqliteUserDataSource implements UserDataSource {
@@ -30,7 +31,11 @@ export class SqliteUserDataSource implements UserDataSource {
     return result.toString()
   }
   async getUser(userId: string) : Promise<ISqliteUser> {
-    throw new DatabaseError("Function getUser not implemented")
+    const result = this.scripts.getUser.get(userId)
+    if(!result) {
+      throw new DatabaseError(`User with id: ${userId} not found`)
+    }
+    return result
   }
   // async updateUser (userId: string, user: UpdateUser) :Promise<number> {
   //   throw new DatabaseError("Function updateUser not implemented")
@@ -41,7 +46,8 @@ export class SqliteUserDataSource implements UserDataSource {
 
   private prepareScripts() {
     const scripts = {
-      createUser: this.db!.prepare(userScripts.insertUser)
+      createUser: this.db!.prepare(userScripts.insertUser),
+      getUser: this.db?.prepare(userScripts.getUserById)
     }
     return scripts
   }

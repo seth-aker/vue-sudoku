@@ -16,6 +16,20 @@ export const registerBodySchema = z.object({
   name: z.string().optional()
 })
 
+export const requireLoggedin = (req: Request, res: Response, next: NextFunction) => {
+  if(req.session.user) {
+    return next()
+  }
+  return res.sendStatus(401)
+}
+
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if(req.session.user && req.session.user.role === 'admin') {
+    return next()
+  }
+  return res.sendStatus(403)
+}
+
 export const loginBodyValidator = (req: Request, _res: Response, next: NextFunction) => {
   const validationResult = loginBodySchema.safeParse(req.body)
   if(!validationResult.success) {

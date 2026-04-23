@@ -1,0 +1,68 @@
+<script setup lang="ts">
+import { useUserStore } from '@/stores/userStore'
+import { useMousePressed } from '@vueuse/core';
+import { ref, useTemplateRef } from 'vue';
+import FieldGroup from '../ui/field/FieldGroup.vue'
+import FieldSet from '../ui/field/FieldSet.vue'
+import FieldLegend from '../ui/field/FieldLegend.vue'
+import Separator from '../ui/separator/Separator.vue'
+import Field from '../ui/field/Field.vue'
+import FieldLabel from '../ui/field/FieldLabel.vue'
+import Input from '../ui/input/Input.vue'
+import InputGroup from '../ui/input-group/InputGroup.vue'
+import InputGroupInput from '../ui/input-group/InputGroupInput.vue'
+import InputGroupAddon from '../ui/input-group/InputGroupAddon.vue'
+import InputGroupButton from '../ui/input-group/InputGroupButton.vue'
+import { Icon } from '@iconify/vue'
+import Button from '../ui/button/Button.vue'
+const userStore = useUserStore()
+
+const popoverOpen = defineModel<boolean>('popover-open', {required: true})
+
+const email = ref<string>('')
+const password = ref<string>('');
+const showPasswordRef = useTemplateRef('show-password')
+const { pressed: showPassword } = useMousePressed({target: showPasswordRef});
+
+const handleLogin = async (event: SubmitEvent) => {
+  event.preventDefault()
+  await userStore.login(email.value, password.value)
+  if(userStore.isAuthenticated) {
+    popoverOpen.value = false
+  }
+}
+</script>
+
+<template>
+  <form v-on:submit="handleLogin">
+    <FieldGroup>
+      <FieldSet>
+        <FieldLegend class="w-full mb-0">Login</FieldLegend>
+        <Separator />
+        <FieldGroup>
+          <Field>
+            <FieldLabel for="email">Email</FieldLabel>
+            <Input id="email" v-model:model-value="email" type="text" placeholder="email@example.com" autocomplete="username" required />
+          </Field>
+          <Field>
+            <FieldLabel for="password">Password</FieldLabel>
+            <InputGroup>
+                <InputGroupInput id="password" v-model:model-value="password" :type="showPassword ? 'text': 'password'" required autocomplete="current-password"/>
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton ref="show-password" type="button" >
+                    <Icon :icon="showPassword ? 'radix-icons:eye-open': 'radix-icons:eye-closed'" />
+                  </InputGroupButton>
+                </InputGroupAddon>
+              </InputGroup>
+            </Field>
+          </FieldGroup>
+        </FieldSet>
+        <Field orientation="horizontal" class="justify-end">
+          <Button class="w-20 bg-orange-400 hover:bg-orange-400/75" type="submit" v-if="!userStore.userLoading">Submit</Button>
+          <Button class="w-20" v-else>
+            <Icon icon="line-md:loading-twotone-loop" />
+          </Button>
+        </Field>
+      </FieldGroup>
+    </form>
+</template>

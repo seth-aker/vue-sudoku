@@ -31,7 +31,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-screen flex flex-col min-h-screen">
+  <div class="max-w-screen flex flex-col h-full">
     <NavHeader />
     <RouterView :key="route.fullPath" />
   </div>
