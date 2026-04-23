@@ -6,8 +6,10 @@ import { AuthenticationService } from "../service/authenticationService";
 
 declare module 'express-session' {
     interface SessionData {
-        userId?: string;
-        userEmail?: string;
+      user?: {
+        id: string;
+        email: string;
+      }
     }
 }
 
@@ -23,8 +25,10 @@ export function AuthRouter(authService: AuthenticationService) {
       if(err) {
         next(err)
       }
-      req.session.userId = verifyRes.id
-      req.session.userEmail = verifyRes.email
+      req.session.user = {
+        id: verifyRes.id!,
+        email: verifyRes.email!
+      }
 
       req.session.save((err) => {
         if(err) {
@@ -36,8 +40,7 @@ export function AuthRouter(authService: AuthenticationService) {
   })
 
   router.get('/logout', async (req, res, next) => {
-    req.session.userEmail = undefined
-    req.session.userId = undefined
+    req.session.user = undefined
 
     req.session.save((err) => {
       if(err) {
@@ -54,12 +57,17 @@ export function AuthRouter(authService: AuthenticationService) {
 
   router.post('/register', registerBodyValidator, async (req, res, next) => {
     const userId = await authService.registerUser(req.body)
+    if(!userId) {
+      return res.sendStatus(500)
+    }
     req.session.regenerate((err) => {
       if(err) {
         next(err);
       }
-      req.session.userEmail = req.body.email
-      req.session.userId = userId
+      req.session.user = {
+        email: req.body.email,
+        id: userId
+      }
 
       req.session.save((err) => {
         if(err) {

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     email_verified BOOLEAN DEFAULT FALSE,
     password_hash BLOB,
     salt BLOB,
+    role TEXT NOT NULL DEFAULT 'user',
     image_url TEXT,
     current_puzzle TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP, -- YYYY-MM-DDTHH-MM-SS

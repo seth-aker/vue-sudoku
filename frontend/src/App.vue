@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView, useRoute } from 'vue-router'
 import NavHeader from './components/NavHeader.vue';
+import { onMounted } from 'vue';
 // import { watch } from 'vue';
 // import { useAuth0 } from '@auth0/auth0-vue';
 // import { useUserStore } from '@/stores/userStore'
@@ -24,7 +25,9 @@ const route = useRoute();
 //   }
 //   userStore.userLoading = false;
 // })
-
+onMounted(() => {
+  document.documentElement.style.touchAction = 'manipulation'
+})
 </script>
 
 <template>

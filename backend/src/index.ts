@@ -12,7 +12,8 @@ app.use(express.json())
 if(process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1)
   app.use(cors({
-    origin: config.origin
+    origin: config.origin,
+    credentials: true
   }))
   app.use(helmet())
   app.use(rateLimit({
@@ -20,6 +21,11 @@ if(process.env.NODE_ENV === 'production') {
     limit: 100,
     standardHeaders: 'draft-8',
     legacyHeaders: false
+  }))
+} else {
+  app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
   }))
 }
 

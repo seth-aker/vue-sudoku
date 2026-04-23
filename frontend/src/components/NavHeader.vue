@@ -12,7 +12,7 @@ import { useSudokuStore } from '@/stores/sudokuStore';
 import type { Difficulty } from '@/stores/models/difficulty';
 import { useGameStore } from '@/stores/gameStore';
 import { Icon } from '@iconify/vue';
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import Popover from './ui/popover/Popover.vue';
 import PopoverTrigger from './ui/popover/PopoverTrigger.vue';
 import PopoverContent from './ui/popover/PopoverContent.vue';
@@ -25,14 +25,13 @@ import Toggle from './ui/toggle/Toggle.vue';
 import { useColorMode } from '@vueuse/core';
 import Label from './ui/label/Label.vue';
 import Switch from './ui/switch/Switch.vue';
+import { useUserStore } from '@/stores/userStore';
 const router = useRouter()
 const sudokuStore = useSudokuStore();
+const userStore = useUserStore();
 const gameStore = useGameStore();
 const colormode = useColorMode()
 
-onMounted(() => {
-  document.documentElement.style.touchAction = 'manipulation'
-})
 
 const menuPressed = ref(false)
 
@@ -91,16 +90,17 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
               <Button class="mx-2" variant="ghost" @click="router.push({ name: 'home' })">Home</Button>
             </NavigationMenuLink>
           </NavigationMenuItem>
-          <!-- <NavigationMenuItem>
+          <NavigationMenuItem>
             <NavigationMenuLink as-child>
-              <Button v-if="!isAuthenticated" :disabled="isLoading" @click="loginWithRedirect(loginOptions)"
+              <Button v-if="!userStore.isAuthenticated" :disabled="userStore.userLoading" @click="router.push('login')"
                 class="hover:bg-orange-400">Login</Button>
-              <Button v-else @click="logout()">Logout</Button>
+              <Button v-else @click="userStore.logout()">Logout</Button>
             </NavigationMenuLink>
-          </NavigationMenuItem> -->
+          </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
-      <Toggle :model-value="colormode === 'dark'" @update:model-value="(val) => val ? colormode = 'dark' : colormode = 'light'" >
+      <Toggle :model-value="colormode === 'dark'"
+        @update:model-value="(val) => val ? colormode = 'dark' : colormode = 'light'">
         <Icon v-if="colormode === 'dark'" icon="line-md:moon-simple" />
         <Icon v-else icon="line-md:sunny" />
       </Toggle>
@@ -140,15 +140,16 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
               <PopoverClose as-child>
                 <Button @click="() => gotoPuzzle('impossible')" variant="link" disabled>Impossible (Comming
                   Soon)</Button>
-                </PopoverClose>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-          <div class="flex py-2">
-            <Label class="pr-2 font-medium" >Dark Mode:</Label>
-            <Switch :model-value="colormode === 'dark'" @update:model-value="(val) => val ? colormode = 'dark' : colormode = 'light'" />
-          </div>
-        </PopoverContent>
-      </Popover>
+              </PopoverClose>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+        <div class="flex py-2">
+          <Label class="pr-2 font-medium">Dark Mode:</Label>
+          <Switch :model-value="colormode === 'dark'"
+            @update:model-value="(val) => val ? colormode = 'dark' : colormode = 'light'" />
+        </div>
+      </PopoverContent>
+    </Popover>
   </header>
 </template>

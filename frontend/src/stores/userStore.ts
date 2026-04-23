@@ -1,6 +1,6 @@
 import * as userService from '@/services/userService'
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useSudokuStore } from "./sudokuStore";
 
 export const useUserStore = defineStore('userStore', () => {
@@ -10,7 +10,21 @@ export const useUserStore = defineStore('userStore', () => {
   const email = ref<string | undefined>();
   const image = ref<string | undefined>();
   const userLoading = ref<boolean>(false);
+  const error = ref<string | undefined>(undefined);
 
+  const isAuthenticated = computed(() => !!id.value)
+  const login = async (email: string, password: string) => {
+    userLoading.value = true;
+    console.log(`Email: ${email}, password: ${password}`)
+    const res = await userService.login(email, password);
+    console.log(res)
+  }
+  const logout = async() => {
+    const res = await userService.logout()
+    if(res > 299) {
+      error.value = "Error logging out. Try again"
+    }
+  }
   const getUser = async (token: string | undefined) => {
     if(!token) {
       throw new Error("User not logged in")
@@ -46,6 +60,6 @@ export const useUserStore = defineStore('userStore', () => {
     await userService.updateUser(id.value, token, user)
     console.log("User updated!")
   }
-  return { id, name, email, image, userLoading, getUser, updateUser}
+  return { id, name, email, image, userLoading, isAuthenticated, error, login, logout, getUser, updateUser}
 
 })
