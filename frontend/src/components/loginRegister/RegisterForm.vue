@@ -1,0 +1,142 @@
+<script setup lang="ts">
+import { useUserStore } from '@/stores/userStore'
+import { useMousePressed, watchDebounced } from '@vueuse/core'
+import { ref, useTemplateRef } from 'vue'
+import FieldGroup from '../ui/field/FieldGroup.vue'
+import FieldSet from '../ui/field/FieldSet.vue'
+import FieldLegend from '../ui/field/FieldLegend.vue'
+import Separator from '../ui/separator/Separator.vue'
+import Field from '../ui/field/Field.vue'
+import FieldLabel from '../ui/field/FieldLabel.vue'
+import Input from '../ui/input/Input.vue'
+import InputGroup from '../ui/input-group/InputGroup.vue'
+import InputGroupInput from '../ui/input-group/InputGroupInput.vue'
+import InputGroupAddon from '../ui/input-group/InputGroupAddon.vue'
+import InputGroupButton from '../ui/input-group/InputGroupButton.vue'
+import { Icon } from '@iconify/vue'
+import Button from '../ui/button/Button.vue'
+import * as z from 'zod/mini'
+import { passwordSchema } from '@/validation/registerValidation'
+import FieldError from '../ui/field/FieldError.vue'
+const popoverOpen = defineModel<boolean>('popover-open', { required: true })
+const userStore = useUserStore()
+
+const name = ref<string>('')
+const email = ref<string>('');
+const emailErrorMessage = ref<string | undefined>(undefined);
+const password = ref<string>('');
+const passwordErrorMessage = ref<string | undefined>(undefined);
+const confirmPassword = ref<string>('');
+const confirmPasswordErrorMessage = ref<string | undefined>(undefined)
+
+watchDebounced(email,
+  (value) => {
+    const res = z.email().safeParse(value);
+    if (!res.success) {
+      emailErrorMessage.value = "Invalid email address"
+    } else {
+      emailErrorMessage.value = undefined
+    }
+  },
+  { debounce: 1000 }
+)
+watchDebounced(password,
+  (value) => {
+    const res = passwordSchema.safeParse(value)
+    if (!res.success) {
+      passwordErrorMessage.value = "Password must contain a minimum of 8 characters, one uppercase, one lowercase, one number, and one special character"
+    } else {
+      passwordErrorMessage.value = undefined
+    }
+  },
+  { debounce: 1000 }
+)
+
+watchDebounced(confirmPassword,
+  (value) => {
+    if (value !== password.value) {
+      confirmPasswordErrorMessage.value = "Password does not match!"
+    } else {
+      confirmPasswordErrorMessage.value = undefined
+    }
+  },
+  { debounce: 500 }
+)
+
+const handleRegister = async (event: SubmitEvent) => {
+  event.preventDefault()
+  const emailRes = z.email().safeParse(email.value)
+  const passwordRes = passwordSchema.safeParse(password.value)
+  const confirmMatches = password.value === confirmPassword.value
+  if (!emailRes.success || !passwordRes.success || !confirmMatches) {
+    return;
+  }
+  await userStore.register(email.value, password.value, name.value)
+  popoverOpen.value = false
+}
+const showPasswordRef = useTemplateRef('show-password')
+const { pressed: showPassword } = useMousePressed({ target: showPasswordRef });
+
+const showConfirmPasswordRef = useTemplateRef('show-confirm-password')
+const { pressed: showConfirmPassword } = useMousePressed({ target: showConfirmPasswordRef })
+</script>
+
+<template>
+
+  <form v-on:submit="handleRegister">
+    <FieldGroup>
+      <FieldSet>
+        <FieldLegend class="mb-0">Signup</FieldLegend>
+        <Separator />
+        <FieldGroup>
+          <Field>
+            <FieldLabel for="name">Name</FieldLabel>
+            <Input id="name" :model-value="name" autocomplete="name" type="text" placeholder="Susan Doku" />
+          </Field>
+          <Field>
+            <FieldLabel for="email">Email</FieldLabel>
+            <Input :aria-invalid="emailErrorMessage !== undefined" id="email" v-model:model-value="email" type="text"
+              placeholder="email@example.com" autocomplete="username" required />
+            <FieldError :errors="[emailErrorMessage]"></FieldError>
+          </Field>
+          <Field>
+            <FieldLabel for="password">Password</FieldLabel>
+            <InputGroup :aria-invalid="passwordErrorMessage !== undefined">
+              <InputGroupInput id="password" v-model:model-value="password" :type="showPassword ? 'text' : 'password'"
+                required />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton ref="show-password" type="button">
+                  <Icon :icon="showPassword ? 'radix-icons:eye-open' : 'radix-icons:eye-closed'" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+            <FieldError :errors="[passwordErrorMessage]" />
+          </Field>
+          <Field>
+            <FieldLabel for="confirm-password">Confirm Password</FieldLabel>
+            <InputGroup>
+              <InputGroupInput id="confirm-password" v-model:model-value="confirmPassword"
+                :aria-invalid="confirmPasswordErrorMessage !== undefined"
+                :type="showConfirmPassword ? 'text' : 'password'" required />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton ref="show-confirm-password" type="button">
+                  <Icon :icon="showConfirmPassword ? 'radix-icons:eye-open' : 'radix-icons:eye-closed'" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+            <FieldError :errors="[confirmPasswordErrorMessage]" />
+          </Field>
+        </FieldGroup>
+      </FieldSet>
+      <Field orientation="horizontal" class="justify-end">
+        <Button type="submit" v-if="!userStore.userLoading"
+          :disabled="emailErrorMessage || passwordErrorMessage || confirmPasswordErrorMessage"
+          class="w-30 bg-orange-400 hover:bg-orange-400/60">Create
+          Account</Button>
+        <Button class="w-30 bg-orange-400" v-else>
+          <Icon icon="line-md:loading-twotone-loop" />
+        </Button>
+      </Field>
+    </FieldGroup>
+  </form>
+</template>

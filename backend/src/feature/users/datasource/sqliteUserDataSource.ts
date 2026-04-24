@@ -5,8 +5,8 @@ import { DatabaseError } from "@/core/errors/databaseError";
 import { userScripts } from "@/core/dataSource/sqlite3";
 
 export interface IUserScripts {
-  createUser: Statement<ISqliteCreateUser, number>
-  getUser: Statement<string, ISqliteUser>
+  createUser: Statement<ISqliteCreateUser, {user_id: number}>
+  getUser: Statement<{userId: string}, ISqliteUser>
 }
 
 export class SqliteUserDataSource implements UserDataSource {
@@ -24,22 +24,19 @@ export class SqliteUserDataSource implements UserDataSource {
     return SqliteUserDataSource.instance
   }
   async createUser(user: ISqliteCreateUser): Promise<string | undefined> {
-    const result = this.scripts.createUser.get(user);
-    if(!result) {
+    const res = this.scripts.createUser.get(user);
+    if(!res) {
       throw new DatabaseError("An error occurred creating user with email: " + user.email)
     }
-    return result.toString()
+    return res.user_id.toString()
   }
   async getUser(userId: string) : Promise<ISqliteUser> {
-    const result = this.scripts.getUser.get(userId)
+    const result = this.scripts.getUser.get({userId})
     if(!result) {
       throw new DatabaseError(`User with id: ${userId} not found`)
     }
     return result
   }
-  // async updateUser (userId: string, user: UpdateUser) :Promise<number> {
-  //   throw new DatabaseError("Function updateUser not implemented")
-  // }
   async deleteUser (userId: string) : Promise<number> {
     throw new DatabaseError("Function deleteUser not implemented")
   }

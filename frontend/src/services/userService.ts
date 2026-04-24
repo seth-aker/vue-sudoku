@@ -22,7 +22,9 @@ export async function login(email: string, password: string): Promise<ServiceRes
 }
 
 export async function logout(): Promise<ServiceResult<undefined>> {
-  const res = await fetch(`${API_BASE}/auth/logout`)
+  const res = await fetch(`${API_BASE}/auth/logout`, {
+    credentials: 'include'
+  })
   return {
     message: res.statusText,
     success: res.ok
@@ -35,6 +37,7 @@ export async function register(email: string, password: string, name?: string): 
     headers: {
       "Content-Type": "application/json"
     },
+    credentials: 'include',
     body: JSON.stringify({
       email,
       password,
@@ -45,9 +48,31 @@ export async function register(email: string, password: string, name?: string): 
   return {
     message: res.statusText,
     success: res.ok,
-    body: res.ok ? await res.json() : undefined
+    body: res.ok ? await JSON.parse(await res.text()) : undefined
   }
 }
+
+export async function checkSession(): Promise<ServiceResult<IUser>> {
+  const res = await fetch(`${API_BASE}/users/me`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include'    
+  })
+  if(!res.ok) {
+    return {
+      message: 'User not authenitcated',
+      success: false
+    }
+  } else {
+    return {
+      success: true,
+      body: await res.json()
+    }
+  }
+}
+
 export async function getUser(userId: string | undefined, accessToken: string) {
   console.log("Calling get user")
   const res = await fetch(`${API_BASE}/user/${userId ? userId : ''}`, {

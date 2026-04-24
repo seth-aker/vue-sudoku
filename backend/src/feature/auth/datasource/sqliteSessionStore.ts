@@ -12,7 +12,7 @@ interface SessionRow {
 }
 
 interface SqliteSessionScripts {
-  clear: Statement
+  clearExpired: Statement
   get: Statement<{sid: string}, SessionRow>
   set: Statement<SessionRow>
   destroy: Statement<string>
@@ -30,6 +30,7 @@ export class SqliteSessionStore extends Store {
   private sessionTableName: string
   private scripts: SqliteSessionScripts
   private oneDayMs = 1000 * 60 * 60 * 24;
+  private clearInterval = 1000 * 60 * 15; // 15 minutes
   client: Database;
   private constructor(options: SqliteSessionStoreOptions) {
     super(options)
@@ -45,7 +46,10 @@ export class SqliteSessionStore extends Store {
       );
     `
     this.client.exec(createTableScript);
-    this.scripts = this.prepareScripts()
+    this.scripts = this.prepareScripts();
+    setInterval(() => {
+      this.scripts.clearExpired.run()
+    }, this.clearInterval)
   }
   static create(options: SqliteSessionStoreOptions) {
     if(!SqliteSessionStore.instance) {
@@ -56,7 +60,7 @@ export class SqliteSessionStore extends Store {
   }
   clear(callback: (err?: any) => void = noop) {
     try {
-      this.scripts.clear.run()
+      this.scripts.clearExpired.run()
     } catch (err) {
       console.error(err)
       if(callback) {
@@ -173,7 +177,7 @@ export class SqliteSessionStore extends Store {
     `
 
     const scripts: SqliteSessionScripts = {
-      clear: this.client.prepare(clearScript),
+      clearExpired: this.client.prepare(clearScript),
       get: this.client.prepare(getScript),
       set: this.client.prepare(setScript),
       destroy: this.client.prepare(destroyScript),

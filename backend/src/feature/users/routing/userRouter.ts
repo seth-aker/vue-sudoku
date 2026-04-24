@@ -6,7 +6,13 @@ import { requireSelfOrAdmin } from "../middleware/requireSelfOrAdmin";
 export function UserRouter(userService: UserService) {
   const router = Router()
 
-  router.get('/users/:id', 
+  router.get("/me", requireLoggedin, async (req, res, next) => {
+    const userId = req.session.user!.id // requireLoggedIn ensures this exists
+    const user = await userService.getUser(userId);
+    return res.status(200).json(user)
+  })
+
+  router.get('/:id', 
     requireSelfOrAdmin,
     async (req: Request<{id: string}>, res, next) => {
       // get user

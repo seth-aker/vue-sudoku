@@ -1,7 +1,6 @@
 import * as userService from '@/services/userService'
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { useSudokuStore } from "./sudokuStore";
 import { useRouter } from 'vue-router';
 
 export interface IUser {
@@ -44,7 +43,7 @@ export const useUserStore = defineStore('userStore', () => {
       // sudokuStore.puzzleId = res.body.currentPuzzle
     }
   }
-  const logout = async() => {
+  const logout = async () => {
     userLoading.value = true
     const res = await userService.logout()
     if(!res.success) {
@@ -53,17 +52,34 @@ export const useUserStore = defineStore('userStore', () => {
     $reset()
     router.push({name: 'home'})
   }
-  const getUser = async (token: string | undefined) => {
-    if(!token) {
-      throw new Error("User not logged in")
+
+  const register = async (email: string, password: string, usersName?: string) => {
+    userLoading.value = true;
+    const res = await userService.register(email, password, usersName);
+    if(!res.success || !res.body) {
+      error.value = `An error occured attempting to register, please try again. ${res.message}`
+    } else {
+      id.value = res.body.id
+      userEmail.value = email
+      name.value = usersName
+      role.value = res.body.role
     }
-    const res = await userService.getUser(id.value, token);
-    console.log(res)
-    id.value = res._id
-    // if(res.currentPuzzle) {
-    //   sudokuStore.puzzle = new SudokuPuzzle(res.currentPuzzle.cells, {difficulty: res.currentPuzzle.difficulty})
-    // }
+    userLoading.value = false
+    
   }
+  const getSelf = async () => {
+    userLoading.value = true;
+    const res = await userService.checkSession();
+    const user = res.body
+    if(res.success && user) {
+      id.value = user.id
+      name.value = user.name,
+      userEmail.value = user.email,
+      role.value = user.role,
+      image.value = user.imageUrl
+    }
+    userLoading.value = false;
+  }  
 
   const $reset = () => {
     id.value = undefined,
@@ -98,6 +114,6 @@ export const useUserStore = defineStore('userStore', () => {
   //   await userService.updateUser(id.value, token, user)
   //   console.log("User updated!")
   // }
-  return { id, name, email: userEmail, image, userLoading, isAuthenticated, error, login, logout, getUser, $reset}
+  return { id, name, email: userEmail, image, userLoading, isAuthenticated, error, login, logout, register, getSelf, $reset}
 
 })

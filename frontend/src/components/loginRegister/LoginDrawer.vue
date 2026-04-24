@@ -20,19 +20,19 @@ const drawerOpen = ref<boolean>(false);
     <DrawerTrigger as-child>
       <Button variant="ghost">Login</Button>
     </DrawerTrigger>
-    <DrawerContent>
-      <Tabs default-value="login">
+    <DrawerContent class="px-8">
+      <Tabs class="my-8" default-value="login">
         <TabsList>
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="signup">Signup</TabsTrigger>
         </TabsList>
-        <TabsContent value="login" >
+        <TabsContent value="login">
           <LoginForm :popover-open="drawerOpen" />
         </TabsContent>
-  <TabsContent value="signup" >
-    <RegisterForm :popover-open="drawerOpen"/>
-  </TabsContent>
-  </Tabs>
+        <TabsContent value="signup">
+          <RegisterForm :popover-open="drawerOpen" />
+        </TabsContent>
+      </Tabs>
     </DrawerContent>
   </Drawer>
 </template>

@@ -26,13 +26,13 @@ const popoverOpen = ref<boolean>(false);
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="signup">Signup</TabsTrigger>
         </TabsList>
-        <TabsContent value="login" >
+        <TabsContent value="login">
           <LoginForm :popover-open="popoverOpen" />
         </TabsContent>
-  <TabsContent value="signup" >
-    <RegisterForm :popover-open="popoverOpen"/>
-  </TabsContent>
-  </Tabs>
-  </PopoverContent>
+        <TabsContent value="signup">
+          <RegisterForm :popover-open="popoverOpen" />
+        </TabsContent>
+      </Tabs>
+    </PopoverContent>
   </Popover>
 </template>

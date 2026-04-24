@@ -17,17 +17,17 @@ import { Icon } from '@iconify/vue'
 import Button from '../ui/button/Button.vue'
 const userStore = useUserStore()
 
-const popoverOpen = defineModel<boolean>('popover-open', {required: true})
+const popoverOpen = defineModel<boolean>('popover-open', { required: true })
 
 const email = ref<string>('')
 const password = ref<string>('');
 const showPasswordRef = useTemplateRef('show-password')
-const { pressed: showPassword } = useMousePressed({target: showPasswordRef});
+const { pressed: showPassword } = useMousePressed({ target: showPasswordRef });
 
 const handleLogin = async (event: SubmitEvent) => {
   event.preventDefault()
   await userStore.login(email.value, password.value)
-  if(userStore.isAuthenticated) {
+  if (userStore.isAuthenticated) {
     popoverOpen.value = false
   }
 }
@@ -42,27 +42,30 @@ const handleLogin = async (event: SubmitEvent) => {
         <FieldGroup>
           <Field>
             <FieldLabel for="email">Email</FieldLabel>
-            <Input id="email" v-model:model-value="email" type="text" placeholder="email@example.com" autocomplete="username" required />
+            <Input id="email" v-model:model-value="email" type="text" placeholder="email@example.com"
+              autocomplete="username" required />
           </Field>
           <Field>
             <FieldLabel for="password">Password</FieldLabel>
             <InputGroup>
-                <InputGroupInput id="password" v-model:model-value="password" :type="showPassword ? 'text': 'password'" required autocomplete="current-password"/>
-                <InputGroupAddon align="inline-end">
-                  <InputGroupButton ref="show-password" type="button" >
-                    <Icon :icon="showPassword ? 'radix-icons:eye-open': 'radix-icons:eye-closed'" />
-                  </InputGroupButton>
-                </InputGroupAddon>
-              </InputGroup>
-            </Field>
-          </FieldGroup>
-        </FieldSet>
-        <Field orientation="horizontal" class="justify-end">
-          <Button class="w-20 bg-orange-400 hover:bg-orange-400/75" type="submit" v-if="!userStore.userLoading">Submit</Button>
-          <Button class="w-20" v-else>
-            <Icon icon="line-md:loading-twotone-loop" />
-          </Button>
-        </Field>
-      </FieldGroup>
-    </form>
+              <InputGroupInput id="password" v-model:model-value="password" :type="showPassword ? 'text' : 'password'"
+                required autocomplete="current-password" />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton ref="show-password" type="button">
+                  <Icon :icon="showPassword ? 'radix-icons:eye-open' : 'radix-icons:eye-closed'" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </Field>
+        </FieldGroup>
+      </FieldSet>
+      <Field orientation="horizontal" class="justify-end">
+        <Button class="w-20 bg-orange-400 hover:bg-orange-400/75" type="submit"
+          v-if="!userStore.userLoading">Submit</Button>
+        <Button class="w-20 bg-orange-400" v-else>
+          <Icon icon="line-md:loading-twotone-loop" />
+        </Button>
+      </Field>
+    </FieldGroup>
+  </form>
 </template>

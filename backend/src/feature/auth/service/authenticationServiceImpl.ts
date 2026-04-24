@@ -1,4 +1,4 @@
-import { ISqliteCreateUser, ISqliteUser } from "@/feature/users/datasource/models/user";
+import { ISqliteUser } from "@/feature/users/datasource/models/user";
 import {Database} from "better-sqlite3";
 import { scryptSync, timingSafeEqual, randomBytes } from "node:crypto";
 import { AuthenticationService, IVerifyResponse } from "./authenticationService";
@@ -90,7 +90,7 @@ export class AuthenticationServiceImpl implements AuthenticationService {
   }
   deserializeUser(user: Express.User, callback: (err?: any, user?: Express.User) => void) {
     process.nextTick(() => {
-      callback(null, user)
+      callback(null, {id: user.id, email: user.email, role: user.role})
     })
   }
 }

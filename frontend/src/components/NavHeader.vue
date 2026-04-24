@@ -26,8 +26,8 @@ import { useColorMode } from '@vueuse/core';
 import Label from './ui/label/Label.vue';
 import Switch from './ui/switch/Switch.vue';
 import { useUserStore } from '@/stores/userStore';
-import LoginPopover from './LoginRegister/LoginPopover.vue';
-import LoginDrawer from './LoginRegister/LoginDrawer.vue';
+import LoginPopover from './loginRegister/LoginPopover.vue';
+import LoginDrawer from './loginRegister/LoginDrawer.vue';
 const router = useRouter()
 const sudokuStore = useSudokuStore();
 const userStore = useUserStore();
@@ -60,6 +60,16 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
+            <NavigationMenuLink as-child>
+              <Button class="mx-2" variant="ghost" @click="router.push({ name: 'home' })">Home</Button>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuLink as-child>
+              <Button class="mx-2" variant="ghost" @click="router.push({ name: 'about' })">About</Button>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
             <NavigationMenuTrigger>New Puzzle</NavigationMenuTrigger>
             <NavigationMenuContent>
               <NavigationMenuLink as-child>
@@ -84,24 +94,13 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink as-child>
-              <Button class="mx-2" variant="ghost" @click="router.push({ name: 'about' })">About</Button>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuLink as-child>
-              <Button class="mx-2" variant="ghost" @click="router.push({ name: 'home' })">Home</Button>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuLink as-child>
-              <LoginPopover v-if="!userStore.isAuthenticated"/>
-              <Button v-else @click="userStore.logout()">Logout</Button>
+              <LoginPopover v-if="!userStore.isAuthenticated" />
+              <Button v-else @click="userStore.logout()" variant="link" class="mr-2 ml-0">Logout</Button>
             </NavigationMenuLink>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
-      <Toggle :model-value="colormode === 'dark'"
-        class="ml-1"
+      <Toggle :model-value="colormode === 'dark'" class="ml-2"
         @update:model-value="(val) => val ? colormode = 'dark' : colormode = 'light'">
         <Icon v-if="colormode === 'dark'" icon="line-md:moon-simple" />
         <Icon v-else icon="line-md:sunny" />
@@ -124,9 +123,9 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
           <Button @click="() => router.push({ name: 'about' })" variant="link">About</Button>
         </PopoverClose>
         <Accordion collapsible>
-          <AccordionItem value="new-puzzle-opts" v-slot="{open}">
+          <AccordionItem value="new-puzzle-opts" v-slot="{ open }">
             <AccordionTrigger class="py-0 justify-end data-[state=open]:bg-sidebar-accent">
-              <Button variant="link" :data-state="open ? 'open': 'closed'"  >New Puzzle</Button>
+              <Button variant="link" :data-state="open ? 'open' : 'closed'">New Puzzle</Button>
               <template v-slot:icon>
                 <!-- Overriding the default icon with nothing -->
                 {{ '' }}
@@ -152,7 +151,8 @@ const gotoPuzzle = async (difficulty: Difficulty) => {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <LoginDrawer />
+        <LoginDrawer v-if="!userStore.isAuthenticated" />
+        <Button v-else variant="link" @click="userStore.logout()">Logout</Button>
         <div class="flex py-2">
           <Label class="pr-2 font-medium">Dark Mode:</Label>
           <Switch :model-value="colormode === 'dark'"
