@@ -37,7 +37,7 @@ export function AuthRouter(authService: AuthenticationService) {
         if(err) {
           return next(err)
         }
-        return res.json(verifyRes.user)
+        return res.json(user)
       })
     })
   })
@@ -77,7 +77,12 @@ export function AuthRouter(authService: AuthenticationService) {
         if(err) {
           next(err)
         }
-        res.sendStatus(201)
+        res.status(201).send({
+          id: userId,
+          name: req.body.name,
+          email: req.body.email,
+          role: 'user'
+        })
       })
     })
   })

@@ -1,12 +1,12 @@
 
-export interface ISqliteUser {
-  user_id: number,
+export interface ISqlUser {
+  user_id: string,
   name?: string,
   email: string,
   email_verified: boolean,
   role: string,
-  password_hash?: Uint8Array,
-  salt?: Uint8Array,
+  password_hash?: string,
+  salt?: string,
   image_url?: string,
   current_puzzle?: string,
   created_at: string,
@@ -14,11 +14,11 @@ export interface ISqliteUser {
   deleted_at?: string | null
 }
 
-export interface ISqliteCreateUser {
+export interface ICreateUser {
   name?: string,
   email: string,
-  passwordHash: Uint8Array,
-  salt: Uint8Array
+  passwordHash: string,
+  salt: string
 }
 
 export interface IUserDTO {

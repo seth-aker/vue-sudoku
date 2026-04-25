@@ -1,6 +1,6 @@
 import { PuzzleArray } from "./models/puzzleArray";
 import { PuzzleOptions } from "./models/puzzleOptions";
-import { SudokuPuzzleResponse, SudokuPuzzle, CreatePuzzle, UpdatePuzzle } from "./models/sudokuPuzzle";
+import { SudokuPuzzleResponse, SudokuPuzzle, CreatePuzzle, UpdatePuzzle, SqlPuzzle, SqlUserPuzzle } from "./models/sudokuPuzzle";
 import { SudokuDataSource } from "./sudokuDataSource";
 import type { Database, Statement } from "better-sqlite3";
 import { DatabaseError } from "@/core/errors/databaseError";
@@ -17,22 +17,8 @@ interface SqlScripts {
   createUserPuzzle: Statement<{userId: string, puzzleId: string, isCompleted: boolean, cells: string, candidates: string}>
 }
 
-interface SqlPuzzle {
-  puzzle_id: string,
-  cells: string,
-  difficulty_rating: string,
-  difficulty_score: number
-}
-interface SqlUserPuzzle {
-  puzzle_id: string,
-  isCompleted: number,
-  current_cells: string,
-  current_candidates: string,
-  time: string,
-  original_cells: string,
-  difficulty_rating: string,
-  difficulty_score: string
-}
+
+
 
 
 export class SqliteSudokuDataSource implements SudokuDataSource {
@@ -64,14 +50,13 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
           candidates: ""
         })
       }
-      const cells = this.deserializeCells(result.cells);
       const response: SudokuPuzzleResponse = {
          metadata: {
           totalCount: result.total_count
          },
          puzzle: {
           _id: result.puzzle_id,
-          cells: cells,
+          cells: result.cells,
           difficulty: {
             rating: result.difficulty_rating as DifficultyRating,
             score: result.difficulty_score
@@ -81,7 +66,7 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
       return response;
     
   }
-  async getPuzzleById(requestedBy: string, puzzleId: string): Promise<SudokuPuzzle> {
+  async getPuzzleById(requestedBy: string | undefined, puzzleId: string): Promise<SudokuPuzzle> {
     try {
       const result = this.scripts.getPuzzleById.get({
         puzzleId: puzzleId
@@ -89,10 +74,9 @@ export class SqliteSudokuDataSource implements SudokuDataSource {
       if(!result) {
         throw new DatabaseError(`Could not find puzzle with id: ${puzzleId}`)
       }
-      const cells = this.deserializeCells(result.cells);
       return {
         _id: result.puzzle_id,
-        cells,
+        cells: result.cells,
         difficulty: {
           rating: result.difficulty_rating as DifficultyRating,
           score: result.difficulty_score

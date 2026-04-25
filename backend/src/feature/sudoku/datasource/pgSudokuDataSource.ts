@@ -1,0 +1,147 @@
+import { DatabaseError } from "@/core/errors/databaseError";
+import { PuzzleOptions } from "./models/puzzleOptions";
+import { CreatePuzzle, SqlPuzzle, SudokuPuzzle, SudokuPuzzleResponse, UpdatePuzzle } from "./models/sudokuPuzzle";
+import { SudokuDataSource } from "./sudokuDataSource";
+import { Sql } from "postgres";
+import { PuzzleArray } from "./models/puzzleArray";
+import { CustomError } from "@/core/errors/customError";
+export class PgSudokuDataSource implements SudokuDataSource {
+  static instance: PgSudokuDataSource | null = null;
+  private client: Sql;
+  private constructor(client: Sql) {
+    this.client = client;
+  }  
+  static create(client: Sql) {
+    if(!PgSudokuDataSource.instance) {
+      PgSudokuDataSource.instance = new PgSudokuDataSource(client)
+    }
+    return PgSudokuDataSource.instance
+  }
+  async getNewPuzzle(requestedBy: string | undefined, options: PuzzleOptions): Promise<SudokuPuzzleResponse> {
+    const userId = requestedBy ?? null;
+    try {
+      const res = await this.client.begin(async sql => {
+        interface QueryRes extends SqlPuzzle {
+          total_count: number
+        }
+        const [puzzle] = await sql<QueryRes[]>`
+          SELECT p.puzzle_id, p.cells, p.difficulty_score, p.difficulty_rating, p.created_at, COUNT(*) OVER () as total_count
+          FROM puzzles p
+          WHERE
+            p.difficulty_rating = ${options.difficulty}
+            -- inject the NOT EXISTS block only if userId exists
+            ${userId ?
+              this.client`
+                AND NOT EXISTS (
+                  SELECT 1
+                  FROM user_puzzles up
+                  WHERE
+                    up.puzzle_id = p.puzzle_id
+                    AND up.user_id = ${userId}
+                )
+              `
+              : this.client``
+            }
+          ORDER BY RANDOM()
+          LIMIT 1;
+          `
+          
+          if(userId) {
+            await sql`
+              INSERT INTO user_puzzles (
+                user_id,
+                puzzle_id,
+                cells
+              )
+              VALUES (
+                ${userId},
+                ${puzzle.puzzle_id},
+                ${puzzle.cells}
+              )
+            `
+          }
+          return puzzle
+        }
+      )
+      if(res.total_count === 0) {
+        throw new DatabaseError('No more puzzles')
+      }
+      const response: SudokuPuzzleResponse = {
+        metadata: {
+          totalCount: res.total_count
+        },
+        puzzle: {
+          _id: res.puzzle_id,
+          cells: res.cells,
+          difficulty: {
+            score: res.difficulty_score,
+            rating: res.difficulty_rating
+          }
+        }
+      }
+      return response
+    } catch (err) {
+      if(err instanceof DatabaseError) {
+        throw err
+      } else {
+        throw new DatabaseError((err as Error).message)
+      }
+    }
+  }
+
+  async getPuzzleById (requestedBy: string | undefined, puzzleId: string): Promise<SudokuPuzzle> {
+    try {
+      const res = await this.client<SqlPuzzle[]>`
+      SELECT * FROM puzzles WHERE puzzle_id = ${puzzleId};
+      `
+      if(res.length === 0) {
+        throw new DatabaseError("Not found")
+      }
+      const puzzleRow = res[0];
+      
+      const puzzle: SudokuPuzzle = {
+        _id: puzzleRow.puzzle_id,
+        cells: puzzleRow.cells,
+        difficulty: {
+          rating: puzzleRow.difficulty_rating,
+          score: puzzleRow.difficulty_score
+        }
+      }
+      return puzzle;
+    } catch (err) {
+      if(err instanceof CustomError) {
+        throw err
+      } else {
+        throw new DatabaseError((err as Error).message)
+      }
+    }
+  }
+
+  async getPuzzles(options: PuzzleOptions, page?: number, limit: number = 100): Promise<PuzzleArray> {
+    throw new DatabaseError("Not implemented")
+  }
+  async createPuzzles(puzzles: CreatePuzzle[]): Promise<number> {
+    const queries = puzzles.map((puzzle) => {
+      return this.client<{puzzle_id: string}[]>`
+        INSERT INTO puzzles (
+          cells,
+          difficulty_score,
+          difficulty_rating
+        ) VALUES (
+          ${puzzle.cells},
+          ${puzzle.difficulty.score ?? null},
+          ${puzzle.difficulty.rating} 
+        ) RETURNING puzzle_id;
+      `
+    })
+    
+    const res = await Promise.all(queries);
+    return res.length
+  }
+  async updatePuzzle(puzzle: UpdatePuzzle): Promise<number> {
+    throw new DatabaseError("Fn updatePuzzle() not implemented")
+  }
+  async deletePuzzle(puzzleId: string): Promise<number> {
+    throw new DatabaseError("Fn deletePuzzle() not implemented")
+  }
+}

@@ -24,7 +24,7 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
     return SudokuServiceImplementation.instance
   }
 
-  async getNewPuzzle(requestedBy: string, options: PuzzleOptions): Promise<SudokuPuzzle>{
+  async getNewPuzzle(requestedBy: string | undefined, options: PuzzleOptions): Promise<SudokuPuzzle>{
     return await this.callDataSource(async () => {
       try {
         if(options.difficulty == "hard" || options.difficulty === 'impossible') {
@@ -41,7 +41,6 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
         }
         return response.puzzle
       } catch (err) {
-        console.log(err)
         if(err instanceof DatabaseError && err.message.includes('No more puzzles')) {
           await this.workerpoolManager.execute('generatePuzzles', [100, options], async (newPuzzles: CreatePuzzle) => {
             const result = await this.createPuzzles([newPuzzles]);

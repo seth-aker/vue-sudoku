@@ -5,6 +5,7 @@ import cors from 'cors'
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { sessionHandler } from './feature/auth/handler/sessionHandler';
+import prexit from 'prexit';
 const app = express();
 
 app.use(express.json())
@@ -32,6 +33,10 @@ if(process.env.NODE_ENV === 'production') {
 app.use(sessionHandler())
 configureRouting(app)
 
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
   console.log('Sudoku app listening at:', config.port)
+})
+
+prexit(async () => {
+  await new Promise(r => server.close(r))
 })

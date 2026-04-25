@@ -3,7 +3,7 @@ import { readFileSync, globSync } from 'node:fs'
 import { config } from '../config'
 import { DatabaseError } from '../errors/databaseError';
 
-export const db = new Database(config.dbConnectionString)
+const db = new Database(config.dbConnectionString)
 const puzzleScriptsPaths = globSync('./sql/puzzle/**/*.sql');
 const userScriptsPaths = globSync('./sql/user/**/*.sql');
 const userPuzzleScriptsPaths = globSync('./sql/user_puzzles/**/*.sql');
