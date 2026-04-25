@@ -1,7 +1,7 @@
 import { BaseService } from "@/core/service/baseService";
 import { UserService } from "./userService";
 import { UserDataSource } from "../datasource/userDataSource";
-import { ISqliteCreateUser, ISqliteUser, IUserDTO } from "../datasource/models/user";
+import { ISqlUser, IUserDTO } from "../datasource/models/user";
 
 export class UserServiceImplementation extends BaseService implements UserService {
   private userDataSource: UserDataSource;
@@ -16,11 +16,6 @@ export class UserServiceImplementation extends BaseService implements UserServic
     }
     return UserServiceImplementation.instance;
   }
-  async createUser(user: ISqliteCreateUser) {
-    return await this.callDataSource(async () => {
-      
-    })
-  }
   async getUser(userId: string) {
     return await this.callDataSource(async () => {
       // userDataSource throws if user isn't defined so user will always be defined here
@@ -34,7 +29,7 @@ export class UserServiceImplementation extends BaseService implements UserServic
     })
   }
 
-  private serializeUser(sqliteUser: ISqliteUser) {
+  private serializeUser(sqliteUser: ISqlUser) {
     const userDTO: IUserDTO = {
       id: sqliteUser.user_id.toString(),
       name: sqliteUser.name,

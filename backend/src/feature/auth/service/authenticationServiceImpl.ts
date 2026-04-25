@@ -1,4 +1,4 @@
-import { ISqliteUser } from "@/feature/users/datasource/models/user";
+import { ISqlUser } from "@/feature/users/datasource/models/user";
 import {Database} from "better-sqlite3";
 import { scryptSync, timingSafeEqual, randomBytes } from "node:crypto";
 import { AuthenticationService, IVerifyResponse } from "./authenticationService";
@@ -8,6 +8,7 @@ import { registerBodySchema } from "../middleware/validation";
 import z from "zod";
 import { DatabaseError } from "@/core/errors/databaseError";
 import { CustomError } from "@/core/errors/customError";
+import { Sql } from "postgres";
 
 declare global {
     namespace Express {
@@ -22,13 +23,13 @@ declare global {
 
 export class AuthenticationServiceImpl implements AuthenticationService {
   static instance: AuthenticationServiceImpl | null = null;
-  private client: Database
+  private client: Sql
   private userDataSource: UserDataSource;
-  private constructor(db: Database, userDataSource: UserDataSource) {
+  private constructor(db: Sql, userDataSource: UserDataSource) {
     this.client = db;
     this.userDataSource = userDataSource;
   }
-  static create(db: Database, userDataSource: UserDataSource): AuthenticationServiceImpl {
+  static create(db: Sql, userDataSource: UserDataSource): AuthenticationServiceImpl {
     if(AuthenticationServiceImpl.instance === null) {
       AuthenticationServiceImpl.instance = new AuthenticationServiceImpl(db, userDataSource);
     }
@@ -36,17 +37,17 @@ export class AuthenticationServiceImpl implements AuthenticationService {
   }
   async verify(email: string, password: string): Promise<IVerifyResponse> {
     try {
-      const res = this.client.prepare<string, ISqliteUser>(`SELECT * FROM users WHERE email = ?`).get(email);
+      const [res] = await this.client<ISqlUser[]>`SELECT * FROM users WHERE email = ${email}`
       if(!res || !res.password_hash || !res.salt) {
         return {err: new AuthenticationError("Incorrect Email or Password")}
       }
-      const hashedPassword = scryptSync(password.normalize(), res.salt, 64)
-      if(!timingSafeEqual(res.password_hash, hashedPassword)) {
+      const hashedPassword = scryptSync(password.normalize(), Buffer.from(res.salt, 'hex'), 64)
+      if(!timingSafeEqual(Buffer.from(res.password_hash, 'hex'), hashedPassword)) {
         return {err: new AuthenticationError("Incorrect Email or Password")}
       }
       return {
         user: {
-          id: res.user_id.toString(),
+          id: res.user_id,
           email: res.email,
           role: res.role,
           name: res.name ?? undefined,
@@ -66,8 +67,8 @@ export class AuthenticationServiceImpl implements AuthenticationService {
       const userId = await this.userDataSource.createUser({
         name: user.name,
         email: user.email,
-        passwordHash: hashedPassword,
-        salt
+        passwordHash: hashedPassword.toString('hex'),
+        salt: salt.toString('hex')
       })
 
       if(!userId) {

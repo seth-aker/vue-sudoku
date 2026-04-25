@@ -1,14 +1,14 @@
 import session from 'express-session'
-import { SqliteSessionStore } from '../datasource/sqliteSessionStore'
-import { db } from '@/core/dataSource/sqlite3'
 import { authConfig } from '../config'
 import { config } from '@/core/config'
 import { Request } from 'express'
+import { PgSessionStore } from '../datasource/pgSessionStore'
+import sql from '@/core/dataSource/postgres'
 
 export const sessionHandler = () => {
   return session({
     secret: authConfig.secret,
-    store: SqliteSessionStore.create({client: db}),
+    store: PgSessionStore.create({client: sql}),
     resave: false,
     saveUninitialized: false,
     cookie: function (req: Request) {

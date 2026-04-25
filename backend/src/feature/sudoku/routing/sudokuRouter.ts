@@ -4,13 +4,12 @@ import { SudokuService } from "../service/sudokuService.ts";
 // import { DatabaseError } from "../../../core/errors/databaseError.ts";
 import { SudokuRequest } from './sudokuRequest.ts';
 import { type PuzzleOptions} from '../datasource/models/puzzleOptions.ts';
-import { parseAuthHeader } from '@/feature/users/utils/parseAuthHeader.ts';
 
 export default function SudokuRouter(sudokuService: SudokuService) {
   const router = express.Router();
   // /api/sudoku
   router.get('/new', async (req: SudokuRequest, res: Response, next: NextFunction) => {
-    const requestedBy = parseAuthHeader(req.headers.authorization)?.sub ?? '';
+    const requestedBy = req.session.user?.id;
     const puzzleOptions: PuzzleOptions = {
       difficulty: req.query.difficulty ?? 'easy'
     }

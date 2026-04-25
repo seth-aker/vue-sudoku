@@ -1,12 +1,12 @@
 import { Database, Statement } from "better-sqlite3";
 import { UserDataSource } from "./userDataSource";
-import { ISqliteCreateUser, ISqliteUser } from "./models/user";
+import { ICreateUser, ISqlUser } from "./models/user";
 import { DatabaseError } from "@/core/errors/databaseError";
 import { userScripts } from "@/core/dataSource/sqlite3";
 
 export interface IUserScripts {
-  createUser: Statement<ISqliteCreateUser, {user_id: number}>
-  getUser: Statement<{userId: string}, ISqliteUser>
+  createUser: Statement<ICreateUser, {user_id: number}>
+  getUser: Statement<{userId: string}, ISqlUser>
 }
 
 export class SqliteUserDataSource implements UserDataSource {
@@ -23,14 +23,14 @@ export class SqliteUserDataSource implements UserDataSource {
     }
     return SqliteUserDataSource.instance
   }
-  async createUser(user: ISqliteCreateUser): Promise<string | undefined> {
+  async createUser(user: ICreateUser): Promise<string | undefined> {
     const res = this.scripts.createUser.get(user);
     if(!res) {
       throw new DatabaseError("An error occurred creating user with email: " + user.email)
     }
     return res.user_id.toString()
   }
-  async getUser(userId: string) : Promise<ISqliteUser> {
+  async getUser(userId: string) : Promise<ISqlUser> {
     const result = this.scripts.getUser.get({userId})
     if(!result) {
       throw new DatabaseError(`User with id: ${userId} not found`)
