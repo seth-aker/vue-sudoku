@@ -15,21 +15,36 @@ import InputGroupAddon from '../ui/input-group/InputGroupAddon.vue'
 import InputGroupButton from '../ui/input-group/InputGroupButton.vue'
 import { Icon } from '@iconify/vue'
 import Button from '../ui/button/Button.vue'
+import { toast } from 'vue-sonner';
 const userStore = useUserStore()
 
 const popoverOpen = defineModel<boolean>('popover-open', { required: true })
 
-const email = ref<string>('')
+const username = ref<string>('')
 const password = ref<string>('');
 const showPasswordRef = useTemplateRef('show-password')
 const { pressed: showPassword } = useMousePressed({ target: showPasswordRef });
 
 const handleLogin = async (event: SubmitEvent) => {
   event.preventDefault()
-  await userStore.login(email.value, password.value)
-  if (userStore.isAuthenticated) {
-    popoverOpen.value = false
-  }
+  toast.promise(() =>
+    Promise.all([
+      userStore.login(username.value, password.value),
+      new Promise((resolve) => setTimeout(resolve, 500))
+    ])
+    , {
+      success: () => {
+        if (userStore.isAuthenticated) {
+          popoverOpen.value = false
+          return `Welcome back, ${!userStore.displayName ? userStore.username : userStore.displayName}!`
+        } else {
+          return userStore.error ?? `Invalid username or password`
+        }
+      },
+      loading: "Loading...",
+      error: userStore.error ?? 'An unexpected error occured.'
+    }
+  )
 }
 </script>
 
@@ -41,8 +56,8 @@ const handleLogin = async (event: SubmitEvent) => {
         <Separator />
         <FieldGroup>
           <Field>
-            <FieldLabel for="email">Email</FieldLabel>
-            <Input id="email" v-model:model-value="email" type="text" placeholder="email@example.com"
+            <FieldLabel for="username">Username</FieldLabel>
+            <Input id="username" v-model:model-value="username" type="text" placeholder="email@example.com"
               autocomplete="username" required />
           </Field>
           <Field>

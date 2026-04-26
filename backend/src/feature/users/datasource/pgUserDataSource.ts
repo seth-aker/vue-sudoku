@@ -19,14 +19,14 @@ export class PgUserDataSource implements UserDataSource {
   async createUser(user: ICreateUser): Promise<string | undefined> {
     const [res] = await this.client<{user_id: string}[]>`
       INSERT INTO users (
-        name,
-        email,
+        display_name,
+        username,
         password_hash,
         salt
       )
       VALUES (
-        ${user.name ?? null},
-        ${user.email},
+        ${user.displayName ?? null},
+        ${user.username},
         ${user.passwordHash},
         ${user.salt}
       ) 
@@ -37,9 +37,8 @@ export class PgUserDataSource implements UserDataSource {
   async getUser(userId: string): Promise<ISqlUser> {
     const [user] = await this.client<ISqlUser[]>`
       SELECT user_id,
-        name,
-        email,
-        email_verified,
+        display_name,
+        username,
         role,
         current_puzzle,
         image_url,

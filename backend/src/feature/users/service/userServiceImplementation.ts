@@ -32,8 +32,8 @@ export class UserServiceImplementation extends BaseService implements UserServic
   private serializeUser(sqliteUser: ISqlUser) {
     const userDTO: IUserDTO = {
       id: sqliteUser.user_id.toString(),
-      name: sqliteUser.name,
-      email: sqliteUser.email, 
+      displayName: sqliteUser.display_name,
+      username: sqliteUser.username, 
       role: sqliteUser.role, 
       imageUrl: sqliteUser.image_url,
       currentPuzzleId: sqliteUser.current_puzzle

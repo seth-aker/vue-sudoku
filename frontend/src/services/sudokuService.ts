@@ -10,20 +10,18 @@ export interface PuzzleDTO {
   candidates?: string
   difficulty: Difficulty
 }
-async function fetchNewPuzzle(options?: SudokuOptions, token?: string) {
+export interface UpdatePuzzleDto extends Omit<PuzzleDTO, 'difficulty'> {
+  time: number
+  isCompleted: boolean
+} 
+async function fetchNewPuzzle(options?: SudokuOptions) {
   const fetchOptions: RequestInit = {
     method: "GET",
     headers: {"Content-Type": "application/json"},
     credentials: 'include'
   }
-  if(token) {
-    fetchOptions.headers = {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    }
-  }
   try {
-    const response = await fetch(`${API_BASE_URL}/sudoku/new?difficulty=${options?.difficulty}`, fetchOptions)
+    const response = await fetch(`${API_BASE_URL}/sudoku/new?difficulty=${options?.difficulty.rating || 'beginner'}`, fetchOptions)
     if(!response.ok) {
       const errData = await response.json();
       console.log(errData)
@@ -39,12 +37,30 @@ async function fetchNewPuzzle(options?: SudokuOptions, token?: string) {
 async function fetchPuzzle(puzzleId: string) {
   return await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`)
 }
-async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle) {
-  return await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(puzzle)
-  })
+async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle, elapsedTime: number, isCompleted: boolean) {
+  const puzzleDto = serializePuzzle(puzzleId, puzzle);
+  const updateDto: UpdatePuzzleDto = {
+    _id: puzzleDto._id,
+    cells: puzzleDto.cells,
+    candidates: puzzleDto.candidates,
+    time: elapsedTime,
+    isCompleted
+  }
+  try {
+    const res = await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`, {
+      method: "PUT",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(updateDto),
+      credentials: 'include'
+    })
+    if(!res.ok) {
+      const error = await res.json()
+      console.log(error)
+      throw new Error(error.message || `API error: ${res.status}`)
+    }
+  } catch (err) {
+    throw err
+  }
 }
 function saveGameStateLocally(state: SudokuStoreState ) {
   const stateString = JSON.stringify(state);

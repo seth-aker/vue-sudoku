@@ -15,27 +15,27 @@ import InputGroupAddon from '../ui/input-group/InputGroupAddon.vue'
 import InputGroupButton from '../ui/input-group/InputGroupButton.vue'
 import { Icon } from '@iconify/vue'
 import Button from '../ui/button/Button.vue'
-import * as z from 'zod/mini'
-import { passwordSchema } from '@/validation/registerValidation'
+import { passwordSchema, usernameSchema } from '@/validation/registerValidation'
 import FieldError from '../ui/field/FieldError.vue'
+import { toast } from 'vue-sonner'
 const popoverOpen = defineModel<boolean>('popover-open', { required: true })
 const userStore = useUserStore()
 
 const name = ref<string>('')
-const email = ref<string>('');
-const emailErrorMessage = ref<string | undefined>(undefined);
+const username = ref<string>('');
+const usernameErrorMessage = ref<string | undefined>(undefined);
 const password = ref<string>('');
 const passwordErrorMessage = ref<string | undefined>(undefined);
 const confirmPassword = ref<string>('');
 const confirmPasswordErrorMessage = ref<string | undefined>(undefined)
 
-watchDebounced(email,
+watchDebounced(username,
   (value) => {
-    const res = z.email().safeParse(value);
+    const res = usernameSchema.safeParse(value);
     if (!res.success) {
-      emailErrorMessage.value = "Invalid email address"
+      usernameErrorMessage.value = "Username too short! Must be 4 or more characters"
     } else {
-      emailErrorMessage.value = undefined
+      usernameErrorMessage.value = undefined
     }
   },
   { debounce: 1000 }
@@ -65,15 +65,32 @@ watchDebounced(confirmPassword,
 
 const handleRegister = async (event: SubmitEvent) => {
   event.preventDefault()
-  const emailRes = z.email().safeParse(email.value)
+  const userNameRes = usernameSchema.safeParse(username.value)
   const passwordRes = passwordSchema.safeParse(password.value)
   const confirmMatches = password.value === confirmPassword.value
-  if (!emailRes.success || !passwordRes.success || !confirmMatches) {
+  if (!userNameRes.success || !passwordRes.success || !confirmMatches) {
     return;
   }
-  await userStore.register(email.value, password.value, name.value)
-  popoverOpen.value = false
+  toast.promise(() =>
+    Promise.all([
+      userStore.register(username.value, password.value, name.value),
+      new Promise((resolve) => setTimeout(resolve, 500))
+    ])
+  ),
+  {
+    loading: 'Loading...',
+    success: () => {
+      if (userStore.error) {
+        return 'Oops! An error occured during registration. Please try again.'
+      }
+      popoverOpen.value = false
+      return `Welcome ${!name.value ? username.value : name.value}! Time to play!`
+    },
+    error: 'Oops! An error occured during registration. Please try again.'
+  }
 }
+
+// for hiding/showing password input
 const showPasswordRef = useTemplateRef('show-password')
 const { pressed: showPassword } = useMousePressed({ target: showPasswordRef });
 
@@ -90,14 +107,14 @@ const { pressed: showConfirmPassword } = useMousePressed({ target: showConfirmPa
         <Separator />
         <FieldGroup>
           <Field>
-            <FieldLabel for="name">Name</FieldLabel>
+            <FieldLabel for="name">Display Name</FieldLabel>
             <Input id="name" :model-value="name" autocomplete="name" type="text" placeholder="Susan Doku" />
           </Field>
           <Field>
-            <FieldLabel for="email">Email</FieldLabel>
-            <Input :aria-invalid="emailErrorMessage !== undefined" id="email" v-model:model-value="email" type="text"
-              placeholder="email@example.com" autocomplete="username" required />
-            <FieldError :errors="[emailErrorMessage]"></FieldError>
+            <FieldLabel for="email">Username</FieldLabel>
+            <Input :aria-invalid="usernameErrorMessage !== undefined" id="email" v-model:model-value="username"
+              type="text" placeholder="email@example.com" autocomplete="username" required />
+            <FieldError :errors="[usernameErrorMessage]"></FieldError>
           </Field>
           <Field>
             <FieldLabel for="password">Password</FieldLabel>
@@ -130,7 +147,7 @@ const { pressed: showConfirmPassword } = useMousePressed({ target: showConfirmPa
       </FieldSet>
       <Field orientation="horizontal" class="justify-end">
         <Button type="submit" v-if="!userStore.userLoading"
-          :disabled="emailErrorMessage || passwordErrorMessage || confirmPasswordErrorMessage"
+          :disabled="usernameErrorMessage || passwordErrorMessage || confirmPasswordErrorMessage"
           class="w-30 bg-orange-400 hover:bg-orange-400/60">Create
           Account</Button>
         <Button class="w-30 bg-orange-400" v-else>

@@ -56,12 +56,6 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
       }
     });
   };
-  async getPuzzleById(requestedBy: string, puzzleId: string): Promise<SudokuPuzzle> {
-    return await this.callDataSource(async () => {
-      return await this.sudokuDataSource.getPuzzleById(requestedBy, puzzleId);
-    })
-  }
-
   async getPuzzles(options: PuzzleOptions, page?: number, limit?: number): Promise<PuzzleArray>{
     return await this.callDataSource(async () => {
       return await this.sudokuDataSource.getPuzzles(options, page, limit);
@@ -72,9 +66,14 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
       return await this.sudokuDataSource.createPuzzles(puzzles);
     })
   };
-  async updatePuzzle(puzzle: UpdatePuzzle): Promise<number> {
+  async updateUserPuzzle(userId: string, puzzle: UpdatePuzzle): Promise<number> {
     return await this.callDataSource(async () => {  
-      return await this.sudokuDataSource.updatePuzzle(puzzle)
+      // don't trust that the puzzle is actually complete, verfiy
+      if(puzzle.isCompleted) {
+        const existingPuzzle = await this.sudokuDataSource.getPuzzleById(puzzle._id)
+        puzzle.isCompleted = existingPuzzle.solved_cells === puzzle.cells
+      }
+      return await this.sudokuDataSource.updateUserPuzzle(userId, puzzle)
     });
   };
   async deletePuzzle(puzzleId: string): Promise<number>{

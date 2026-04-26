@@ -1,9 +1,8 @@
 
 export interface ISqlUser {
   user_id: string,
-  name?: string,
-  email: string,
-  email_verified: boolean,
+  display_name?: string,
+  username: string,
   role: string,
   password_hash?: string,
   salt?: string,
@@ -15,17 +14,17 @@ export interface ISqlUser {
 }
 
 export interface ICreateUser {
-  name?: string,
-  email: string,
+  displayName?: string,
+  username: string,
   passwordHash: string,
   salt: string
 }
 
 export interface IUserDTO {
   id: string,
-  email: string,
+  username: string,
   role: string,
-  name?: string,
+  displayName?: string,
   imageUrl?: string,
   currentPuzzleId?: string
 }

@@ -6,14 +6,14 @@ const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-])
 const passwordSchema = z.string().refine((pw) => passwordRegex.test(pw), "Password must contain a minimum of 8 characters, one uppercase, one lowercase, one number, and one special character")
 
 export const loginBodySchema = z.object({
-  email: z.string().email(),
+  username: z.string().refine((val) => val.length >= 4),
   password: passwordSchema
 })
 
 export const registerBodySchema = z.object({
-  email: z.string().email(),
+  username: z.string().refine((val) => val.length >= 4),
   password: passwordSchema,
-  name: z.string().optional()
+  displayName: z.string().optional()
 })
 
 export const requireLoggedin = (req: Request, res: Response, next: NextFunction) => {

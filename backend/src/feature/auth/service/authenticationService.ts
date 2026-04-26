@@ -8,6 +8,6 @@ export interface IVerifyResponse {
 }
 
 export interface AuthenticationService {
-  verify: (email: string, password: string) => Promise<IVerifyResponse>
+  verify: (username: string, password: string) => Promise<IVerifyResponse>
   registerUser: (user: z.infer<typeof registerBodySchema>) => Promise<string | undefined>
 }

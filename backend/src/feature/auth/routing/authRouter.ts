@@ -8,7 +8,7 @@ declare module 'express-session' {
     interface SessionData {
       user?: {
         id: string;
-        email: string;
+        username: string;
         role: string;
       }
     }
@@ -18,7 +18,7 @@ export function AuthRouter(authService: AuthenticationService) {
   const router = Router()
 
   router.post('/login', loginBodyValidator, async (req, res, next) => {
-    const verifyRes = await authService.verify(req.body.email, req.body.password)
+    const verifyRes = await authService.verify(req.body.username, req.body.password)
     const user = verifyRes.user;
     if(!user || verifyRes.err) {
       return next(verifyRes?.err ?? new AuthenticationError("Incorrect email or password"))
@@ -29,7 +29,7 @@ export function AuthRouter(authService: AuthenticationService) {
       }
       req.session.user = {
         id: user.id,
-        email: user.email,
+        username: user.username,
         role: user.role
       }
 
@@ -68,7 +68,7 @@ export function AuthRouter(authService: AuthenticationService) {
         next(err);
       }
       req.session.user = {
-        email: req.body.email,
+        username: req.body.username,
         id: userId,
         role: 'user'
       }
@@ -79,8 +79,8 @@ export function AuthRouter(authService: AuthenticationService) {
         }
         res.status(201).send({
           id: userId,
-          name: req.body.name,
-          email: req.body.email,
+          displayName: req.body.displayName,
+          username: req.body.username,
           role: 'user'
         })
       })

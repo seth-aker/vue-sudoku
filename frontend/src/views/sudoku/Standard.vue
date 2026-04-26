@@ -5,7 +5,7 @@ import SudokuPuzzle from '@/components/SudokuPuzzle.vue';
 import { useSudokuStore } from '@/stores/sudokuStore'
 import { useGameStore } from '@/stores/gameStore'
 import { Dialog } from '@/components/ui/dialog';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue';
 import DialogHeader from '@/components/ui/dialog/DialogHeader.vue';
 import DialogTitle from '@/components/ui/dialog/DialogTitle.vue';
@@ -20,15 +20,14 @@ import { useUserStore } from '@/stores/userStore';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import ErrorDialog from '@/components/ErrorDialog.vue';
 import PauseMenu from '@/components/PauseMenu.vue';
+import { toast } from 'vue-sonner';
 const sudokuStore = useSudokuStore();
 const gameStore = useGameStore()
 const userStore = useUserStore();
 const router = useRouter();
 const error = ref<string | null>(null)
-const difficulty = ref(router.currentRoute.value.name?.toString() as Difficulty)
+const difficulty = ref(router.currentRoute.value.name?.toString() as Difficulty['rating'])
 const dialogOpen = ref(false);
-
-// const { isAuthenticated, getAccessTokenSilently, isLoading } = useAuth0()
 
 const loading = computed(() => {
   return userStore.userLoading || sudokuStore.loading
@@ -40,35 +39,14 @@ watch(() => loading, () => {
     gameStore.startTimer();
   }
 })
-const requestNewPuzzle = async (newDifficulty: Difficulty) => {
-  let token = undefined;
-  // if (isAuthenticated.value) {
-  //   token = await getAccessTokenSilently();
-  // }
-  await sudokuStore.getNewPuzzle({ difficulty: newDifficulty }, token);
+const requestNewPuzzle = async (newDifficulty: Difficulty['rating']) => {
+  await sudokuStore.getNewPuzzle({ difficulty: { rating: newDifficulty } });
   gameStore.elapsedSeconds = 0;
 }
 
 onMounted(async () => {
   sudokuStore.$reset()
-  // const puzzleValues = [
-  //       [null,null,null,null,null,null,2,7,null],
-  //       [6,null,null,null,5,null,null,3,null],
-  //       [null,2,7,null,null,3,9,null,null],
-  //       [null,null,2,3,null,8,null,1,null],
-  //       [null, null,5,4,2,null,null,null,null],
-  //       [null,null,null,null,null,null,8,null,null],
-  //       [null,9,null,null,3,null,null,5,null],
-  //       [2,null,null,7,null,null,null,9,3],
-  //       [7,null,null,1,null,null,null,8,null]
-  //     ]
-  // for(let i = 0; i < sudokuStore.puzzle.rows.length; i++) {
-  //       for(let j = 0; j < sudokuStore.puzzle.rows.length; j++) {
-  //         sudokuStore.puzzle.rows[i][j].value = puzzleValues[i][j]
-  //       }
-  //     }
-  // sudokuStore.puzzle
-  if (!sudokuStore.retrieveLocalState() || sudokuStore.puzzle.options.difficulty !== difficulty.value) {
+  if (!sudokuStore.retrieveLocalState() || sudokuStore.puzzle.options.difficulty.rating !== difficulty.value) {
     try {
       await requestNewPuzzle(difficulty.value)
       gameStore.startTimer();
@@ -83,6 +61,19 @@ onMounted(async () => {
     // If sudokuStore.retrieveLocalState returns true, start game timer where it left off.
     gameStore.loadElapsedSecondsLocal()
     gameStore.startTimer()
+  }
+})
+
+onBeforeUnmount(() => {
+  if (userStore.isAuthenticated) {
+    toast.promise(
+      sudokuStore.saveGameState()
+      , {
+        loading: 'Saving puzzle state...',
+        success: 'Game saved!',
+        error: 'An error occured saving the game state.'
+      }
+    )
   }
 })
 onUnmounted(() => {

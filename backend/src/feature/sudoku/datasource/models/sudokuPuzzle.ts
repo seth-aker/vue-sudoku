@@ -8,11 +8,17 @@ export interface SudokuPuzzle {
   difficulty: Difficulty,
 }
 
-export interface CreatePuzzle extends Omit<SudokuPuzzle, '_id' | 'cells'> {
-  cells: string,
+export interface CreatePuzzle extends Omit<SudokuPuzzle, '_id'> {
+  solvedCells: string;
 }
 
-export interface UpdatePuzzle extends Partial<SudokuPuzzle> {}
+export interface UpdatePuzzle {
+  _id: string,
+  cells: string,
+  candidates: string,
+  time: number
+  isCompleted: boolean
+}
 
 export interface SudokuPuzzleResponse {
   metadata: {
@@ -25,7 +31,8 @@ export interface SqlPuzzle {
   puzzle_id: string,
   cells: string,
   difficulty_rating: DifficultyRating,
-  difficulty_score: number
+  difficulty_score: number,
+  solved_cells: string,
 }
 export interface SqlUserPuzzle {
   puzzle_id: string,
