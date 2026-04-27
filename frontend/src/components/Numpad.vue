@@ -25,6 +25,7 @@ const onNumberPress = (value: number) => {
     // edit cell value
     if (cell.value === undefined || cell.value !== value) {
       cell.value = value;
+      cell.candidates = []
     } else {
       cell.value = undefined;
     }

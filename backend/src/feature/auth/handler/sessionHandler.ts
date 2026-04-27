@@ -16,6 +16,7 @@ export const sessionHandler = () => {
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
         // domain: config.audience,
         secure: req.secure || process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? true : false
       }
       
     },

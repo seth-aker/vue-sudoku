@@ -1,9 +1,9 @@
 import {config } from '@/config/index'
-import type { IUser } from '@/stores/userStore'
+import type { IUserDto } from '@/stores/userStore'
 import type { ServiceResult } from './baseService'
 const API_BASE = config.API_BASE_URL
 
-export async function login(username: string, password: string): Promise<ServiceResult<IUser>> {
+export async function login(username: string, password: string): Promise<ServiceResult<IUserDto>> {
   const body = {username, password}
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
@@ -13,7 +13,7 @@ export async function login(username: string, password: string): Promise<Service
     body: JSON.stringify(body),
     credentials: 'include'
   })
-  const result: ServiceResult<IUser> = {
+  const result: ServiceResult<IUserDto> = {
     message: res.statusText,
     success: res.ok,
     body: res.ok ? await res.json() : undefined
@@ -31,7 +31,7 @@ export async function logout(): Promise<ServiceResult<undefined>> {
   }
 }
 
-export async function register(username: string, password: string, displayName?: string): Promise<ServiceResult<IUser>> {
+export async function register(username: string, password: string, displayName?: string): Promise<ServiceResult<IUserDto>> {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: "POST",
     headers: {
@@ -52,7 +52,7 @@ export async function register(username: string, password: string, displayName?:
   }
 }
 
-export async function checkSession(): Promise<ServiceResult<IUser>> {
+export async function checkSession(): Promise<ServiceResult<IUserDto>> {
   const res = await fetch(`${API_BASE}/users/me`, {
     method: 'GET',
     headers: {

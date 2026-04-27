@@ -24,7 +24,7 @@ export class PgSudokuDataSource implements SudokuDataSource {
         interface QueryRes extends SqlPuzzle {
           total_count: number
         }
-        const [puzzle] = await sql<QueryRes[]>`
+        const [puzzle] = await sql<(QueryRes | undefined)[]>`
           SELECT p.puzzle_id, p.cells, p.difficulty_score, p.difficulty_rating, p.created_at, COUNT(*) OVER () as total_count
           FROM puzzles p
           WHERE
@@ -59,6 +59,11 @@ export class PgSudokuDataSource implements SudokuDataSource {
                 ${puzzle.cells}
               )
             `
+            await sql`
+              UPDATE users 
+              SET current_puzzle_id = ${puzzle.puzzle_id}
+              WHERE user_id = ${userId}
+            `
           }
           return puzzle
         }
@@ -91,15 +96,13 @@ export class PgSudokuDataSource implements SudokuDataSource {
 
   async getPuzzleById (puzzleId: string): Promise<SqlPuzzle> {
     try {
-      const res = await this.client<SqlPuzzle[]>`
+      const [res] = await this.client<(SqlPuzzle | undefined)[]>`
       SELECT * FROM puzzles WHERE puzzle_id = ${puzzleId};
       `
-      if(res.length === 0) {
+      if(!res) {
         throw new DatabaseError("Not found")
       }
-      const puzzleRow = res[0];
-      
-      
+      const puzzleRow = res;
       return puzzleRow;
     } catch (err) {
       if(err instanceof CustomError) {
@@ -115,7 +118,7 @@ export class PgSudokuDataSource implements SudokuDataSource {
   }
   async createPuzzles(puzzles: CreatePuzzle[]): Promise<number> {
     const queries = puzzles.map((puzzle) => {
-      return this.client<{puzzle_id: string}[]>`
+      return this.client<({puzzle_id: string} | undefined)[]>`
         INSERT INTO puzzles (
           cells,
           solved_cells,
@@ -140,8 +143,9 @@ export class PgSudokuDataSource implements SudokuDataSource {
         SET cells = ${puzzle.cells},
           candidates = ${puzzle.candidates},
           is_completed = ${puzzle.isCompleted},
-          time = ${puzzle.time}
-          ${puzzle.isCompleted ? this.client`, completed_at = CURRENT_TIMESTAMP`: this.client``}
+          time = ${puzzle.time},
+          actions = ${puzzle.actions}
+          ${puzzle.isCompleted ? this.client`, completed_at = CURRENT_TIMESTAMP `: this.client``}
         WHERE user_id = ${userId} AND puzzle_id = ${puzzle._id}
       `
       return res.count
@@ -151,18 +155,18 @@ export class PgSudokuDataSource implements SudokuDataSource {
   }
   async getUserPuzzle(userId: string, puzzleId: string): Promise<SqlUserPuzzle> {
     try {
-      const [res] = await this.client<SqlUserPuzzle[]>`
+      const [res] = await this.client<(SqlUserPuzzle | undefined)[]>`
         SELECT 
           p.puzzle_id,
           up.is_completed,
           up.cells as current_cells,
-          up.candidate as current_candidates,
+          up.candidates as current_candidates,
           up.time,
           p.cells as original_cells,
           p.difficulty_rating,
           p.difficulty_score
-        FROM user_puzzles as up
-          JOIN puzzles as p ON p.puzzle_id = up.puzzle_id
+        FROM user_puzzles AS up
+          JOIN puzzles AS p ON p.puzzle_id = up.puzzle_id
         WHERE 
           up.user_id = ${userId}
           AND up.puzzle_id = ${puzzleId}

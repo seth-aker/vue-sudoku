@@ -5,7 +5,7 @@ import SudokuPuzzle from '@/components/SudokuPuzzle.vue';
 import { useSudokuStore } from '@/stores/sudokuStore'
 import { useGameStore } from '@/stores/gameStore'
 import { Dialog } from '@/components/ui/dialog';
-import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue';
 import DialogHeader from '@/components/ui/dialog/DialogHeader.vue';
 import DialogTitle from '@/components/ui/dialog/DialogTitle.vue';
@@ -14,19 +14,20 @@ import DialogFooter from '@/components/ui/dialog/DialogFooter.vue';
 import Button from '@/components/ui/button/Button.vue';
 import DialogClose from '@/components/ui/dialog/DialogClose.vue';
 import { Icon } from '@iconify/vue';
-import { useRouter } from 'vue-router';
 import type { Difficulty } from '@/stores/models/difficulty';
 import { useUserStore } from '@/stores/userStore';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import ErrorDialog from '@/components/ErrorDialog.vue';
 import PauseMenu from '@/components/PauseMenu.vue';
 import { toast } from 'vue-sonner';
+import { useDocumentVisibility, useDebounceFn, watchDebounced } from '@vueuse/core';
+
+const { difficulty } = defineProps<{ difficulty: Difficulty['rating'] }>()
+
 const sudokuStore = useSudokuStore();
 const gameStore = useGameStore()
 const userStore = useUserStore();
-const router = useRouter();
 const error = ref<string | null>(null)
-const difficulty = ref(router.currentRoute.value.name?.toString() as Difficulty['rating'])
 const dialogOpen = ref(false);
 
 const loading = computed(() => {
@@ -46,9 +47,9 @@ const requestNewPuzzle = async (newDifficulty: Difficulty['rating']) => {
 
 onMounted(async () => {
   sudokuStore.$reset()
-  if (!sudokuStore.retrieveLocalState() || sudokuStore.puzzle.options.difficulty.rating !== difficulty.value) {
+  if (!sudokuStore.retrieveLocalState() || sudokuStore.puzzle.options.difficulty.rating !== difficulty) {
     try {
-      await requestNewPuzzle(difficulty.value)
+      await requestNewPuzzle(difficulty)
       gameStore.startTimer();
     } catch (err) {
       if (typeof err === 'string') {
@@ -63,19 +64,18 @@ onMounted(async () => {
     gameStore.startTimer()
   }
 })
-
-onBeforeUnmount(() => {
-  if (userStore.isAuthenticated) {
-    toast.promise(
-      sudokuStore.saveGameState()
-      , {
-        loading: 'Saving puzzle state...',
-        success: 'Game saved!',
-        error: 'An error occured saving the game state.'
-      }
-    )
+const docVis = useDocumentVisibility()
+watch(() => docVis.value, () => {
+  console.log('Doc Vis fired!')
+  if (docVis.value === 'hidden' && userStore.isAuthenticated) {
+    sudokuStore.saveGameState({ keepalive: true })
   }
 })
+
+watchDebounced(() => sudokuStore.actions.length, () => {
+  sudokuStore.saveGameState()
+}, { debounce: 5000 })
+
 onUnmounted(() => {
   gameStore.stopTimer();
   gameStore.gameState = 'not-started'
@@ -91,6 +91,7 @@ const handlePuzzleSolved = async () => {
   gameStore.stopTimer();
   dialogOpen.value = true;
   gameStore.gameState = 'solved';
+  sudokuStore.saveGameState()
   // const token = await getAccessTokenSilently()
   // userStore.updateUser(token);
 }

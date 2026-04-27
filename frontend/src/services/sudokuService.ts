@@ -2,18 +2,34 @@ import { SudokuPuzzle, type SudokuOptions } from "@/stores/models/puzzle";
 import { config } from '@/config/index'
 import type { SudokuStoreState } from "@/stores/models/sudokuStoreState";
 import type { Difficulty } from "@/stores/models/difficulty";
-import { buildBlankPuzzleRows } from "@/utils/buildPuzzle";
+import type { SaveGameOptions } from "@/stores/models/gameState";
+import { deserializeCells, serializeAction, serializePuzzle } from "@/utils/serialization";
+import type { Action } from "@/stores/models/action";
 const {API_BASE_URL} = config;
-export interface PuzzleDTO {
+export interface NewPuzzleDto {
   _id: string,
   cells: string;
   candidates?: string
   difficulty: Difficulty
 }
-export interface UpdatePuzzleDto extends Omit<PuzzleDTO, 'difficulty'> {
+export interface UpdateUserPuzzleDto {
+  _id: string,
+  cells: string,
+  candidates: string,
   time: number
-  isCompleted: boolean
+  isCompleted: boolean,
+  actions: number[]
 } 
+export interface UserPuzzleDto {
+  _id: string,
+  isCompleted: boolean,
+  currentCells: string,
+  currentCandidates: string, 
+  time: string,
+  originalCells: string,
+  difficulty: Difficulty,
+  actions?: number[]
+}
 async function fetchNewPuzzle(options?: SudokuOptions) {
   const fetchOptions: RequestInit = {
     method: "GET",
@@ -27,7 +43,7 @@ async function fetchNewPuzzle(options?: SudokuOptions) {
       console.log(errData)
       throw new Error(errData.message || `API Error: ${response.status}`)
     }
-    const puzzleDTO = await response.json() as PuzzleDTO
+    const puzzleDTO = await response.json() as NewPuzzleDto
     const puzzle = deserializePuzzle(puzzleDTO)
     return {puzzle, _id: puzzleDTO._id}
   } catch (err) {
@@ -37,21 +53,23 @@ async function fetchNewPuzzle(options?: SudokuOptions) {
 async function fetchPuzzle(puzzleId: string) {
   return await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`)
 }
-async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle, elapsedTime: number, isCompleted: boolean) {
+async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle, actions: Action[], elapsedTime: number, isCompleted: boolean, options: SaveGameOptions) {
   const puzzleDto = serializePuzzle(puzzleId, puzzle);
-  const updateDto: UpdatePuzzleDto = {
+  const updateDto: UpdateUserPuzzleDto = {
     _id: puzzleDto._id,
     cells: puzzleDto.cells,
-    candidates: puzzleDto.candidates,
+    candidates: puzzleDto.candidates!,
     time: elapsedTime,
-    isCompleted
+    isCompleted,
+    actions: actions.map(action => serializeAction(action))
   }
   try {
     const res = await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`, {
       method: "PUT",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(updateDto),
-      credentials: 'include'
+      credentials: 'include',
+      keepalive: options.keepalive
     })
     if(!res.ok) {
       const error = await res.json()
@@ -77,43 +95,16 @@ function deleteGameStateLocally() {
   localStorage.removeItem('localGameState')
 }
 
-function deserializePuzzle(puzzle: PuzzleDTO): SudokuPuzzle {
-  const cells: number[] = puzzle.cells.split("").map(val => {
-    const num = Number.parseInt(val)
-    if(Number.isNaN(num)) {
-      return -1;
-    }
-    return num;
-  })
-  const rows = buildBlankPuzzleRows();
-  rows.forEach((row, rowIdx) => {
-    row.forEach((cell, colIdx) => {
-      const index = rowIdx * 9 + colIdx
-      const val: number = cells[index];
-      cell.value = val !== 0 ? val : undefined;
-      cell.type = val !== 0 ? 'prefilled' : 'blank'
-    })
-  })
+function deserializePuzzle(puzzle: NewPuzzleDto): SudokuPuzzle {
+  const rows = deserializeCells(puzzle.cells)
   return new SudokuPuzzle(rows, { difficulty: puzzle.difficulty})
 }
-function serializePuzzle(id: string, puzzle: SudokuPuzzle) {
-  let cellStr = '';
-  let candidateStr = ''
-  puzzle.rows.forEach((row) => {
-    row.forEach((cell) => {
-      cellStr += cell.value ?? '0'
-      candidateStr += cell.candidates.join('') + ':'
-    })
-  })
-  // remove the last :
-  candidateStr = candidateStr.substring(0, candidateStr.length - 1);
-  const dto: PuzzleDTO = {
-    _id: id,
-    cells: cellStr,
-    candidates: candidateStr,
-    difficulty: puzzle.options.difficulty
-  }
-  return dto
+export function deserializeUserPuzzle(userPuzzle: UserPuzzleDto) {
+  const originalRows = deserializeCells(userPuzzle.originalCells);
+  const currentRows = deserializeCells(userPuzzle.originalCells, userPuzzle.currentCells, userPuzzle.currentCandidates)
+  return new SudokuPuzzle(currentRows, {difficulty: userPuzzle.difficulty}, originalRows)
 }
+
+
 
 export default {fetchNewPuzzle, fetchPuzzle, updatePuzzle, saveGameStateLocally, retrieveLocalState, deleteGameStateLocally}

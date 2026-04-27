@@ -1,17 +1,21 @@
+import { deserializeUserPuzzle, type UserPuzzleDto } from '@/services/sudokuService';
 import * as userService from '@/services/userService'
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useRouter } from 'vue-router';
+import { useSudokuStore } from './sudokuStore';
+import { deserializeAction } from '@/utils/serialization';
 
-export interface IUser {
+export interface IUserDto {
   id: string,
   displayName?: string,
   username: string,
   imageUrl?: string,
-  currentPuzzle?: string,
+  currentPuzzle?: UserPuzzleDto
   role: string
 }
 export const useUserStore = defineStore('userStore', () => {
+  const sudokuStore = useSudokuStore()
   // state
   const id = ref<string | undefined>(undefined);
   const storeDisplayName = ref<string | undefined>();
@@ -19,6 +23,8 @@ export const useUserStore = defineStore('userStore', () => {
   const image = ref<string | undefined>();
   const role = ref<string | undefined>();
   const userLoading = ref<boolean>(false);
+  const currentPuzzleId = ref<string |undefined>(undefined)
+
   const error = ref<string | undefined>(undefined);
 
   const isAuthenticated = computed(() => !!id.value)
@@ -39,8 +45,13 @@ export const useUserStore = defineStore('userStore', () => {
       role.value = res.body.role
       image.value = res.body.imageUrl
       userLoading.value = false
-      // const sudokuStore = useSudokuStore()
-      // sudokuStore.puzzleId = res.body.currentPuzzle
+      currentPuzzleId.value = res.body.currentPuzzle?._id
+      if(res.body.currentPuzzle) {
+        sudokuStore.puzzle = deserializeUserPuzzle(res.body.currentPuzzle)
+        sudokuStore.puzzleId = res.body.currentPuzzle._id
+        sudokuStore.actions = res.body.currentPuzzle.actions ? res.body.currentPuzzle.actions.map(each => deserializeAction(each)) : []
+        sudokuStore.saveGameStateLocal()
+      }
     }
   }
   const logout = async () => {
@@ -77,6 +88,13 @@ export const useUserStore = defineStore('userStore', () => {
       storeUsername.value = user.username,
       role.value = user.role,
       image.value = user.imageUrl
+      currentPuzzleId.value = user.currentPuzzle?._id
+      if(user.currentPuzzle) {
+        sudokuStore.puzzleId = user.currentPuzzle._id
+        sudokuStore.puzzle = deserializeUserPuzzle(user.currentPuzzle)
+        sudokuStore.actions = user.currentPuzzle.actions ? user.currentPuzzle.actions.map(each => deserializeAction(each)) : []
+        sudokuStore.saveGameStateLocal()
+      }
     }
     userLoading.value = false;
   }  
@@ -90,30 +108,7 @@ export const useUserStore = defineStore('userStore', () => {
     userLoading.value = false,
     error.value = undefined
   }
-  // const updateUser = async (token: string | undefined) => {
-  //   if(!token) {
-  //     throw new Error("User not logged in")
-  //   }
-  //   const sudokuStore = useSudokuStore();
-  //   const user = {
-  //     name: name.value,
-  //     email: userEmail.value,
-  //     image: image.value,
-  //     currentPuzzle: {
-  //       _id: sudokuStore.puzzleId,
-  //       cells: sudokuStore.puzzle.rows,
-  //       difficulty: sudokuStore.puzzle.options.difficulty,
-  //       solved: sudokuStore.isPuzzleSolved
-  //     }
-  //   }
-  //   if(id.value === '' || id.value === undefined) {
-  //     const res = await userService.getUser(id.value, token);
-  //     id.value = res._id;
-  //   }
-  //   console.log(user)
-  //   await userService.updateUser(id.value, token, user)
-  //   console.log("User updated!")
-  // }
+  
   return { id, displayName: storeDisplayName, username: storeUsername, image, userLoading, isAuthenticated, error, login, logout, register, getSelf, $reset}
 
 })

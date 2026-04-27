@@ -37,14 +37,14 @@ const colormode = useColorMode()
 
 const menuPressed = ref(false)
 
-const gotoPuzzle = async (difficulty: Difficulty) => {
+const gotoPuzzle = async (difficulty: Difficulty['rating']) => {
   sudokuStore.$reset();
   sudokuStore.deleteGameStateLocal()
   gameStore.clearElapsedSecondsLocal()
-  if (router.currentRoute.value.name !== difficulty) {
-    router.push(`/sudoku/${difficulty}`)
+  if (router.currentRoute.value.params.difficulty && (router.currentRoute.value.params.difficulty as Difficulty['rating']) !== difficulty) {
+    router.push({ name: 'sudoku', params: { difficulty } })
   } else {
-    await sudokuStore.getNewPuzzle({ difficulty })
+    await sudokuStore.getNewPuzzle({ difficulty: { rating: difficulty } })
     gameStore.elapsedSeconds = 0;
   }
 }

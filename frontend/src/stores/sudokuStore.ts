@@ -11,6 +11,7 @@ import { calcBlockNum } from "@/utils/calcBlockNumber";
 import { computed, ref } from "vue";
 import type { SudokuStoreState } from "./models/sudokuStoreState";
 import { useGameStore } from "./gameStore";
+import type { SaveGameOptions } from "./models/gameState";
 const blankPuzzle = new SudokuPuzzle(buildBlankPuzzleRows())
 export const useSudokuStore = defineStore('sudoku', () => {
   const gameStore = useGameStore()
@@ -63,17 +64,20 @@ export const useSudokuStore = defineStore('sudoku', () => {
       saveGameStateLocal();
     }
   }
-  async function saveGameState() {
+  async function saveGameState(options: SaveGameOptions = {keepalive: false}) {
     if(!puzzleId.value) {
       return
     }
-    await sudokuService.updatePuzzle(puzzleId.value, puzzle.value, gameStore.elapsedSeconds, isPuzzleSolved.value)
+    await sudokuService.updatePuzzle(puzzleId.value, puzzle.value, actions.value, gameStore.elapsedSeconds, isPuzzleSolved.value, options)
   }
   function setCell(cell: Cell, x: number, y: number) {
     const prevCell = puzzle.value.getCell(x, y);
+    if(!prevCell) {
+      throw new Error(`Cell at r${y}c${x} undefined!`)
+    }
     actions.value.push({prevCell, x, y})
     puzzle.value.setCell(cell, x, y);
-    if(autoCandidateMode.value && !prevCell?.value && cell.value) {
+    if(autoCandidateMode.value && !prevCell.value && cell.value) {
       const row = puzzle.value.rows[y];
       const col = puzzle.value.getColumn(x)!;
       const blockNumber = calcBlockNum(y,x, puzzle.value.rows)

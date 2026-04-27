@@ -8,6 +8,7 @@ import z from "zod";
 import { DatabaseError } from "@/core/errors/databaseError";
 import { CustomError } from "@/core/errors/customError";
 import { Sql } from "postgres";
+import { SqlUserPuzzle } from "@/feature/sudoku/datasource/models/sudokuPuzzle";
 
 declare global {
     namespace Express {
@@ -43,6 +44,30 @@ export class AuthenticationServiceImpl implements AuthenticationService {
       if(!timingSafeEqual(Buffer.from(res.password_hash, 'hex'), hashedPassword)) {
         return {err: new AuthenticationError("Incorrect Username or Password")}
       }
+      let currentPuzzle: SqlUserPuzzle | undefined = undefined;
+      if(res.current_puzzle_id) {
+        const currentPuzzleRes = await this.client<SqlUserPuzzle[]>`
+          SELECT 
+            json_build_object(
+              'puzzle_id', up.puzzle_id,
+              'is_completed', up.is_completed,
+              'current_cells', up.cells,
+              'current_candidates', up.candidates,
+              'time', up.time,
+              'original_cells', p.cells,
+              'difficulty_rating', p.difficulty_rating,
+              'difficulty_score', p.difficulty_score,
+              'actions', up.actions
+            ) as current_puzzle
+          FROM user_puzzles as up
+          LEFT JOIN puzzles as p
+            ON p.puzzle_id = up.puzzle_id
+          WHERE up.user_id = ${res.user_id} AND up.puzzle_id = ${res.current_puzzle_id}
+        `
+        if(currentPuzzleRes[0]) {
+          currentPuzzle = currentPuzzleRes[0]
+        }
+      }
       return {
         user: {
           id: res.user_id,
@@ -50,7 +75,19 @@ export class AuthenticationServiceImpl implements AuthenticationService {
           role: res.role,
           displayName: res.display_name ?? undefined,
           imageUrl: res.image_url ?? undefined,
-          currentPuzzleId: res.current_puzzle ?? undefined,
+          currentPuzzle: currentPuzzle ? {
+            _id: currentPuzzle.puzzle_id,
+            currentCells: currentPuzzle.current_cells,
+            currentCandidates: currentPuzzle.current_candidates,
+            originalCells: currentPuzzle.original_cells,
+            time: currentPuzzle.time,
+            isCompleted: currentPuzzle.is_completed,
+            actions: currentPuzzle.actions,
+            difficulty: {
+              rating: currentPuzzle.difficulty_rating,
+              score: currentPuzzle.difficulty_score
+            }
+          } : undefined
         }
       }
     } catch (err) {

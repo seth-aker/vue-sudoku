@@ -1,6 +1,6 @@
 import { Router, Request } from "express";
 import { UserService } from "../service/userService";
-import { requireAdmin, requireLoggedin } from "@/feature/auth/middleware/validation";
+import { requireLoggedin } from "@/feature/auth/middleware/validation";
 import { requireSelfOrAdmin } from "../middleware/requireSelfOrAdmin";
 
 export function UserRouter(userService: UserService) {

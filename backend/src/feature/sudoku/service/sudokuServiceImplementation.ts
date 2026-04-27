@@ -1,7 +1,7 @@
 import { SudokuDataSource } from "../datasource/sudokuDataSource";
 import { PuzzleArray } from "../datasource/models/puzzleArray";
 import { type PuzzleOptions} from "../datasource/models/puzzleOptions";
-import { SudokuPuzzle, CreatePuzzle, UpdatePuzzle } from "../datasource/models/sudokuPuzzle";
+import { SudokuPuzzle, CreatePuzzle, UpdatePuzzle, UserPuzzleDto } from "../datasource/models/sudokuPuzzle";
 import { SudokuService } from "./sudokuService";
 import { BaseService } from "../../../core/service/baseService";
 import { WorkerPoolManager } from "@/core/workers/workerpoolManager";
@@ -66,6 +66,24 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
       return await this.sudokuDataSource.createPuzzles(puzzles);
     })
   };
+  async getUserPuzzle(userId: string, puzzleId: string): Promise<UserPuzzleDto> {
+    return await this.callDataSource(async () => {
+      const sqlUserPuzle = await this.sudokuDataSource.getUserPuzzle(userId, puzzleId);
+      return {
+        _id: sqlUserPuzle.puzzle_id,
+        currentCells: sqlUserPuzle.current_cells,
+        currentCandidates: sqlUserPuzle.current_candidates,
+        originalCells: sqlUserPuzle.original_cells,
+        time: sqlUserPuzle.time,
+        isCompleted: sqlUserPuzle.is_completed,
+        actions: sqlUserPuzle.actions,
+        difficulty: {
+          score: sqlUserPuzle.difficulty_score,
+          rating: sqlUserPuzle.difficulty_rating
+        }
+      }
+    })
+  }
   async updateUserPuzzle(userId: string, puzzle: UpdatePuzzle): Promise<number> {
     return await this.callDataSource(async () => {  
       // don't trust that the puzzle is actually complete, verfiy
