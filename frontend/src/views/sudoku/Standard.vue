@@ -19,8 +19,7 @@ import { useUserStore } from '@/stores/userStore';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import ErrorDialog from '@/components/ErrorDialog.vue';
 import PauseMenu from '@/components/PauseMenu.vue';
-import { toast } from 'vue-sonner';
-import { useDocumentVisibility, useDebounceFn, watchDebounced } from '@vueuse/core';
+import { useDocumentVisibility, watchDebounced } from '@vueuse/core';
 
 const { difficulty } = defineProps<{ difficulty: Difficulty['rating'] }>()
 
@@ -33,7 +32,7 @@ const dialogOpen = ref(false);
 const loading = computed(() => {
   return userStore.userLoading || sudokuStore.loading
 })
-watch(() => loading, () => {
+watch(() => loading.value, () => {
   if (loading) {
     gameStore.stopTimer()
   } else {
@@ -141,7 +140,7 @@ const handleReset = () => {
           </DialogDescription>
         </DialogHeader>
         Time: {{ gameStore.formattedElapsedTime }}
-        <DialogFooter>
+        <DialogFooter class="gap-1">
           <DialogClose as-child>
             <Button variant="secondary" @click="dialogOpen = false">
               Close

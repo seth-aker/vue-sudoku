@@ -138,7 +138,8 @@ export class PgSudokuDataSource implements SudokuDataSource {
   }
   async updateUserPuzzle(userId: string, puzzle: UpdatePuzzle): Promise<number> {
     try {
-      const res = await this.client`
+      const res = await this.client.begin(async sql => {
+        const updateUpRes = await sql`
         UPDATE user_puzzles
         SET cells = ${puzzle.cells},
           candidates = ${puzzle.candidates},
@@ -148,7 +149,19 @@ export class PgSudokuDataSource implements SudokuDataSource {
           ${puzzle.isCompleted ? this.client`, completed_at = CURRENT_TIMESTAMP `: this.client``}
         WHERE user_id = ${userId} AND puzzle_id = ${puzzle._id}
       `
-      return res.count
+      if(updateUpRes.count !== 1) {
+        sql`ROLLBACK;`
+        return 0;
+      }
+      if(puzzle.isCompleted) {
+        const updateRes = await sql`
+          UPDATE users SET current_puzzle_id = null WHERE user_id = ${userId}
+        `
+        return updateRes.count;
+      }
+      return 1;
+    })
+    return res
     } catch (err) {
       throw new DatabaseError((err as Error).message)
     }
