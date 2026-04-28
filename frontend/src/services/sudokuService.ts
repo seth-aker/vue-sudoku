@@ -3,8 +3,9 @@ import { config } from '@/config/index'
 import type { SudokuStoreState } from "@/stores/models/sudokuStoreState";
 import type { Difficulty } from "@/stores/models/difficulty";
 import type { SaveGameOptions } from "@/stores/models/gameState";
-import { deserializeCells, serializeAction, serializePuzzle } from "@/utils/serialization";
+import { deserializeAction, deserializeCells, serializeAction, serializePuzzle } from "@/utils/serialization";
 import type { Action } from "@/stores/models/action";
+import type { ServiceResult } from "./baseService";
 const {API_BASE_URL} = config;
 export interface NewPuzzleDto {
   _id: string,
@@ -30,7 +31,7 @@ export interface UserPuzzleDto {
   difficulty: Difficulty,
   actions?: number[]
 }
-async function fetchNewPuzzle(options?: SudokuOptions) {
+async function fetchNewPuzzle(options?: SudokuOptions): Promise<ServiceResult<{_id: string, puzzle: SudokuPuzzle}>> {
   const fetchOptions: RequestInit = {
     method: "GET",
     headers: {"Content-Type": "application/json"},
@@ -45,15 +46,34 @@ async function fetchNewPuzzle(options?: SudokuOptions) {
     }
     const puzzleDTO = await response.json() as NewPuzzleDto
     const puzzle = deserializePuzzle(puzzleDTO)
-    return {puzzle, _id: puzzleDTO._id}
+    return {body: {puzzle, _id: puzzleDTO._id}, success: true}
   } catch (err) {
-    console.log(err)
+    return {success: false, message: (err as Error).message}
   }
 }
-async function fetchPuzzle(puzzleId: string) {
-  return await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`)
+async function fetchPuzzle(puzzleId: string): Promise<ServiceResult<{_id: string, puzzle:SudokuPuzzle, actions: Action[]}>> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": 'application/json'
+      },
+      credentials: 'include'
+    })
+    if(!res.ok) {
+      const errData = await res.json()
+      console.log(errData)
+      return { success: false, message: errData.message}
+    } 
+    const puzzleDto = await res.json() as UserPuzzleDto
+    const puzzle = deserializeUserPuzzle(puzzleDto);
+    const actions = puzzleDto.actions ? puzzleDto.actions.map(action => deserializeAction(action)) : [] as Action[]
+    return {success: true, body: {puzzle, _id: puzzleDto._id, actions}}
+  } catch (err) {
+    return {success: false, message: (err as Error).message}
+  }
 }
-async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle, actions: Action[], elapsedTime: number, isCompleted: boolean, options: SaveGameOptions) {
+async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle, actions: Action[], elapsedTime: number, isCompleted: boolean, options: SaveGameOptions): Promise<ServiceResult<void>> {
   const puzzleDto = serializePuzzle(puzzleId, puzzle);
   const updateDto: UpdateUserPuzzleDto = {
     _id: puzzleDto._id,
@@ -74,10 +94,15 @@ async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle, actions: Act
     if(!res.ok) {
       const error = await res.json()
       console.log(error)
-      throw new Error(error.message || `API error: ${res.status}`)
+      return {message: error.message, success: false}
     }
+    return {success: true}
   } catch (err) {
-    throw err
+    if(typeof err === 'string') {
+      return {message: err, success: false}
+    } else {
+      return {message: (err as Error).message, success:false}
+    }
   }
 }
 function saveGameStateLocally(state: SudokuStoreState ) {

@@ -19,21 +19,40 @@ import { useUserStore } from '@/stores/userStore';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import ErrorDialog from '@/components/ErrorDialog.vue';
 import PauseMenu from '@/components/PauseMenu.vue';
-import { useDocumentVisibility, watchDebounced } from '@vueuse/core';
+import { watchDebounced } from '@vueuse/core';
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
+import { PUZZLE_DIFFICULTY_ROUTES } from '@/router';
+import { toast } from 'vue-sonner';
 
 const { difficulty } = defineProps<{ difficulty: Difficulty['rating'] }>()
-
 const sudokuStore = useSudokuStore();
 const gameStore = useGameStore()
 const userStore = useUserStore();
 const error = ref<string | null>(null)
 const dialogOpen = ref(false);
 
+onBeforeRouteUpdate((to, _from) => {
+  if (typeof to.params.difficulty !== 'string' || !PUZZLE_DIFFICULTY_ROUTES.includes(to.params.difficulty)) {
+    toast.error(`'${to.params.difficulty}' is not an accepted difficulty. Currently only 'beginner', 'easy', and 'medium' are playable.`)
+    return false
+  }
+})
+
+onBeforeRouteLeave(async () => {
+  if (userStore.isAuthenticated && sudokuStore.puzzleId) {
+    toast.promise(sudokuStore.saveGameState(), {
+      success: 'Game Saved!',
+      loading: 'Saving game state...',
+      error: 'Oops! An error occured saving!'
+    })
+  }
+})
+
 const loading = computed(() => {
   return userStore.userLoading || sudokuStore.loading
 })
 watch(() => loading.value, () => {
-  if (loading) {
+  if (loading.value) {
     gameStore.stopTimer()
   } else {
     gameStore.startTimer();
@@ -41,7 +60,6 @@ watch(() => loading.value, () => {
 })
 const requestNewPuzzle = async (newDifficulty: Difficulty['rating']) => {
   await sudokuStore.getNewPuzzle({ difficulty: { rating: newDifficulty } });
-  gameStore.elapsedSeconds = 0;
 }
 
 onMounted(async () => {
@@ -49,7 +67,6 @@ onMounted(async () => {
   if (!sudokuStore.retrieveLocalState() || sudokuStore.puzzle.options.difficulty.rating !== difficulty) {
     try {
       await requestNewPuzzle(difficulty)
-      gameStore.startTimer();
     } catch (err) {
       if (typeof err === 'string') {
         error.value = err
@@ -63,17 +80,10 @@ onMounted(async () => {
     gameStore.startTimer()
   }
 })
-const docVis = useDocumentVisibility()
-watch(() => docVis.value, () => {
-  console.log('Doc Vis fired!')
-  if (docVis.value === 'hidden' && userStore.isAuthenticated) {
-    sudokuStore.saveGameState({ keepalive: true })
-  }
-})
 
 watchDebounced(() => sudokuStore.actions.length, () => {
   sudokuStore.saveGameState()
-}, { debounce: 5000 })
+}, { debounce: 5000, maxWait: 10000 })
 
 onUnmounted(() => {
   gameStore.stopTimer();
@@ -91,8 +101,6 @@ const handlePuzzleSolved = async () => {
   dialogOpen.value = true;
   gameStore.gameState = 'solved';
   sudokuStore.saveGameState()
-  // const token = await getAccessTokenSilently()
-  // userStore.updateUser(token);
 }
 const toggleTimer = () => {
   if (gameStore.interval === null) {
@@ -153,6 +161,7 @@ const handleReset = () => {
       </DialogContent>
     </Dialog>
   </div>
+  <!-- <SaveGameDialog /> -->
   <LoadingOverlay v-if="loading" />
   <ErrorDialog v-if="error" :message="error" />
   <PauseMenu />

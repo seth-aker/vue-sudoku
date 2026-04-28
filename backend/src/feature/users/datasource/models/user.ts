@@ -27,5 +27,5 @@ export interface IUserDTO {
   role: string,
   displayName?: string,
   imageUrl?: string,
-  currentPuzzle?: UserPuzzleDto
+  currentPuzzleId?: string
 }

@@ -71,7 +71,7 @@ const handleRegister = async (event: SubmitEvent) => {
   if (!userNameRes.success || !passwordRes.success || !confirmMatches) {
     return;
   }
-  toast.promise(() =>
+  toast.promise(
     Promise.all([
       userStore.register(username.value, password.value, name.value),
       new Promise((resolve) => setTimeout(resolve, 500))
@@ -108,7 +108,7 @@ const { pressed: showConfirmPassword } = useMousePressed({ target: showConfirmPa
         <FieldGroup>
           <Field>
             <FieldLabel for="name">Display Name</FieldLabel>
-            <Input id="name" :model-value="name" autocomplete="name" type="text" placeholder="Susan Doku" />
+            <Input id="name" v-model:model-value="name" autocomplete="name" type="text" placeholder="Susan Doku" />
           </Field>
           <Field>
             <FieldLabel for="email">Username</FieldLabel>

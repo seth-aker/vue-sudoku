@@ -3,7 +3,7 @@ import { SudokuService } from "../service/sudokuService.ts";
 import { SudokuRequest } from './sudokuRequest.ts';
 import { type PuzzleOptions} from '../datasource/models/puzzleOptions.ts';
 import { DatabaseError } from '@/core/errors/databaseError.ts';
-import { getPuzzleValidator, updatePuzzleValidator } from '../middleware/validation/validation.ts';
+import { getPuzzleByIdValidator, getPuzzleValidator, updatePuzzleValidator } from '../middleware/validation/validation.ts';
 import { requireLoggedin } from '@/feature/auth/middleware/validation.ts';
 import { UpdatePuzzle } from '../datasource/models/sudokuPuzzle.ts';
 
@@ -23,15 +23,16 @@ export default function SudokuRouter(sudokuService: SudokuService) {
     }
   })
   
-  // router.get('/:puzzleId', getPuzzleByIdValidator, async (req: Request, res: Response, next: NextFunction) => {
-  //   try {
-  //     const puzzleId = req.params.puzzleId;
-  //     const puzzle = await sudokuService.getPuzzleById("userId", puzzleId);
-  //     res.send(puzzle);
-  //   } catch (err) {
-  //     next(err)
-  //   }
-  // })
+  router.get('/:puzzleId', requireLoggedin, getPuzzleByIdValidator, async (req: Request<{puzzleId: string}>, res: Response, next: NextFunction) => {
+    try {
+      const puzzleId = req.params.puzzleId;
+      const userId = req.session.user!.id
+      const puzzle = await sudokuService.getUserPuzzle(userId, puzzleId);
+      res.send(puzzle);
+    } catch (err) {
+      next(err)
+    }
+  })
   // router.post('/', createPuzzleValidator, async (req: Request, res: Response, next: NextFunction) => {
   //   try {
   //     const puzzle = req.body;

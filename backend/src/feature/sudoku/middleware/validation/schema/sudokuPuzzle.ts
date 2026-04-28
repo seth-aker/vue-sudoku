@@ -4,7 +4,7 @@ import { candidateStringSchema, cellSchema } from "./cell.ts"
 import { difficultySchema } from "./difficulty.ts"
 
 export const getPuzzleByIdSchema = z.object({
-    puzzleId: objectIdSchema
+    puzzleId: z.uuid()
 })
 export const getPuzzleSchema = z.optional(difficultySchema)
 
@@ -17,7 +17,8 @@ export const updateUserPuzzleSchema = z.object({
     cells: z.string().refine((val) => val.length === 81, {message: 'Error, cell string must be 81 numbers long'}),
     candidates: candidateStringSchema,
     isCompleted: z.boolean(),
-    time: z.number().positive('time must be a positive number')
+    actions: z.array(z.number()),
+    time: z.number().refine((val) => val >= 0, {message: 'Time cannot be a negative integer'})
 })
 
 export const deletePuzzleSchema = z.object({

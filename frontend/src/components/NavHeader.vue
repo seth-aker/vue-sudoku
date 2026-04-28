@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 // import { useAuth0, type AppState, type RedirectLoginOptions } from '@auth0/auth0-vue';
 import Button from './ui/button/Button.vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import NavigationMenu from './ui/navigation-menu/NavigationMenu.vue';
 import NavigationMenuList from './ui/navigation-menu/NavigationMenuList.vue';
 import NavigationMenuItem from './ui/navigation-menu/NavigationMenuItem.vue';
@@ -28,7 +28,9 @@ import Switch from './ui/switch/Switch.vue';
 import { useUserStore } from '@/stores/userStore';
 import LoginPopover from './loginRegister/LoginPopover.vue';
 import LoginDrawer from './loginRegister/LoginDrawer.vue';
+import { PUZZLE_DIFFICULTY_ROUTES } from '@/router';
 const router = useRouter()
+const route = useRoute()
 const sudokuStore = useSudokuStore();
 const userStore = useUserStore();
 const gameStore = useGameStore();
@@ -40,13 +42,12 @@ const menuPressed = ref(false)
 const gotoPuzzle = async (difficulty: Difficulty['rating']) => {
   sudokuStore.$reset();
   sudokuStore.deleteGameStateLocal()
+  gameStore.elapsedSeconds = 0;
   gameStore.clearElapsedSecondsLocal()
-  if (router.currentRoute.value.params.difficulty && (router.currentRoute.value.params.difficulty as Difficulty['rating']) !== difficulty) {
-    router.push({ name: 'sudoku', params: { difficulty } })
-  } else {
+  if (route.params.difficulty && PUZZLE_DIFFICULTY_ROUTES.includes(route.params.difficulty as string)) {
     await sudokuStore.getNewPuzzle({ difficulty: { rating: difficulty } })
-    gameStore.elapsedSeconds = 0;
   }
+  router.push({ name: 'sudoku', params: { difficulty } })
 }
 </script>
 

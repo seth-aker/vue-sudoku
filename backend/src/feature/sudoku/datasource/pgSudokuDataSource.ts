@@ -150,14 +150,45 @@ export class PgSudokuDataSource implements SudokuDataSource {
         WHERE user_id = ${userId} AND puzzle_id = ${puzzle._id}
       `
       if(updateUpRes.count !== 1) {
-        sql`ROLLBACK;`
-        return 0;
+        const insertRes = await sql`
+          INSERT INTO user_puzzles (
+            user_id,
+            puzzle_id,
+            cells,
+            candidates,
+            is_completed,
+            time,
+            actions
+            ${puzzle.isCompleted ? this.client`, completed_at`: this.client``}
+          )
+          VALUES (
+            ${userId},
+            ${puzzle._id},
+            ${puzzle.cells},
+            ${puzzle.candidates},
+            ${puzzle.isCompleted},
+            ${puzzle.time},
+            ${puzzle.actions}
+            ${puzzle.isCompleted ? this.client`, CURRENT_TIMESTAMP`: this.client``}
+          )
+        `
+        if(insertRes.count !== 1) {
+          return insertRes.count;
+        }
       }
       if(puzzle.isCompleted) {
         const updateRes = await sql`
           UPDATE users SET current_puzzle_id = null WHERE user_id = ${userId}
         `
         return updateRes.count;
+      }
+      const userRes = await sql`
+        UPDATE users 
+        SET current_puzzle_id = ${puzzle._id}
+        WHERE user_id = ${userId}
+      `
+      if(userRes.count !== 1) {
+        return userRes.count;
       }
       return 1;
     })
@@ -177,7 +208,8 @@ export class PgSudokuDataSource implements SudokuDataSource {
           up.time,
           p.cells as original_cells,
           p.difficulty_rating,
-          p.difficulty_score
+          p.difficulty_score,
+          up.actions
         FROM user_puzzles AS up
           JOIN puzzles AS p ON p.puzzle_id = up.puzzle_id
         WHERE 

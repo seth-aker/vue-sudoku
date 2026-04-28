@@ -8,12 +8,25 @@ import CardTitle from '@/components/ui/card/CardTitle.vue';
 import type { Difficulty } from '@/stores/models/difficulty';
 import { useSudokuStore } from '@/stores/sudokuStore';
 import { useUserStore } from '@/stores/userStore';
+import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router';
+import { toast } from 'vue-sonner';
 const router = useRouter()
 const userStore = useUserStore()
 const sudokuStore = useSudokuStore()
 const navigateToPuzzle = (difficulty: Difficulty['rating']) => {
   router.push({ name: 'sudoku', params: { difficulty: difficulty } })
+}
+const resumePuzzle = async () => {
+  sudokuStore.loading = true;
+  const result = await sudokuStore.getUserPuzzle();
+  if (!result.success) {
+    toast.error(`Oops! Something went wrong loading your puzzle. Sorry!`)
+    sudokuStore.loading = false;
+    return;
+  }
+  sudokuStore.loading = false;
+  router.push({ name: 'sudoku', params: { difficulty: result.body?.puzzle.options.difficulty.rating } })
 }
 </script>
 
@@ -25,8 +38,10 @@ const navigateToPuzzle = (difficulty: Difficulty['rating']) => {
         <CardDescription>Pick a difficulty to get started</CardDescription>
       </CardHeader>
       <CardContent class="flex flex-col items-center justify-center">
-        <Button v-if="(userStore.isAuthenticated && sudokuStore.puzzleId)"
-          @click="navigateToPuzzle(sudokuStore.puzzle.options.difficulty.rating)" class="w-52 m-1">Resume Game</Button>
+        <Button v-if="(userStore.isAuthenticated && userStore.currentPuzzleId)" @click="resumePuzzle" class="w-52 m-1">
+          <span v-if="!sudokuStore.loading">Resume Game</span>
+          <Icon v-else icon="line-md:loading-twotone-loop" />
+        </Button>
         <Button @click="navigateToPuzzle('beginner')" class="w-52 m-1">Beginner</Button>
         <Button @click="navigateToPuzzle('easy')" class="w-52 m-1">Easy</Button>
         <Button @click="navigateToPuzzle('medium')" class="w-52 m-1">Medium</Button>

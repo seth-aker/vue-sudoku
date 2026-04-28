@@ -10,6 +10,7 @@ import TabsTrigger from '../ui/tabs/TabsTrigger.vue';
 import TabsContent from '../ui/tabs/TabsContent.vue';
 import LoginForm from './LoginForm.vue';
 import RegisterForm from './RegisterForm.vue';
+import DrawerDescription from '../ui/drawer/DrawerDescription.vue';
 
 const drawerOpen = ref<boolean>(false);
 
@@ -21,6 +22,7 @@ const drawerOpen = ref<boolean>(false);
       <Button variant="ghost">Login</Button>
     </DrawerTrigger>
     <DrawerContent class="px-8">
+      <DrawerDescription hidden>Login or Signup</DrawerDescription>
       <Tabs class="my-8" default-value="login">
         <TabsList>
           <TabsTrigger value="login">Login</TabsTrigger>

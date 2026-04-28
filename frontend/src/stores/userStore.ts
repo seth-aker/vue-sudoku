@@ -1,17 +1,15 @@
-import { deserializeUserPuzzle, type UserPuzzleDto } from '@/services/sudokuService';
 import * as userService from '@/services/userService'
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useRouter } from 'vue-router';
 import { useSudokuStore } from './sudokuStore';
-import { deserializeAction } from '@/utils/serialization';
 
 export interface IUserDto {
   id: string,
   displayName?: string,
   username: string,
   imageUrl?: string,
-  currentPuzzle?: UserPuzzleDto
+  currentPuzzleId?: string,
   role: string
 }
 export const useUserStore = defineStore('userStore', () => {
@@ -37,22 +35,17 @@ export const useUserStore = defineStore('userStore', () => {
     const res = await userService.login(username, password);
     if(!res.success || !res.body) {
       error.value = res.message
-      userLoading.value = false
     } else {
       id.value = res.body.id,
       storeDisplayName.value = res.body.displayName
       storeUsername.value = res.body.username
       role.value = res.body.role
       image.value = res.body.imageUrl
-      userLoading.value = false
-      currentPuzzleId.value = res.body.currentPuzzle?._id
-      if(res.body.currentPuzzle) {
-        sudokuStore.puzzle = deserializeUserPuzzle(res.body.currentPuzzle)
-        sudokuStore.puzzleId = res.body.currentPuzzle._id
-        sudokuStore.actions = res.body.currentPuzzle.actions ? res.body.currentPuzzle.actions.map(each => deserializeAction(each)) : []
-        sudokuStore.saveGameStateLocal()
+      if(sudokuStore.puzzleId) {
+        await sudokuStore.saveGameState()
       }
     }
+    userLoading.value = false
   }
   const logout = async () => {
     userLoading.value = true
@@ -74,6 +67,9 @@ export const useUserStore = defineStore('userStore', () => {
       storeUsername.value = username
       storeDisplayName.value = displayName
       role.value = res.body.role
+      if(sudokuStore.puzzleId) {
+        await sudokuStore.saveGameState()
+      }
     }
     userLoading.value = false
     
@@ -88,13 +84,7 @@ export const useUserStore = defineStore('userStore', () => {
       storeUsername.value = user.username,
       role.value = user.role,
       image.value = user.imageUrl
-      currentPuzzleId.value = user.currentPuzzle?._id
-      if(user.currentPuzzle) {
-        sudokuStore.puzzleId = user.currentPuzzle._id
-        sudokuStore.puzzle = deserializeUserPuzzle(user.currentPuzzle)
-        sudokuStore.actions = user.currentPuzzle.actions ? user.currentPuzzle.actions.map(each => deserializeAction(each)) : []
-        sudokuStore.saveGameStateLocal()
-      }
+      currentPuzzleId.value = user.currentPuzzleId
     }
     userLoading.value = false;
   }  
@@ -109,6 +99,19 @@ export const useUserStore = defineStore('userStore', () => {
     error.value = undefined
   }
   
-  return { id, displayName: storeDisplayName, username: storeUsername, image, userLoading, isAuthenticated, error, login, logout, register, getSelf, $reset}
+  return { 
+    id,
+    displayName: storeDisplayName, 
+    username: storeUsername, 
+    image, 
+    userLoading, 
+    isAuthenticated, 
+    error, 
+    currentPuzzleId, 
+    login, 
+    logout, 
+    register, 
+    getSelf, 
+    $reset}
 
 })

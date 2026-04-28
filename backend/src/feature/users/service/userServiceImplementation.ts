@@ -2,7 +2,6 @@ import { BaseService } from "@/core/service/baseService";
 import { UserService } from "./userService";
 import { UserDataSource } from "../datasource/userDataSource";
 import { ISqlUser, IUserDTO } from "../datasource/models/user";
-import { SqlUserPuzzle } from "@/feature/sudoku/datasource/models/sudokuPuzzle";
 
 export class UserServiceImplementation extends BaseService implements UserService {
   private userDataSource: UserDataSource;
@@ -30,26 +29,14 @@ export class UserServiceImplementation extends BaseService implements UserServic
     })
   }
 
-  private serializeUser(sqlUser: ISqlUser & {current_puzzle?: SqlUserPuzzle}) {
+  private serializeUser(sqlUser: ISqlUser) {
     const userDTO: IUserDTO = {
       id: sqlUser.user_id,
       displayName: sqlUser.display_name,
       username: sqlUser.username, 
       role: sqlUser.role, 
       imageUrl: sqlUser.image_url,
-      currentPuzzle: sqlUser.current_puzzle ? {
-        _id: sqlUser.current_puzzle.puzzle_id,
-        currentCells: sqlUser.current_puzzle.current_cells,
-        currentCandidates: sqlUser.current_puzzle.current_candidates,
-        originalCells: sqlUser.current_puzzle.original_cells,
-        time: sqlUser.current_puzzle.time,
-        isCompleted: sqlUser.current_puzzle.is_completed,
-        actions: sqlUser.current_puzzle.actions,
-        difficulty: {
-          score: sqlUser.current_puzzle.difficulty_score,
-          rating: sqlUser.current_puzzle.difficulty_rating
-        },
-      } : undefined
+      currentPuzzleId: sqlUser.current_puzzle_id
     }
     return userDTO;
   }

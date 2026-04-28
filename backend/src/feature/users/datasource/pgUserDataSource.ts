@@ -35,33 +35,18 @@ export class PgUserDataSource implements UserDataSource {
     `
     return res.user_id;
   }
-  async getUser(userId: string): Promise<ISqlUser & {current_puzzle: SqlUserPuzzle}> {
-    const [user] = await this.client<(ISqlUser & {current_puzzle: SqlUserPuzzle})[]>`
+  async getUser(userId: string): Promise<ISqlUser> {
+    const [user] = await this.client<ISqlUser[]>`
      SELECT u.user_id,
         u.display_name,
         u.username,
         u.role,
-        json_build_object(
-          'puzzle_id', up.puzzle_id,
-          'is_completed', up.is_completed,
-          'current_cells', up.cells,
-          'current_candidates', up.candidates,
-          'time', up.time,
-          'original_cells', p.cells,
-          'difficulty_rating', p.difficulty_rating,
-          'difficulty_score', p.difficulty_score,
-          'actions', up.actions
-        ) as current_puzzle,
         u.current_puzzle_id,
         u.image_url,
         u.created_at,
         u.updated_at
       FROM 
         users as u
-      LEFT JOIN 
-        user_puzzles as up ON up.puzzle_id = u.current_puzzle_id AND u.user_id = up.user_id
-      LEFT JOIN
-        puzzles AS p ON up.puzzle_id = p.puzzle_id
       WHERE 
         u.user_id = ${userId} 
         AND u.deleted_at IS NULL

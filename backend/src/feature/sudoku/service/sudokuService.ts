@@ -5,6 +5,7 @@ import { SudokuPuzzle, CreatePuzzle, UpdatePuzzle, UserPuzzleDto } from "../data
 export interface SudokuService {
   getNewPuzzle: (requestedBy: string | undefined, options: PuzzleOptions) => Promise<SudokuPuzzle>;
   getPuzzles: (options: PuzzleOptions, page?: number, limit?: number) => Promise<PuzzleArray>;
+  // getPuzzle: (puzzleId: string) => Promise<SudokuPuzzle>
   createPuzzles: (puzzles: CreatePuzzle[]) => Promise<number>;
   getUserPuzzle: (userId: string, puzzleId: string) => Promise<UserPuzzleDto>
   updateUserPuzzle: (userId: string, puzzle: UpdatePuzzle) => Promise<number>;

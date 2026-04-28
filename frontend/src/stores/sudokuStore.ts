@@ -12,9 +12,11 @@ import { computed, ref } from "vue";
 import type { SudokuStoreState } from "./models/sudokuStoreState";
 import { useGameStore } from "./gameStore";
 import type { SaveGameOptions } from "./models/gameState";
+import { useUserStore } from "./userStore";
 const blankPuzzle = new SudokuPuzzle(buildBlankPuzzleRows())
 export const useSudokuStore = defineStore('sudoku', () => {
   const gameStore = useGameStore()
+  const userStore = useUserStore()
 
   const puzzleId = ref<string | undefined>(undefined)
   const puzzle = ref<SudokuPuzzle>(blankPuzzle);
@@ -24,7 +26,9 @@ export const useSudokuStore = defineStore('sudoku', () => {
     y: undefined as number | undefined,
   })
   const actions = ref<Action[]>([])
+  const redoActions = ref<Action[]>([])
   const autoCandidateMode = ref(false)
+  const loading = ref<boolean>(false)
   
   function retrieveLocalState() {
     const state = sudokuService.retrieveLocalState();
@@ -41,6 +45,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
       usingPencil: usingPencil.value,
       selectedCell: selectedCell.value,
       actions: actions.value,
+      redoActions: redoActions.value,
       autoCandidateMode: autoCandidateMode.value
     }
     sudokuService.saveGameStateLocally(state)
@@ -49,33 +54,53 @@ export const useSudokuStore = defineStore('sudoku', () => {
     sudokuService.deleteGameStateLocally();
   }
   async function getNewPuzzle(options: SudokuOptions) {
+    loading.value = true;
     const response = await sudokuService.fetchNewPuzzle(options);
     
-    if(response) {
+    if(response.success && response.body) {
       $patch({
-        puzzleId: response._id,
-        puzzle: response.puzzle,
+        puzzleId: response.body._id,
+        puzzle: response.body.puzzle,
         selectedCell: {
           x: undefined,
           y: undefined
         },
         actions: []
       })
+      gameStore.elapsedSeconds = 0;
+      gameStore.startTimer()
       saveGameStateLocal();
     }
+    loading.value = false;
+  }
+  async function getUserPuzzle() {
+    if(!userStore.currentPuzzleId) {
+      return {success: false, message: 'No current puzzle found'}
+    }
+    const result = await sudokuService.fetchPuzzle(userStore.currentPuzzleId);
+    const userPuzzle = result.body
+    if(!result.success || !userPuzzle) {
+      return result
+    }
+    puzzleId.value = userPuzzle._id,
+    puzzle.value = userPuzzle.puzzle,
+    actions.value = userPuzzle.actions
+    saveGameStateLocal()
+    return result
   }
   async function saveGameState(options: SaveGameOptions = {keepalive: false}) {
     if(!puzzleId.value) {
-      return
+      return {success: false, message: 'No puzzle to save'}
     }
-    await sudokuService.updatePuzzle(puzzleId.value, puzzle.value, actions.value, gameStore.elapsedSeconds, isPuzzleSolved.value, options)
+   return await sudokuService.updatePuzzle(puzzleId.value, puzzle.value, actions.value, gameStore.elapsedSeconds, isPuzzleSolved.value, options)
   }
   function setCell(cell: Cell, x: number, y: number) {
     const prevCell = puzzle.value.getCell(x, y);
     if(!prevCell) {
       throw new Error(`Cell at r${y}c${x} undefined!`)
     }
-    actions.value.push({prevCell, x, y})
+    actions.value.push({prevCell: lodash.cloneDeep(prevCell), x, y})
+    redoActions.value = []
     puzzle.value.setCell(cell, x, y);
     if(autoCandidateMode.value && !prevCell.value && cell.value) {
       const row = puzzle.value.rows[y];
@@ -83,20 +108,25 @@ export const useSudokuStore = defineStore('sudoku', () => {
       const blockNumber = calcBlockNum(y,x, puzzle.value.rows)
       const block = puzzle.value.getBlock(blockNumber)!
       const value = cell.value;
-      for(const [index, cell] of row.entries()) {
-        if(cell.candidates.includes(value)) {
+      const seen: number[] = [] // cells that have been seen already
+      for(const [idx, cell] of row.entries()) {
+        if(idx !== x && cell.candidates.includes(value)) {
+          const absIndex = y * 9 + idx; // 0-80 index
+          seen.push(absIndex)
           actions.value.push({
-            prevCell: cell, 
-            x: index,
+            prevCell: lodash.cloneDeep(cell), 
+            x: idx,
             y
           })
           cell.candidates = cell.candidates.filter((candidate) => candidate !== value);
         }
       }
       for(const [idx, cell] of col.entries()) {
-        if(cell.candidates.includes(value)) {
+        if(idx !== y && cell.candidates.includes(value)) {
+          const absIndex = idx * 9 + x;
+          seen.push(absIndex)
           actions.value.push({
-            prevCell: cell,
+            prevCell: lodash.cloneDeep(cell),
             x,
             y: idx
           })
@@ -104,13 +134,17 @@ export const useSudokuStore = defineStore('sudoku', () => {
         }
       }
       for(const [idx, cell] of block.entries()) {
-        if(cell.candidates.includes(value)) {
-          const xOffset = (blockNumber % 3) * 3 
-          const yOffset = (Math.floor(blockNumber / 3) * 3)
+        const xOffset = (blockNumber % 3) * 3 
+        const yOffset = (Math.floor(blockNumber / 3) * 3)
+        const cellX = (xOffset + idx % 3)
+        const cellY = (yOffset + (Math.floor(idx / 3)))
+        const cellAbsIdx = cellY * 9 + cellX;
+
+        if((cellX !== x && cellY !== y) && !seen.includes(cellAbsIdx) && cell.candidates.includes(value)) {
           actions.value.push({
-            prevCell: cell,
-            x: (xOffset + idx % 3),
-            y: (yOffset + (Math.floor(idx / 3)))
+            prevCell: lodash.cloneDeep(cell),
+            x: cellX,
+            y: cellY
           })
           cell.candidates = cell.candidates.filter((candidate) => candidate !== value);
         }
@@ -127,13 +161,24 @@ export const useSudokuStore = defineStore('sudoku', () => {
     if(action === undefined || action.prevCell === undefined) {
       return;
     }
+    const prevCell = getCell(action.x, action.y);
+    redoActions.value.push({prevCell: prevCell!, x: action.x, y: action.y})
     puzzle.value.setCell(action.prevCell, action.x, action.y)
     selectedCell.value = { x: action.x, y: action.y}
+    saveGameStateLocal()
+  }
+  function redoAction() {
+    const action = redoActions.value.pop()
+    if(action === undefined || action.prevCell === undefined) {
+      return;
+    }
+    puzzle.value.setCell(action.prevCell, action.x, action.y);
     saveGameStateLocal()
   }
   function resetPuzzle() {
     puzzle.value.rows = puzzle.value.originalPuzzle;
     actions.value = []
+    redoActions.value = []
     selectedCell.value = {x: undefined, y: undefined}
     saveGameStateLocal();
   }
@@ -176,9 +221,6 @@ export const useSudokuStore = defineStore('sudoku', () => {
     usingPencil.value = false,
     autoCandidateMode.value = false
   }
-  const loading = computed(() => {
-    return puzzleId.value === undefined
-  })
   const isPuzzleSolved = computed(() => {
     if(puzzle.value.rows.some((row) => row.some((cell) => cell.value === undefined))) {
       return false;
@@ -199,6 +241,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
     puzzleId, 
     puzzle, 
     actions, 
+    redoActions,
     selectedCell, 
     usingPencil, 
     autoCandidateMode, 
@@ -207,9 +250,11 @@ export const useSudokuStore = defineStore('sudoku', () => {
     saveGameStateLocal, 
     deleteGameStateLocal, 
     getNewPuzzle, 
+    getUserPuzzle,
     setCell, 
     getCell, 
     undoAction, 
+    redoAction,
     resetPuzzle, 
     fillPuzzleCandidates, 
     clearPuzzleCandidates, 
