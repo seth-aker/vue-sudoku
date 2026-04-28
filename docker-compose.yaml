@@ -1,14 +1,30 @@
+version: '3.8'
+
 services: 
+  postgres-db: 
+    image: postgres
+    restart: unless-stopped
+    container_name: sudoku_postgres
+    environment: 
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+    
   backend-api:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "3666:3666"
+    depends_on: 
+      - postgres-db
     restart: unless-stopped
     container_name: sudoku_backend
-    volumes:
-      - database:/data
 
   frontend-spa:
     build: 
@@ -21,6 +37,5 @@ services:
       - backend-api
     container_name: sudoku_frontend
 
-volumes:
-  database: 
-    driver: local
+volumes: 
+  postgres_data:
