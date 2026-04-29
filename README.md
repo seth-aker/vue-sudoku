@@ -7,7 +7,7 @@ However, then I decided to revisit the puzzle generator portion and actually mak
 
 ## The Stack
 - **Cdoku**: The root of the application, written in plain C99, generates the puzzles and passes them to the database.
-- **SQLite**: Fast and simple database
+- **Postgres**: High quality, open source SQL database
 - **Node/Express.js**: Tried and true javascript server library. Implements Controller-Service-Repository architecture.
 - **Vue/Vite**: Simple SPA that displays the puzzles. Vue is lowkey better than React IMO which is why it is my go-to frontend framework.
 
