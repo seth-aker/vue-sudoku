@@ -85,6 +85,8 @@ export const useSudokuStore = defineStore('sudoku', () => {
     puzzleId.value = userPuzzle._id,
     puzzle.value = userPuzzle.puzzle,
     actions.value = userPuzzle.actions
+    gameStore.elapsedSeconds = userPuzzle.time
+    gameStore.saveElapsedSecondsLocal()
     saveGameStateLocal()
     return result
   }

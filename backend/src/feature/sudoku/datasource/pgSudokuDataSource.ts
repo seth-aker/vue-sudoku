@@ -1,6 +1,6 @@
 import { DatabaseError } from "@/core/errors/databaseError";
 import { PuzzleOptions } from "./models/puzzleOptions";
-import { CreatePuzzle, SqlPuzzle, SqlUserPuzzle, SudokuPuzzle, SudokuPuzzleResponse, UpdatePuzzle } from "./models/sudokuPuzzle";
+import { CreatePuzzle, SqlPuzzle, SqlUserPuzzle, SudokuPuzzleResponse, UpdatePuzzle } from "./models/sudokuPuzzle";
 import { SudokuDataSource } from "./sudokuDataSource";
 import { Sql } from "postgres";
 import { PuzzleArray } from "./models/puzzleArray";

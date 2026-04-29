@@ -26,7 +26,7 @@ export interface UserPuzzleDto {
   isCompleted: boolean,
   currentCells: string,
   currentCandidates: string, 
-  time: string,
+  time: number,
   originalCells: string,
   difficulty: Difficulty,
   actions?: number[]
@@ -51,7 +51,7 @@ async function fetchNewPuzzle(options?: SudokuOptions): Promise<ServiceResult<{_
     return {success: false, message: (err as Error).message}
   }
 }
-async function fetchPuzzle(puzzleId: string): Promise<ServiceResult<{_id: string, puzzle:SudokuPuzzle, actions: Action[]}>> {
+async function fetchPuzzle(puzzleId: string): Promise<ServiceResult<{_id: string, puzzle:SudokuPuzzle, actions: Action[], time: number}>> {
   try {
     const res = await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`, {
       method: "GET",
@@ -68,7 +68,7 @@ async function fetchPuzzle(puzzleId: string): Promise<ServiceResult<{_id: string
     const puzzleDto = await res.json() as UserPuzzleDto
     const puzzle = deserializeUserPuzzle(puzzleDto);
     const actions = puzzleDto.actions ? puzzleDto.actions.map(action => deserializeAction(action)) : [] as Action[]
-    return {success: true, body: {puzzle, _id: puzzleDto._id, actions}}
+    return {success: true, body: {puzzle, _id: puzzleDto._id, actions, time: puzzleDto.time}}
   } catch (err) {
     return {success: false, message: (err as Error).message}
   }

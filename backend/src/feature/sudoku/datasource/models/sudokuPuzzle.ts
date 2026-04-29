@@ -40,7 +40,7 @@ export interface SqlUserPuzzle {
   is_completed: boolean,
   current_cells: string,
   current_candidates: string,
-  time: string,
+  time: number,
   original_cells: string,
   difficulty_rating: DifficultyRating,
   difficulty_score: number
@@ -52,7 +52,7 @@ export interface UserPuzzleDto {
   isCompleted: boolean,
   currentCells: string,
   currentCandidates: string, 
-  time: string,
+  time: number,
   originalCells: string,
   difficulty: Difficulty,
   actions: number[]
