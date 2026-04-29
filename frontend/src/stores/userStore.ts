@@ -41,8 +41,11 @@ export const useUserStore = defineStore('userStore', () => {
       storeUsername.value = res.body.username
       role.value = res.body.role
       image.value = res.body.imageUrl
+      currentPuzzleId.value = res.body.currentPuzzleId
+      // This will overide the currentPuzzleId to a new value in the backend
       if(sudokuStore.puzzleId) {
         await sudokuStore.saveGameState()
+        currentPuzzleId.value = sudokuStore.puzzleId
       }
     }
     userLoading.value = false
