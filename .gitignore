@@ -35,4 +35,4 @@ playwright-report/
 
 backend/.env
 
-# db-init/**
+db-init/**
