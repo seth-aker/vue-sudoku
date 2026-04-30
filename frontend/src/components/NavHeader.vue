@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-// import { useAuth0, type AppState, type RedirectLoginOptions } from '@auth0/auth0-vue';
 import Button from './ui/button/Button.vue';
 import { useRoute, useRouter } from 'vue-router';
 import NavigationMenu from './ui/navigation-menu/NavigationMenu.vue';
@@ -155,7 +154,7 @@ const gotoPuzzle = async (difficulty: Difficulty['rating']) => {
         <LoginDrawer v-if="!userStore.isAuthenticated" />
         <Button v-else variant="link" @click="userStore.logout()">Logout</Button>
         <div class="flex py-2">
-          <Label class="pr-2 font-medium">Dark Mode:</Label>
+          <Label class="pr-2 font-medium">Dark Mode: </Label>
           <Switch :model-value="colormode === 'dark'"
             @update:model-value="(val) => val ? colormode = 'dark' : colormode = 'light'" />
         </div>

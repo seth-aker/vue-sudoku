@@ -101,17 +101,20 @@ export function deserializeCell(cellNum: number) {
 }
 
 export function serializeAction(action: Action) {
-  const serializedCell = serializeCell(action.prevCell)
+  const isParentBit = action.isParent ? 1 : 0;
+  const serializedCell = (isParentBit << 22) | (serializeCell(action.prevCell))
   return serializedCell;
 }
 
 export function deserializeAction(num: number) {
+  const isParentBit = (num >> 22) & 1;
   const cell = deserializeCell(num);
   const [_, x, y] = cell.cellId.split('').map(val => Number.parseInt(val))
   const action: Action = {
     x,
     y,
-    prevCell: cell
+    prevCell: cell,
+    isParent: isParentBit === 1 ? true : false
   }
   return action;
 }

@@ -14,7 +14,7 @@ import { useGameStore } from "./gameStore";
 import type { SaveGameOptions } from "./models/gameState";
 import { useUserStore } from "./userStore";
 const blankPuzzle = new SudokuPuzzle(buildBlankPuzzleRows())
-export const useSudokuStore = defineStore('sudoku', () => {
+export const useSudokuStore = defineStore('sudokuStore', () => {
   const gameStore = useGameStore()
   const userStore = useUserStore()
 
@@ -101,7 +101,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
     if(!prevCell) {
       throw new Error(`Cell at r${y}c${x} undefined!`)
     }
-    actions.value.push({prevCell: lodash.cloneDeep(prevCell), x, y})
+    actions.value.push({prevCell: lodash.cloneDeep(prevCell), x, y, isParent: true})
     redoActions.value = []
     puzzle.value.setCell(cell, x, y);
     if(autoCandidateMode.value && !prevCell.value && cell.value) {
@@ -118,7 +118,8 @@ export const useSudokuStore = defineStore('sudoku', () => {
           actions.value.push({
             prevCell: lodash.cloneDeep(cell), 
             x: idx,
-            y
+            y,
+            isParent: false
           })
           cell.candidates = cell.candidates.filter((candidate) => candidate !== value);
         }
@@ -130,7 +131,8 @@ export const useSudokuStore = defineStore('sudoku', () => {
           actions.value.push({
             prevCell: lodash.cloneDeep(cell),
             x,
-            y: idx
+            y: idx,
+            isParent: false
           })
           cell.candidates = cell.candidates.filter((candidate) => candidate !== value);
         }
@@ -146,7 +148,8 @@ export const useSudokuStore = defineStore('sudoku', () => {
           actions.value.push({
             prevCell: lodash.cloneDeep(cell),
             x: cellX,
-            y: cellY
+            y: cellY,
+            isParent: false
           })
           cell.candidates = cell.candidates.filter((candidate) => candidate !== value);
         }
@@ -159,22 +162,60 @@ export const useSudokuStore = defineStore('sudoku', () => {
     return lodash.cloneDeep(cell);
   }
   function undoAction() {
-    const action = actions.value.pop();
-    if(action === undefined || action.prevCell === undefined) {
-      return;
+    let lastAction = actions.value.pop();
+    while(lastAction && !lastAction.isParent) {
+      const prevCell = getCell(lastAction.x, lastAction.y);
+      redoActions.value.push({
+        prevCell: prevCell!, 
+        x: lastAction.x, 
+        y: lastAction.y, 
+        isParent: false
+      })
+      puzzle.value.setCell(lastAction.prevCell, lastAction.x, lastAction.y);
+      lastAction = actions.value.pop()
     }
-    const prevCell = getCell(action.x, action.y);
-    redoActions.value.push({prevCell: prevCell!, x: action.x, y: action.y})
-    puzzle.value.setCell(action.prevCell, action.x, action.y)
-    selectedCell.value = { x: action.x, y: action.y}
+    if(lastAction) {
+      const prevCell = getCell(lastAction.x, lastAction.y);
+      redoActions.value.push({
+        prevCell: prevCell!, 
+        x: lastAction.x, 
+        y: lastAction.y, 
+        isParent: true
+      })
+      puzzle.value.setCell(lastAction.prevCell, lastAction.x, lastAction.y)
+      selectedCell.value = { x: lastAction.x, y: lastAction.y}
+    }
     saveGameStateLocal()
   }
   function redoAction() {
-    const action = redoActions.value.pop()
-    if(action === undefined || action.prevCell === undefined) {
-      return;
+    let lastAction = redoActions.value.pop()
+    if(lastAction) {
+      const prevCell = getCell(lastAction.x, lastAction.y);
+      puzzle.value.setCell(lastAction.prevCell, lastAction.x, lastAction.y);
+      actions.value.push({
+        prevCell: prevCell!, 
+        x: lastAction.x, 
+        y: lastAction.y, 
+        isParent: true
+      });
+      selectedCell.value = { x: lastAction.x, y: lastAction.y };
+      lastAction = redoActions.value.pop()
     }
-    puzzle.value.setCell(action.prevCell, action.x, action.y);
+    while (lastAction && !lastAction.isParent) {
+      const prevCell = getCell(lastAction.x, lastAction.y);
+      puzzle.value.setCell(lastAction.prevCell, lastAction.x, lastAction.y)
+      actions.value.push({
+        prevCell: prevCell!, 
+        x: lastAction.x,
+        y: lastAction.y,
+        isParent: false
+      })
+      lastAction = redoActions.value.pop()
+
+    }
+    if(lastAction) {
+      redoActions.value.push(lastAction)
+    }
     saveGameStateLocal()
   }
   function resetPuzzle() {
