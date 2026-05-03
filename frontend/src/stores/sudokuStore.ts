@@ -104,7 +104,7 @@ export const useSudokuStore = defineStore('sudokuStore', () => {
     actions.value.push({prevCell: lodash.cloneDeep(prevCell), x, y, isParent: true})
     redoActions.value = []
     puzzle.value.setCell(cell, x, y);
-    if(autoCandidateMode.value && !prevCell.value && cell.value) {
+    if(!prevCell.value && cell.value) {
       const row = puzzle.value.rows[y];
       const col = puzzle.value.getColumn(x)!;
       const blockNumber = calcBlockNum(y,x, puzzle.value.rows)
