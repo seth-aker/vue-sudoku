@@ -1,5 +1,5 @@
 import {config } from '@/config/index'
-import type { IUserDto } from '@/stores/userStore'
+import type { IUserDto, IUserStats } from '@/stores/userStore'
 import type { ServiceResult } from './baseService'
 const API_BASE = config.API_BASE_URL
 
@@ -66,6 +66,28 @@ export async function checkSession(): Promise<ServiceResult<IUserDto>> {
       success: false
     }
   } else {
+    return {
+      success: true,
+      body: await res.json()
+    }
+  }
+}
+
+export async function getUserStats(userId: string): Promise<ServiceResult<IUserStats>> {
+  const res = await fetch(`${API_BASE}/users/${userId}/stats`, {
+    method: "GET",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include'
+  })
+  if(!res.ok) {
+    return {
+      message: await res.text(),
+      success: false
+    }
+  }
+  else {
     return {
       success: true,
       body: await res.json()

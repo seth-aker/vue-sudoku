@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useRouter } from 'vue-router';
 import { useSudokuStore } from './sudokuStore';
+import type { Difficulty } from './models/difficulty';
 
 export interface IUserDto {
   id: string,
@@ -11,6 +12,16 @@ export interface IUserDto {
   imageUrl?: string,
   currentPuzzleId?: string,
   role: string
+}
+export type IUserStats = IDifficultyStats[]
+
+export interface IDifficultyStats {
+  rating: Difficulty['rating'],
+  avgScore: number,
+  totalStarted: number,
+  completed: number,
+  avgTimeSec: number,
+  totalTimeSec: number,
 }
 export const useUserStore = defineStore('userStore', () => {
   const sudokuStore = useSudokuStore()
@@ -22,7 +33,7 @@ export const useUserStore = defineStore('userStore', () => {
   const role = ref<string | undefined>();
   const userLoading = ref<boolean>(false);
   const currentPuzzleId = ref<string |undefined>(undefined)
-
+  const userStats = ref<IUserStats | undefined>(undefined);
   const error = ref<string | undefined>(undefined);
 
   const isAuthenticated = computed(() => !!id.value)
@@ -91,7 +102,21 @@ export const useUserStore = defineStore('userStore', () => {
     }
     userLoading.value = false;
   }  
-
+  const getUserStats = async () => {
+    userLoading.value = true
+    if(!id.value) {
+      userLoading.value = false;
+      return;
+    }
+    const res = await userService.getUserStats(id.value);
+    if(!res.success) {
+      error.value = res.message
+    }
+    else {
+      userStats.value = res.body
+    }
+    userLoading.value = false
+  }
   const $reset = () => {
     id.value = undefined,
     storeDisplayName.value = undefined,
@@ -115,6 +140,8 @@ export const useUserStore = defineStore('userStore', () => {
     logout, 
     register, 
     getSelf, 
-    $reset}
+    getUserStats,
+    $reset
+  }
 
 })

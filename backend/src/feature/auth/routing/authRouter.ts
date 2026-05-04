@@ -1,4 +1,3 @@
-// import { UserDataSource } from "@/feature/users/datasource/userDataSource";
 import { Router } from "express";
 import { loginBodyValidator, registerBodyValidator } from "../middleware/validation";
 import { AuthenticationError } from "../errors/authenticationError";

@@ -21,5 +21,13 @@ export function UserRouter(userService: UserService) {
       return res.send(JSON.stringify(user))
     }
   )
+  router.get('/:id/stats',
+    requireSelfOrAdmin,
+    async (req: Request<{id: string}>, res, next) => {
+      const userId = req.params.id;
+      const stats = await userService.getUserStats(userId)
+      return res.json(JSON.stringify(stats))
+    }
+  )
   return router
 }
