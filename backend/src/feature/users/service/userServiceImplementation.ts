@@ -30,6 +30,7 @@ export class UserServiceImplementation extends BaseService implements UserServic
       if(userStats.length < 1) {
         throw new NotFoundError('No user stats found')
       }
+      return userStats
     })
   }
   async deleteUser(userId: string) {
