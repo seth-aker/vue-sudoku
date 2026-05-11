@@ -1,14 +1,22 @@
 services: 
   postgres-db: 
-    image: postgres
+    image: postgres:18-alpine
     restart: unless-stopped
     container_name: sudoku_postgres
     environment: 
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "5432:5432"
+    security_opt: 
+      - no-new-privileges:true
+    cap_drop: 
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_READ_SEARCH
+      - FOWNER
+      - SETGID
+      - SETUID
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
@@ -16,29 +24,65 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks: 
+      - backend_net
     
   backend-api:
+    container_name: sudoku_backend
     build:
-      context: ./backend
+      context: .
+      target: backend
       dockerfile: Dockerfile
     ports:
       - "3666:3666"
+    cap_drop: 
+      - ALL
+    security_opt: 
+      - no-new-privileges:true
+    read_only: true
+    volumes: 
+      - generator_logs:${LOG_DIR}
+    tmpfs:
+      - /tmp:size=64m
     depends_on: 
       postgres-db:
         condition: service_healthy
     restart: unless-stopped
-    container_name: sudoku_backend
+    env_file:
+      - ./backend/.env.production
+    networks:
+      - frontend_net
+      - backend_net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0' 
+          memory: 2G
 
   frontend-spa:
+    container_name: sudoku_frontend
     build: 
-      context: ./frontend
+      context: .
+      target: frontend
       dockerfile: Dockerfile
     ports:
       - "8081:80"
+    cap_drop: 
+      - ALL
+    security_opt: 
+      - no-new-privileges:true
     restart: unless-stopped
     depends_on:
       - backend-api
-    container_name: sudoku_frontend
+    networks:
+      - frontend_net
+
+networks:
+  frontend_net:
+    driver: bridge
+  backend_net:
+    driver: bridge
 
 volumes: 
   postgres_data:
+  generator_logs:
