@@ -1,15 +1,20 @@
 # BUILD STAGE
 FROM node:24-bookworm AS build
 
+ARG DEPLOY_MODE
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /apps
 
 COPY . ./sudoku
-
+COPY ./frontend/.env.production ./sudoku/frontend/
 WORKDIR /apps/sudoku 
-
-RUN pnpm i && pnpm build
+RUN pnpm i
+RUN if [ "$DEPLOY_MODE" = "test" ]; then \
+      pnpm run build:test; \
+    else \
+      pnpm run build; \
+    fi
 
 # BACKEND
 FROM node:24-alpine AS backend

@@ -34,6 +34,8 @@ services:
       context: .
       target: backend
       dockerfile: Dockerfile
+      args:
+      - DEPLOY_MODE=${DEPLOY_MODE}
     ports:
       - "3666:3666"
     cap_drop: 
@@ -72,6 +74,8 @@ services:
       context: .
       target: frontend
       dockerfile: Dockerfile
+      args:
+        - DEPLOY_MODE=${DEPLOY_MODE}
     ports:
       - "8081:8080"
     cap_drop: 

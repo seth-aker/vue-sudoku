@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "bash start.sh DEV",
     "build": "bash start.sh PROD",
+    "build:test": "bash start.sh TEST",
     "install": "bash install.sh"
   },
   "keywords": [],
