@@ -24,15 +24,19 @@ RUN apk update && apk add curl && \
 
 WORKDIR /sudoku
 
+RUN mkdir -p /sudoku/logs && chown -R node:node /sudoku/logs
+
 COPY --from=build /apps/sudoku/backend/dist ./
 COPY --from=build /apps/sudoku/backend/package.json .
-COPY --from=build /apps/sudoku/backend/puzzle_generator_app .
+COPY --chown=node:node --from=build /apps/sudoku/backend/puzzle_generator_app .
 
 RUN npm i --omit=dev
 
 EXPOSE 3666
 
 ENV NODE_ENV=production
+
+USER node
 
 CMD [ "node", "index.js" ]
 

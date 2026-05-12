@@ -43,8 +43,12 @@ services:
     security_opt: 
       - no-new-privileges:true
     read_only: true
+    user: node:node
     volumes: 
-      - generator_logs:${LOG_DIR}
+      - type: volume
+        source: generator_logs
+        target: ${LOG_DIR}
+        read_only: false
     tmpfs:
       - /tmp:size=64m
     depends_on: 
