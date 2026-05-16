@@ -14,13 +14,13 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  *   EXPO_PUBLIC_API_BASE_URL="http://192.168.1.50:3666/api" pnpm start
  */
 const PROD_API_BASE_URL = 'https://sudoku.aker-bergeron.dev/api';
-const DEV_API_BASE_URL_DEFAULT = 'http://localhost:3666/api';
-
-function resolveApiBaseUrl(): string {
+function resolveApiBaseUrl(): string | undefined {
   const fromEnv = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
   if (fromEnv) return fromEnv;
   if (process.env.NODE_ENV === 'production') return PROD_API_BASE_URL;
-  return DEV_API_BASE_URL_DEFAULT;
+  // Dev with no override: resolved per-platform at runtime in
+  // src/config/env.ts (Android emulator needs 10.0.2.2, not localhost).
+  return undefined;
 }
 
 export default ({ config }: ConfigContext): ExpoConfig => ({

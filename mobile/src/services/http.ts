@@ -35,8 +35,10 @@ export async function apiFetch<T>(
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
+  const url = `${env.API_BASE_URL}${path}`;
   try {
-    const res = await fetch(`${env.API_BASE_URL}${path}`, {
+    if (__DEV__) console.log(`[api] ${method} ${url}`);
+    const res = await fetch(url, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -59,6 +61,10 @@ export async function apiFetch<T>(
     const parsed = text ? (JSON.parse(text) as T) : undefined;
     return { success: true, body: parsed };
   } catch (err) {
-    return { success: false, message: (err as Error).message };
+    // Network-level failure (host unreachable, cleartext blocked, etc.) — the
+    // request never reached the server, so include the URL for diagnosis.
+    const message = `${(err as Error).message} (${url})`;
+    if (__DEV__) console.warn(`[api] request failed: ${message}`);
+    return { success: false, message };
   }
 }

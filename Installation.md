@@ -28,8 +28,11 @@ EXPO_PUBLIC_API_BASE_URL="http://<YOUR_LAN_IP>:3666/api" pnpm start
 ```
 
 Open with Expo Go (scan the QR) or press `a` (Android emulator) / `i` (iOS
-simulator). Without `EXPO_PUBLIC_API_BASE_URL` it defaults to
-`http://localhost:3666/api` (only reachable from the iOS simulator / web).
+simulator). With no `EXPO_PUBLIC_API_BASE_URL` the dev fallback is
+platform-aware: **Android emulator → `http://10.0.2.2:3666/api`** (the host
+loopback alias; `localhost` would be the emulator itself), iOS simulator / web
+→ `http://localhost:3666/api`. A **physical device** must set
+`EXPO_PUBLIC_API_BASE_URL` to your machine's LAN IP.
 
 ### Checks
 

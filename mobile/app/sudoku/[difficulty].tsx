@@ -50,7 +50,15 @@ export default function SudokuScreen() {
       if (hydrated && useGameStore.getState().difficulty?.rating === difficulty) {
         useGameStore.getState().startTimer();
       } else {
-        await newPuzzle(difficulty);
+        const res = await newPuzzle(difficulty);
+        if (!res.success) {
+          Toast.show({
+            type: 'error',
+            text1: 'Could not load puzzle',
+            text2: res.message,
+            visibilityTime: 6000,
+          });
+        }
       }
     };
     void init();

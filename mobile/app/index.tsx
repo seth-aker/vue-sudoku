@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import { AuthModal } from '@/src/components/AuthModal';
 import type { DifficultyRating } from '@/src/domain';
@@ -37,6 +38,13 @@ export default function HomeScreen() {
     if (res.success) {
       const rating = useGameStore.getState().difficulty?.rating ?? 'beginner';
       router.push(`/sudoku/${rating}`);
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Could not load your puzzle',
+        text2: res.message,
+        visibilityTime: 6000,
+      });
     }
   };
 

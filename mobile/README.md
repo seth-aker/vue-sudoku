@@ -29,8 +29,12 @@ pnpm install
 EXPO_PUBLIC_API_BASE_URL="http://<YOUR_LAN_IP>:3666/api" pnpm start
 ```
 
-Press `a` / `i` for Android / iOS, or scan the QR with Expo Go. Default base
-URL (no env) is `http://localhost:3666/api`.
+Press `a` / `i` for Android / iOS, or scan the QR with Expo Go.
+
+Dev base URL when `EXPO_PUBLIC_API_BASE_URL` is unset is platform-aware:
+Android emulator → `http://10.0.2.2:3666/api` (host loopback alias), iOS
+simulator / web → `http://localhost:3666/api`. Physical devices **must** set
+`EXPO_PUBLIC_API_BASE_URL` to the dev machine's LAN IP.
 
 ## Checks
 
