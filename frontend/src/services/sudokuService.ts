@@ -8,21 +8,21 @@ import type { Action } from "@/stores/models/action";
 import type { ServiceResult } from "./baseService";
 const {API_BASE_URL} = config;
 export interface NewPuzzleDto {
-  _id: string,
+  puzzleId: string,
   cells: string;
   candidates?: string
   difficulty: Difficulty
 }
 export interface UpdateUserPuzzleDto {
-  _id: string,
+  puzzleId: string,
   cells: string,
   candidates: string,
   time: number
   isCompleted: boolean,
   actions: number[]
-} 
+}
 export interface UserPuzzleDto {
-  _id: string,
+  puzzleId: string,
   isCompleted: boolean,
   currentCells: string,
   currentCandidates: string, 
@@ -31,7 +31,7 @@ export interface UserPuzzleDto {
   difficulty: Difficulty,
   actions?: number[]
 }
-async function fetchNewPuzzle(options?: SudokuOptions): Promise<ServiceResult<{_id: string, puzzle: SudokuPuzzle}>> {
+async function fetchNewPuzzle(options?: SudokuOptions): Promise<ServiceResult<{puzzleId: string, puzzle: SudokuPuzzle}>> {
   const fetchOptions: RequestInit = {
     method: "GET",
     headers: {"Content-Type": "application/json"},
@@ -46,12 +46,12 @@ async function fetchNewPuzzle(options?: SudokuOptions): Promise<ServiceResult<{_
     }
     const puzzleDTO = await response.json() as NewPuzzleDto
     const puzzle = deserializePuzzle(puzzleDTO)
-    return {body: {puzzle, _id: puzzleDTO._id}, success: true}
+    return {body: {puzzle, puzzleId: puzzleDTO.puzzleId}, success: true}
   } catch (err) {
     return {success: false, message: (err as Error).message}
   }
 }
-async function fetchPuzzle(puzzleId: string): Promise<ServiceResult<{_id: string, puzzle:SudokuPuzzle, actions: Action[], time: number}>> {
+async function fetchPuzzle(puzzleId: string): Promise<ServiceResult<{puzzleId: string, puzzle:SudokuPuzzle, actions: Action[], time: number}>> {
   try {
     const res = await fetch(`${API_BASE_URL}/sudoku/${puzzleId}`, {
       method: "GET",
@@ -68,7 +68,7 @@ async function fetchPuzzle(puzzleId: string): Promise<ServiceResult<{_id: string
     const puzzleDto = await res.json() as UserPuzzleDto
     const puzzle = deserializeUserPuzzle(puzzleDto);
     const actions = puzzleDto.actions ? puzzleDto.actions.map(action => deserializeAction(action)) : [] as Action[]
-    return {success: true, body: {puzzle, _id: puzzleDto._id, actions, time: puzzleDto.time}}
+    return {success: true, body: {puzzle, puzzleId: puzzleDto.puzzleId, actions, time: puzzleDto.time}}
   } catch (err) {
     return {success: false, message: (err as Error).message}
   }
@@ -76,7 +76,7 @@ async function fetchPuzzle(puzzleId: string): Promise<ServiceResult<{_id: string
 async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle, actions: Action[], elapsedTime: number, isCompleted: boolean, options: SaveGameOptions): Promise<ServiceResult<void>> {
   const puzzleDto = serializePuzzle(puzzleId, puzzle);
   const updateDto: UpdateUserPuzzleDto = {
-    _id: puzzleDto._id,
+    puzzleId: puzzleDto.puzzleId,
     cells: puzzleDto.cells,
     candidates: puzzleDto.candidates!,
     time: elapsedTime,

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { loginBodyValidator, registerBodyValidator } from "../middleware/validation";
 import { AuthenticationError } from "../errors/authenticationError";
 import { AuthenticationService } from "../service/authenticationService";
+import { signToken } from "../handler/jwt";
 
 declare module 'express-session' {
     interface SessionData {
@@ -32,11 +33,22 @@ export function AuthRouter(authService: AuthenticationService) {
         role: user.role
       }
 
-      req.session.save((err) => {
+      req.session.save(async (err) => {
         if(err) {
           return next(err)
         }
-        return res.json(user)
+        // Additive: web ignores `token` and uses the session cookie; the
+        // mobile client stores `token` and sends it as a bearer header.
+        try {
+          const token = await signToken({
+            id: user.id,
+            username: user.username,
+            role: user.role,
+          })
+          return res.json({ ...user, token })
+        } catch (tokenErr) {
+          return next(tokenErr)
+        }
       })
     })
   })
@@ -72,16 +84,26 @@ export function AuthRouter(authService: AuthenticationService) {
         role: 'user'
       }
 
-      req.session.save((err) => {
+      req.session.save(async (err) => {
         if(err) {
-          next(err)
+          return next(err)
         }
-        res.status(201).send({
-          id: userId,
-          displayName: req.body.displayName,
-          username: req.body.username,
-          role: 'user'
-        })
+        try {
+          const token = await signToken({
+            id: userId,
+            username: req.body.username,
+            role: 'user',
+          })
+          res.status(201).send({
+            id: userId,
+            displayName: req.body.displayName,
+            username: req.body.username,
+            role: 'user',
+            token
+          })
+        } catch (tokenErr) {
+          return next(tokenErr)
+        }
       })
     })
   })

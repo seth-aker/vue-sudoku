@@ -30,6 +30,9 @@ export class UserServiceImplementation extends BaseService implements UserServic
       if(userStats.length < 1) {
         throw new NotFoundError('No user stats found')
       }
+      // Bug fix (pre-existing): stats were fetched but never returned, so
+      // GET /users/:id/stats responded with undefined. See BACKEND_CHANGES §4.
+      return userStats
     })
   }
   async deleteUser(userId: string) {

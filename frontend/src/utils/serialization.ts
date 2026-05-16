@@ -59,7 +59,7 @@ export function serializePuzzle(id: string, puzzle: SudokuPuzzle) {
   // remove the last :
   candidateStr = candidateStr.substring(0, candidateStr.length - 1);
   const dto = {
-    _id: id,
+    puzzleId: id,
     cells: cellStr,
     candidates: candidateStr,
     difficulty: puzzle.options.difficulty

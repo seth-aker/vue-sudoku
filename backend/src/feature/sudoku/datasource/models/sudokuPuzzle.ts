@@ -2,18 +2,18 @@
 import { DifficultyRating, type Difficulty } from "./difficulty.ts";
 
 export interface SudokuPuzzle {
-  _id: string,
+  puzzleId: string,
   cells: string;
   candidates?: string
   difficulty: Difficulty,
 }
 
-export interface CreatePuzzle extends Omit<SudokuPuzzle, '_id'> {
+export interface CreatePuzzle extends Omit<SudokuPuzzle, 'puzzleId'> {
   solvedCells: string;
 }
 
 export interface UpdatePuzzle {
-  _id: string,
+  puzzleId: string,
   cells: string,
   candidates: string,
   time: number,
@@ -48,7 +48,7 @@ export interface SqlUserPuzzle {
 }
 
 export interface UserPuzzleDto {
-  _id: string,
+  puzzleId: string,
   isCompleted: boolean,
   currentCells: string,
   currentCandidates: string, 

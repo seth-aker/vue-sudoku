@@ -7,10 +7,11 @@ export const requireSelfOrAdmin = async (req: Request<{id: string}>, res: Respon
   if(!z.string().uuid().safeParse(userId).success) {
     return res.sendStatus(400)
   }
-  if(!req.session.user) {
+  // `req.user` is resolved from session or bearer JWT by resolveIdentity.
+  if(!req.user) {
     return res.sendStatus(401)
   }
-  if(req.session.user.id !== userId) {
+  if(req.user.id !== userId) {
     return requireAdmin(req, res, next)
   }
   return next()

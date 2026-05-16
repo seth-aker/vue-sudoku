@@ -59,7 +59,7 @@ export const useSudokuStore = defineStore('sudokuStore', () => {
     
     if(response.success && response.body) {
       $patch({
-        puzzleId: response.body._id,
+        puzzleId: response.body.puzzleId,
         puzzle: response.body.puzzle,
         selectedCell: {
           x: undefined,
@@ -82,7 +82,7 @@ export const useSudokuStore = defineStore('sudokuStore', () => {
     if(!result.success || !userPuzzle) {
       return result
     }
-    puzzleId.value = userPuzzle._id,
+    puzzleId.value = userPuzzle.puzzleId,
     puzzle.value = userPuzzle.puzzle,
     actions.value = userPuzzle.actions
     gameStore.elapsedSeconds = userPuzzle.time

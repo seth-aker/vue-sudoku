@@ -16,15 +16,18 @@ export const registerBodySchema = z.object({
   displayName: z.string().optional()
 })
 
+// Identity is resolved from the session OR a bearer JWT by the global
+// `resolveIdentity` middleware; these guards check `req.user` so both the web
+// (session) and mobile (JWT) clients are supported uniformly.
 export const requireLoggedin = (req: Request, res: Response, next: NextFunction) => {
-  if(req.session.user) {
+  if(req.user) {
     return next()
   }
   return res.sendStatus(401)
 }
 
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if(req.session.user && req.session.user.role === 'admin') {
+  if(req.user && req.user.role === 'admin') {
     return next()
   }
   return res.sendStatus(403)

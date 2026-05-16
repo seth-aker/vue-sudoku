@@ -7,7 +7,7 @@ export function UserRouter(userService: UserService) {
   const router = Router()
 
   router.get("/me", requireLoggedin, async (req, res, next) => {
-    const userId = req.session.user!.id // requireLoggedIn ensures this exists
+    const userId = req.user!.id // requireLoggedin ensures this exists (session or JWT)
     const user = await userService.getUser(userId);
     return res.status(200).json(user)
   })
@@ -26,7 +26,8 @@ export function UserRouter(userService: UserService) {
     async (req: Request<{id: string}>, res, next) => {
       const userId = req.params.id;
       const stats = await userService.getUserStats(userId)
-      return res.json(JSON.stringify(stats))
+      // Fixed: previously double-encoded (res.json(JSON.stringify(stats))).
+      return res.json(stats)
     }
   )
   return router

@@ -5,6 +5,7 @@ import cors from 'cors'
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { sessionHandler } from './feature/auth/handler/sessionHandler';
+import { resolveIdentity } from './feature/auth/middleware/identity';
 import prexit from 'prexit';
 const app = express();
 
@@ -31,6 +32,9 @@ if(process.env.NODE_ENV === 'production') {
 }
 
 app.use(sessionHandler())
+// Resolves req.user from the session (web) or a bearer JWT (mobile) before
+// any route guard runs. Additive — does not affect the existing session flow.
+app.use(resolveIdentity)
 configureRouting(app)
 
 const server = app.listen(config.port, () => {
