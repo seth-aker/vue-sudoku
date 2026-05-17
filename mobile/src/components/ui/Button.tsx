@@ -1,7 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps, type ViewStyle, type TextStyle } from 'react-native'
 import { useTheme } from '@/theme'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'brand' | 'link'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 export interface ButtonProps extends Omit<PressableProps, 'children' | 'style'> {
@@ -77,6 +77,12 @@ function variantStyles(
       return { bg: c.destructive, pressedBg: c.destructive, fg: c.destructiveForeground, border: c.destructive }
     case 'ghost':
       return { bg: 'transparent', pressedBg: c.muted, fg: c.foreground, border: 'transparent' }
+    case 'brand':
+      // Orange-400 — used for the login submit and pencil-active toggle in the web app.
+      return { bg: c.brand, pressedBg: c.brandActive, fg: '#000000', border: c.brand }
+    case 'link':
+      // Text-only "button" with no background; foreground is the link/foreground color.
+      return { bg: 'transparent', pressedBg: 'transparent', fg: c.foreground, border: 'transparent' }
   }
 }
 

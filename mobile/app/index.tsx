@@ -1,25 +1,28 @@
 import { useState } from 'react'
-import { View, Text, Pressable } from 'react-native'
+import { Pressable, ScrollView, Text, View } from 'react-native'
 import { Link, useRouter } from 'expo-router'
 import { Moon, Sun, SunMoon } from 'lucide-react-native'
 import { makeStyles, useTheme, type ThemeMode } from '@/theme'
-import { PUZZLE_DIFFICULTY_ROUTES } from '@/config'
+import { type DifficultyRoute } from '@/config'
 import { Button } from '@/components/ui'
 import { AuthSheet } from '@/components/auth'
 import { selectIsAuthenticated, toast, useGameStore, useUserStore } from '@/stores'
 
 /**
- * Home / difficulty picker. Shows:
- *  - greeting + sign-in/out
- *  - small theme toggle (light → dark → system cycle)
- *  - Resume button when the signed-in user has a currentPuzzleId
- *  - difficulty cards
- *  - About link
+ * Home screen. Mirrors HomeView.vue:
+ *   - centered Card
+ *   - title "Sudoku" (text-4xl)
+ *   - description "Pick a difficulty to get started"
+ *   - vertically stacked equal-width (w-52 = 208px) buttons:
+ *       Resume Game (only when authed AND there's a currentPuzzleId)
+ *       Beginner / Easy / Medium / Hard (disabled) / Impossible (disabled)
+ *
+ * Sign-in/out + theme toggle live above the card in a small top bar.
  */
 export default function HomeScreen() {
   const styles = useStyles()
-  const { theme, mode, setMode } = useTheme()
   const router = useRouter()
+  const { theme, mode, setMode } = useTheme()
 
   const isAuthed = useUserStore(selectIsAuthenticated)
   const displayName = useUserStore((s) => s.displayName ?? s.username)
@@ -51,64 +54,76 @@ export default function HomeScreen() {
     router.push({ pathname: '/sudoku/[difficulty]', params: { difficulty: rating } })
   }
 
+  const goToPuzzle = (difficulty: DifficultyRoute) => {
+    router.push({ pathname: '/sudoku/[difficulty]', params: { difficulty } })
+  }
+
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.heading}>Sudoku Chive</Text>
-          <Text style={styles.subhead}>
-            {isAuthed && displayName ? `Hi, ${displayName}` : 'Pick a difficulty'}
-          </Text>
+    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      {/* Top bar — logo on the left, theme + auth on the right. */}
+      <View style={styles.topBar}>
+        <Text style={styles.logo}>Sudoku</Text>
+        <View style={styles.topBarRight}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Theme: ${mode}. Tap to cycle.`}
+            onPress={cycleTheme}
+            style={({ pressed }) => [
+              styles.iconBtn,
+              {
+                backgroundColor: pressed ? theme.colors.muted : 'transparent',
+                borderColor: theme.colors.border,
+              },
+            ]}
+          >
+            <ThemeIcon mode={mode} color={theme.colors.foreground} />
+          </Pressable>
+          {isAuthed ? (
+            <Button
+              label="Sign out"
+              variant="link"
+              size="sm"
+              onPress={async () => {
+                await logout()
+                toast.info('Signed out')
+              }}
+            />
+          ) : (
+            <Button label="Sign in" variant="link" size="sm" onPress={() => setAuthOpen(true)} />
+          )}
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Theme: ${mode}. Tap to cycle.`}
-          onPress={cycleTheme}
-          style={({ pressed }) => [
-            styles.iconBtn,
-            {
-              backgroundColor: pressed ? theme.colors.muted : 'transparent',
-              borderColor: theme.colors.border,
-            },
-          ]}
-        >
-          <ThemeIcon mode={mode} color={theme.colors.foreground} />
-        </Pressable>
-        {isAuthed ? (
-          <Button
-            label="Sign out"
-            variant="ghost"
-            size="sm"
-            onPress={async () => {
-              await logout()
-              toast.info('Signed out')
-            }}
-          />
-        ) : (
-          <Button label="Sign in" variant="secondary" size="sm" onPress={() => setAuthOpen(true)} />
-        )}
       </View>
 
-      {isAuthed && currentPuzzleId ? (
-        <View style={styles.resumeRow}>
-          <Button
-            label={gameLoading ? 'Resuming…' : 'Resume puzzle'}
-            variant="primary"
-            onPress={onResume}
-            loading={gameLoading}
-            fullWidth
-          />
-        </View>
-      ) : null}
+      <View style={styles.cardWrap}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Sudoku</Text>
+          <Text style={styles.cardDescription}>
+            {isAuthed && displayName
+              ? `Welcome back, ${displayName}`
+              : 'Pick a difficulty to get started'}
+          </Text>
 
-      <View style={styles.list}>
-        {PUZZLE_DIFFICULTY_ROUTES.map((d) => (
-          <Link key={d} href={{ pathname: '/sudoku/[difficulty]', params: { difficulty: d } }} asChild>
-            <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
-              <Text style={styles.cardTitle}>{d}</Text>
-            </Pressable>
-          </Link>
-        ))}
+          <View style={styles.buttonStack}>
+            {isAuthed && currentPuzzleId ? (
+              <Button
+                label={gameLoading ? 'Loading…' : 'Resume Game'}
+                onPress={onResume}
+                loading={gameLoading}
+                style={styles.cardButton}
+              />
+            ) : null}
+            <Button label="Beginner" onPress={() => goToPuzzle('beginner')} style={styles.cardButton} />
+            <Button label="Easy" onPress={() => goToPuzzle('easy')} style={styles.cardButton} />
+            <Button label="Medium" onPress={() => goToPuzzle('medium')} style={styles.cardButton} />
+            <Button label="Hard (Coming Soon!)" disabled onPress={() => {}} style={styles.cardButton} />
+            <Button
+              label="Impossible (Coming Soon!)"
+              disabled
+              onPress={() => {}}
+              style={styles.cardButton}
+            />
+          </View>
+        </View>
       </View>
 
       <Link href="/about" asChild>
@@ -118,7 +133,7 @@ export default function HomeScreen() {
       </Link>
 
       <AuthSheet visible={authOpen} onClose={() => setAuthOpen(false)} />
-    </View>
+    </ScrollView>
   )
 }
 
@@ -129,53 +144,32 @@ function ThemeIcon({ mode, color }: { mode: ThemeMode; color: string }) {
 }
 
 const useStyles = makeStyles((t) => ({
-  container: {
+  scroll: {
     flex: 1,
-    padding: t.spacing[6],
     backgroundColor: t.colors.background,
   },
-  headerRow: {
+  content: {
+    paddingBottom: t.spacing[8],
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: t.spacing[4],
+    paddingTop: t.spacing[4],
+    paddingBottom: t.spacing[3],
+    borderBottomWidth: 1,
+    borderBottomColor: t.colors.border,
+  },
+  topBarRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: t.spacing[2],
-    marginTop: t.spacing[6],
-    marginBottom: t.spacing[6],
   },
-  heading: {
+  logo: {
     fontSize: t.text['3xl'],
     fontWeight: '700',
-    color: t.colors.foreground,
-  },
-  subhead: {
-    fontSize: t.text.base,
-    color: t.colors.mutedForeground,
-    marginTop: t.spacing[1],
-  },
-  resumeRow: {
-    marginBottom: t.spacing[5],
-  },
-  list: {
-    gap: t.spacing[3],
-  },
-  card: {
-    padding: t.spacing[5],
-    borderRadius: t.radius.lg,
-    backgroundColor: t.colors.card,
-    borderWidth: 1,
-    borderColor: t.colors.border,
-  },
-  cardPressed: {
-    backgroundColor: t.colors.secondary,
-  },
-  cardTitle: {
-    fontSize: t.text.xl,
-    color: t.colors.cardForeground,
-    textTransform: 'capitalize',
-  },
-  aboutLink: {
-    marginTop: t.spacing[8],
-    alignSelf: 'center',
-    padding: t.spacing[2],
+    color: t.colors.brand,         // orange-400 (web parity)
   },
   iconBtn: {
     width: 36,
@@ -184,5 +178,46 @@ const useStyles = makeStyles((t) => ({
     justifyContent: 'center',
     borderRadius: t.radius.md,
     borderWidth: 1,
+  },
+  cardWrap: {
+    alignItems: 'center',
+    paddingHorizontal: t.spacing[6],
+    paddingTop: t.spacing[12],
+  },
+  card: {
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: t.colors.border,
+    borderRadius: t.radius.xl,
+    backgroundColor: t.colors.card,
+    paddingVertical: t.spacing[6],
+    paddingHorizontal: t.spacing[4],
+    alignItems: 'center',
+  },
+  cardTitle: {
+    fontSize: t.text['4xl'],
+    fontWeight: '700',
+    color: t.colors.foreground,
+  },
+  cardDescription: {
+    fontSize: t.text.sm,
+    color: t.colors.mutedForeground,
+    marginTop: t.spacing[1],
+    marginBottom: t.spacing[5],
+    textAlign: 'center',
+  },
+  buttonStack: {
+    alignItems: 'center',
+    width: '100%',
+    gap: t.spacing[1],
+  },
+  cardButton: {
+    width: 208,            // w-52 in Tailwind
+  },
+  aboutLink: {
+    marginTop: t.spacing[8],
+    alignSelf: 'center',
+    padding: t.spacing[2],
   },
 }))

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { View } from 'react-native'
-import { Button, Input } from '@/components/ui'
+import { Text, View } from 'react-native'
+import { Button, Input, PasswordInput } from '@/components/ui'
 import { toast, useUserStore } from '@/stores'
 import { registerSchema } from '@/validation'
 import { makeStyles } from '@/theme'
@@ -48,6 +48,11 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
 
   return (
     <View style={styles.form}>
+      <View style={styles.legendRow}>
+        <Text style={styles.legend}>Register</Text>
+        <View style={styles.separator} />
+      </View>
+
       <Input
         label="Username"
         value={username}
@@ -68,20 +73,20 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         errorText={errors.displayName}
         editable={!loading}
       />
-      <Input
+      <PasswordInput
         label="Password"
         value={password}
         onChangeText={setPassword}
-        autoCapitalize="none"
-        autoCorrect={false}
-        secureTextEntry
         textContentType="newPassword"
         autoComplete="new-password"
         helperText="8+ chars, 1 uppercase, 1 lowercase, 1 digit, 1 special character"
         errorText={errors.password}
         editable={!loading}
       />
-      <Button label="Create account" variant="primary" loading={loading} onPress={onSubmit} fullWidth />
+
+      <View style={styles.actions}>
+        <Button label="Submit" variant="brand" loading={loading} onPress={onSubmit} style={styles.submit} />
+      </View>
     </View>
   )
 }
@@ -89,5 +94,26 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
 const useStyles = makeStyles((t) => ({
   form: {
     gap: t.spacing[3],
+  },
+  legendRow: {
+    flexDirection: 'column',
+  },
+  legend: {
+    fontSize: t.text.base,
+    fontWeight: '600',
+    color: t.colors.foreground,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: t.colors.border,
+    marginTop: t.spacing[2],
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: t.spacing[2],
+  },
+  submit: {
+    width: 80,
   },
 }))

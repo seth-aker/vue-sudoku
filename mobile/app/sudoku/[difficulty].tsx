@@ -1,7 +1,7 @@
-import { useCallback, useEffect } from 'react'
-import { AppState, type AppStateStatus, Pressable, ScrollView, Text, View } from 'react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { Alert, AppState, type AppStateStatus, Modal, Pressable, ScrollView, Text, View } from 'react-native'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
-import { Pause, Play } from 'lucide-react-native'
+import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import { isDifficultyRoute } from '@/config'
 import { makeStyles, useTheme } from '@/theme'
 import {
@@ -9,11 +9,9 @@ import {
   selectIsPuzzleSolved,
   toast,
   useGameStore,
-  useUserStore,
 } from '@/stores'
 import {
   LoadingOverlay,
-  Numpad,
   PauseMenu,
   SolvedOverlay,
   SudokuBoard,
@@ -25,8 +23,13 @@ import {
  * a 1-second interval drives the timer; AppState background and route-leave
  * both trigger an immediate save.
  *
- * The screen owns the timer interval (not the store) so React effect
- * lifecycles can mount/unmount it cleanly across navigation.
+ * Header layout matches the Vue web's Standard.vue:
+ *
+ *   ┌──────────────────────────────────────────────────────────┐
+ *   │ Easy   12:34   [▶/⏸]   [?]    [Reset]                    │
+ *   └──────────────────────────────────────────────────────────┘
+ *
+ * Reset opens a confirmation dialog. (?) opens a small instructions modal.
  */
 export default function SudokuScreen() {
   const router = useRouter()
@@ -37,14 +40,16 @@ export default function SudokuScreen() {
   const loading = useGameStore((s) => s.loading)
   const status = useGameStore((s) => s.status)
   const elapsed = useGameStore((s) => s.elapsedSeconds)
-  const puzzleId = useGameStore((s) => s.puzzleId)
   const isSolved = useGameStore(selectIsPuzzleSolved)
   const getNewPuzzle = useGameStore((s) => s.getNewPuzzle)
   const saveGameState = useGameStore((s) => s.saveGameState)
   const pauseGame = useGameStore((s) => s.pauseGame)
   const resumeGame = useGameStore((s) => s.resumeGame)
   const tickSecond = useGameStore((s) => s.tickSecond)
+  const resetPuzzle = useGameStore((s) => s.resetPuzzle)
   const reset = useGameStore((s) => s.reset)
+
+  const [helpOpen, setHelpOpen] = useState(false)
 
   // ─── route param validation ────────────────────────────────────────────────
   useEffect(() => {
@@ -56,7 +61,6 @@ export default function SudokuScreen() {
   // ─── fetch puzzle on mount unless one is already loaded for this difficulty ───
   // A "Resume" navigation from Home pre-loads the puzzle via getUserPuzzle and
   // then routes here; we DON'T want to clobber it with a fresh getNewPuzzle.
-  // Reading from the store directly (no ref) keeps this resilient to remounts.
   useEffect(() => {
     if (!isDifficultyRoute(params.difficulty)) return
     const s = useGameStore.getState()
@@ -68,7 +72,7 @@ export default function SudokuScreen() {
     })
   }, [params.difficulty, getNewPuzzle])
 
-  // ─── 1-second timer driving elapsedSeconds + 10s auto-save ────────────────
+  // ─── 1-second timer + 10s auto-save ────────────────────────────────────────
   useEffect(() => {
     if (status !== 'playing') return
     const id = setInterval(() => tickSecond(), 1000)
@@ -86,46 +90,75 @@ export default function SudokuScreen() {
       })
       return () => {
         sub.remove()
-        // Final save on leave — fire-and-forget.
         void saveGameState()
       }
     }, [saveGameState]),
   )
 
+  const onReset = () => {
+    Alert.alert(
+      'Reset puzzle?',
+      'This action cannot be undone, are you sure you want to continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Reset', style: 'destructive', onPress: () => resetPuzzle() },
+      ],
+    )
+  }
+
   if (!isDifficultyRoute(params.difficulty)) {
     return null
   }
 
+  const isPlaying = status === 'playing'
+
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      {/* Header — single-row strip with title, timer, pause/play, help, reset.
+          Light gray background in light mode; theme.accent in dark mode (matches web's
+          `bg-gray-50 dark:bg-accent`). */}
       <View style={styles.header}>
-        <Text style={styles.title}>{params.difficulty}</Text>
-        <View style={styles.headerRight}>
-          <Text style={styles.timer}>{formatElapsed(elapsed)}</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={status === 'playing' ? 'Pause' : 'Resume'}
-            onPress={() => (status === 'playing' ? pauseGame() : resumeGame())}
-            style={({ pressed }) => [
-              styles.pauseBtn,
-              { backgroundColor: pressed ? theme.colors.muted : theme.colors.card },
-            ]}
-          >
-            {status === 'playing' ? (
-              <Pause size={20} color={theme.colors.foreground} />
-            ) : (
-              <Play size={20} color={theme.colors.foreground} />
-            )}
-          </Pressable>
-        </View>
+        <Text style={styles.title}>
+          {params.difficulty.charAt(0).toUpperCase() + params.difficulty.substring(1)}
+        </Text>
+        <Text style={styles.timer}>{formatElapsed(elapsed)}</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={isPlaying ? 'Pause' : 'Resume'}
+          onPress={() => (isPlaying ? pauseGame() : resumeGame())}
+          style={({ pressed }) => [
+            styles.headerIconBtn,
+            { opacity: pressed ? 0.6 : 1 },
+          ]}
+        >
+          <MaterialIcons
+            name={isPlaying ? 'pause' : 'play-arrow'}
+            size={22}
+            color={theme.colors.foreground}
+          />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Help"
+          onPress={() => setHelpOpen(true)}
+          style={({ pressed }) => [styles.headerIconBtn, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <MaterialIcons name="help-outline" size={22} color={theme.colors.foreground} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Reset puzzle"
+          onPress={onReset}
+          style={({ pressed }) => [styles.resetBtn, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Text style={styles.resetText}>Reset</Text>
+        </Pressable>
       </View>
 
-      <SudokuBoard style={{ marginVertical: theme.spacing[4] }} />
-
-      <View style={{ height: theme.spacing[3] }} />
-      <Numpad />
-      <View style={{ height: theme.spacing[4] }} />
-      <SudokuControls />
+      <View style={styles.body}>
+        <SudokuBoard style={{ marginVertical: theme.spacing[4] }} />
+        <SudokuControls />
+      </View>
 
       <LoadingOverlay visible={loading} message="Fetching puzzle…" />
 
@@ -142,12 +175,9 @@ export default function SudokuScreen() {
       <SolvedOverlay
         visible={isSolved}
         onClose={() => {
-          // Tapping the backdrop "dismisses" the overlay but doesn't reset state.
-          // The screen still shows the solved board underneath.
+          /* Tapping the backdrop dismisses but the solved board stays. */
         }}
         onPlayAnother={() => {
-          // Force a new puzzle of the same difficulty. getNewPuzzle resets all
-          // relevant state (cells, puzzleId, status, actions) on success.
           if (!isDifficultyRoute(params.difficulty)) return
           void getNewPuzzle(params.difficulty)
         }}
@@ -156,7 +186,73 @@ export default function SudokuScreen() {
           router.replace('/')
         }}
       />
+
+      <HelpModal visible={helpOpen} onClose={() => setHelpOpen(false)} />
     </ScrollView>
+  )
+}
+
+/** Touch-equivalent of the web's keyboard-controls help popover. */
+function HelpModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { theme } = useTheme()
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable
+        onPress={onClose}
+        style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 24,
+        }}
+      >
+        <View
+          onStartShouldSetResponder={() => true}
+          style={{
+            backgroundColor: theme.colors.card,
+            borderRadius: theme.radius.lg,
+            padding: theme.spacing[5],
+            gap: theme.spacing[2],
+            width: '100%',
+            maxWidth: 360,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+          }}
+        >
+          <Text
+            style={{ fontSize: theme.text.lg, fontWeight: '700', color: theme.colors.foreground }}
+          >
+            Controls
+          </Text>
+          {[
+            ['Tap a cell', 'Select it; tap a number to fill.'],
+            ['Tap the same number again', 'Clear the cell.'],
+            ['Pencil mode (✎)', 'Numbers toggle as candidates instead of values.'],
+            ['Auto-fill candidates', 'Auto-populates candidates for every empty cell.'],
+            ['Undo / Redo', 'Step backward / forward through your moves.'],
+          ].map(([label, body]) => (
+            <View key={label} style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              <Text
+                style={{
+                  fontSize: theme.text.xs,
+                  fontWeight: '700',
+                  color: theme.colors.foreground,
+                  marginRight: 4,
+                }}
+              >
+                {label}:
+              </Text>
+              <Text
+                style={{ fontSize: theme.text.xs, color: theme.colors.foreground, flexShrink: 1 }}
+              >
+                {body}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </Pressable>
+    </Modal>
   )
 }
 
@@ -166,38 +262,42 @@ const useStyles = makeStyles((t) => ({
     backgroundColor: t.colors.background,
   },
   scrollContent: {
-    padding: t.spacing[4],
     paddingBottom: t.spacing[8],
+  },
+  body: {
+    paddingHorizontal: t.spacing[4],
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: t.spacing[2],
+    justifyContent: 'center',
+    paddingVertical: t.spacing[2],
+    paddingHorizontal: t.spacing[3],
+    backgroundColor: t.mode === 'dark' ? t.colors.accent : '#f9fafb', // gray-50 in light
+    gap: t.spacing[2],
   },
   title: {
-    fontSize: t.text['2xl'],
-    fontWeight: '700',
+    fontSize: t.text.base,
     color: t.colors.foreground,
-    textTransform: 'capitalize',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: t.spacing[3],
+    fontWeight: '500',
   },
   timer: {
-    fontSize: t.text.lg,
+    fontSize: t.text.base,
     color: t.colors.foreground,
     fontVariant: ['tabular-nums'],
   },
-  pauseBtn: {
-    width: 40,
-    height: 40,
+  headerIconBtn: {
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: t.radius.md,
-    borderWidth: 1,
-    borderColor: t.colors.border,
+  },
+  resetBtn: {
+    paddingHorizontal: t.spacing[2],
+    paddingVertical: t.spacing[1],
+  },
+  resetText: {
+    fontSize: t.text.sm,
+    color: t.colors.foreground,
   },
 }))

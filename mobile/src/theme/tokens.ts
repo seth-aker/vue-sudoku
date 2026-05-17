@@ -1,11 +1,16 @@
 /**
  * Light / dark theme tokens.
  *
- * These mirror the oklch color tokens from the Vue web app
- * (`frontend/src/assets/main.css`), converted to sRGB hex so React Native can
- * render them. Where the web app used Tailwind's "neutral" scale via oklch,
- * we use the corresponding Tailwind v4 hex values directly. Approximations
- * are within a hair of the rendered web colors.
+ * These mirror the colors used by the Vue web app
+ * (`frontend/src/assets/main.css` for shadcn tokens + Tailwind utility classes
+ * sprinkled in the components themselves) so the mobile UI looks the same.
+ *
+ * A couple of choices worth flagging:
+ *   - Orange-400 is the brand accent (logo, selected cell, pencil-active toggle,
+ *     login submit). Orange-200 / orange-300 are the peer-highlight tints.
+ *   - The sudoku cells stay "paper-light" in BOTH modes (the web's choice via
+ *     `bg-white dark:bg-primary` where dark primary is near-white). We match.
+ *   - Cell errors are rendered as RED TEXT, not a red background.
  *
  * Add new tokens here (not in component files) so light/dark mode swaps for free.
  */
@@ -41,17 +46,15 @@ const text = {
 /** Border radius — derived from the --radius CSS var (0.625rem = 10px). */
 const radius = {
   none: 0,
-  sm: 6,   // calc(--radius - 4px)
-  md: 8,   // calc(--radius - 2px)
-  lg: 10,  // --radius
-  xl: 14,  // calc(--radius + 4px)
+  sm: 6,
+  md: 8,
+  lg: 10,
+  xl: 14,
   full: 9999,
 } as const
 
-// `Colors` is the structural type for a color palette. We declare it via the
-// shape of lightColors below, then re-state darkColors with the same keys so
-// both palettes satisfy a single widened type.
 type Colors = {
+  // shadcn token set
   readonly background: string
   readonly foreground: string
   readonly card: string
@@ -71,12 +74,27 @@ type Colors = {
   readonly border: string
   readonly input: string
   readonly ring: string
-  readonly cellSelected: string
-  readonly cellHighlight: string
-  readonly cellError: string
-  readonly cellPrefilled: string
-  readonly cellEdited: string
+
+  // Brand accent (orange-400 family). Used on logo, login submit, pencil-active.
+  readonly brand: string
+  readonly brandActive: string
+
+  // Sudoku-board palette. These stay the same across modes mostly, since the
+  // web keeps the board paper-light in dark mode too.
+  readonly cellBg: string            // unselected, unhighlighted cell bg
+  readonly cellText: string          // digit color (default)
+  readonly cellTextError: string     // digit color when in error
+  readonly cellSelected: string      // bg of the tapped cell
+  readonly cellHighlight: string     // bg of peer cells (same row/col/block)
+  readonly cellOutline: string       // 1px border between cells within a block
+  readonly boardOuter: string        // 3px frame around the whole board
+  readonly boardInner: string        // 3px gap between 3x3 blocks
 }
+
+const ORANGE_200 = '#fed7aa'
+const ORANGE_300 = '#fdba74'
+const ORANGE_400 = '#fb923c'
+const RED_600 = '#dc2626'
 
 const lightColors: Colors = {
   background: '#ffffff',
@@ -97,23 +115,27 @@ const lightColors: Colors = {
   muted: '#f5f5f5',
   mutedForeground: '#737373',
 
-  accent: '#fde68a',           // oklch(0.901 0.076 70.697) ~ amber-200
+  accent: '#f5f5f5',
   accentForeground: '#171717',
 
-  destructive: '#ef4444',      // red-500 — error toast/button background
-  destructiveForeground: '#ffffff',  // white text on red
+  destructive: '#ef4444',
+  destructiveForeground: '#ffffff',
 
   border: '#e5e5e5',
   input: '#e5e5e5',
   ring: '#a3a3a3',
 
-  // Cell-specific colors used by the sudoku board. Kept here so light/dark
-  // swap together. Not part of the original shadcn token set.
-  cellSelected: '#dbeafe',     // soft blue
-  cellHighlight: '#f3f4f6',    // light gray when in same row/col/block
-  cellError: '#fee2e2',        // light red bg for errored cells
-  cellPrefilled: '#171717',    // bold text for prefilled cells
-  cellEdited: '#3b82f6',       // blue text for user-edited cells
+  brand: ORANGE_400,
+  brandActive: ORANGE_400,
+
+  cellBg: '#ffffff',
+  cellText: '#000000',
+  cellTextError: RED_600,
+  cellSelected: ORANGE_400,
+  cellHighlight: ORANGE_200,
+  cellOutline: '#d1d5db',        // gray-300
+  boardOuter: '#000000',
+  boardInner: '#6b7280',         // gray-500
 } as const
 
 const darkColors: Colors = {
@@ -138,18 +160,25 @@ const darkColors: Colors = {
   accent: '#262626',
   accentForeground: '#fafafa',
 
-  destructive: '#991b1b',      // red-800 — slightly muted for dark mode
+  destructive: '#991b1b',
   destructiveForeground: '#ffffff',
 
   border: '#262626',
   input: '#262626',
   ring: '#525252',
 
-  cellSelected: '#1e3a8a',     // deep blue
-  cellHighlight: '#1f1f1f',
-  cellError: '#7f1d1d',
-  cellPrefilled: '#fafafa',
-  cellEdited: '#60a5fa',
+  brand: ORANGE_400,
+  brandActive: ORANGE_400,
+
+  // Board itself stays paper-light in dark mode (web's choice via dark:bg-primary).
+  cellBg: '#fafafa',
+  cellText: '#000000',
+  cellTextError: RED_600,
+  cellSelected: ORANGE_400,
+  cellHighlight: ORANGE_300,
+  cellOutline: '#0a0a0a',
+  boardOuter: '#000000',
+  boardInner: '#0a0a0a',
 } as const
 
 export interface Theme {

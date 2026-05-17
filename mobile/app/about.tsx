@@ -71,7 +71,7 @@ function mdStyle(theme: ReturnType<typeof useTheme>['theme'], screenWidth: numbe
       marginBottom: theme.spacing[1],
     },
     paragraph: { color: c.foreground, lineHeight: 22, marginBottom: theme.spacing[3] },
-    link: { color: c.cellEdited, textDecorationLine: 'underline' as const },
+    link: { color: c.brand, textDecorationLine: 'underline' as const },
     code_inline: {
       backgroundColor: c.muted,
       color: c.foreground,

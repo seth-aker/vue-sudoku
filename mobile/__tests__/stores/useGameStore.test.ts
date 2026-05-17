@@ -44,10 +44,18 @@ describe('useGameStore — setCell', () => {
     expect(useGameStore.getState().actions).toHaveLength(0)
   })
 
-  it('no-ops when the value is unchanged (does not pollute undo stack)', () => {
+  it('tapping the same value that is already set clears the cell (toggle off, web parity)', () => {
     const cells = buildBlankCells().map((c, i) => (i === 0 ? { ...c, value: 5 } : c))
     seed(cells, buildBlankCells())
     useGameStore.getState().setCell(0, 5)
+    expect(useGameStore.getState().cells[0].value).toBe(0)
+    expect(useGameStore.getState().actions).toHaveLength(1)
+    expect(useGameStore.getState().actions[0].isParent).toBe(true)
+  })
+
+  it('setting value 0 when cell is already empty is a no-op', () => {
+    seed(buildBlankCells())
+    useGameStore.getState().setCell(0, 0)
     expect(useGameStore.getState().actions).toHaveLength(0)
   })
 
@@ -60,11 +68,11 @@ describe('useGameStore — setCell', () => {
     expect(useGameStore.getState().redoActions.length).toBe(0)
   })
 
-  it('autoCandidateMode strips the value from peer candidates as child actions', () => {
-    // Seed every empty cell with candidates [1..9].
+  it('placing a value strips it from peer candidates as child actions (always, web parity)', () => {
+    // Seed every empty cell with candidates [1..9]. autoCandidateMode is OFF —
+    // peer-strip should still happen because the web propagates regardless of mode.
     const cells = buildBlankCells().map((c) => ({ ...c, candidates: [1, 2, 3, 4, 5, 6, 7, 8, 9] }))
     seed(cells, buildBlankCells())
-    useGameStore.setState({ autoCandidateMode: true })
 
     useGameStore.getState().setCell(at(4, 4), 5)
 
@@ -132,10 +140,9 @@ describe('useGameStore — undo / redo', () => {
     expect(s.redoActions).toHaveLength(0)
   })
 
-  it('undo reverses an entire auto-candidate group in one click', () => {
+  it('undo reverses the placed value AND every peer-candidate change in one click', () => {
     const cells = buildBlankCells().map((c) => ({ ...c, candidates: [1, 2, 3, 4, 5, 6, 7, 8, 9] }))
     seed(cells, buildBlankCells())
-    useGameStore.setState({ autoCandidateMode: true })
     useGameStore.getState().setCell(at(4, 4), 5)
     expect(useGameStore.getState().actions.length).toBe(21)
 
@@ -152,10 +159,9 @@ describe('useGameStore — undo / redo', () => {
     expect(s.redoActions).toHaveLength(21)
   })
 
-  it('redo re-applies an entire auto-candidate group', () => {
+  it('redo re-applies the placed value plus the peer-candidate group', () => {
     const cells = buildBlankCells().map((c) => ({ ...c, candidates: [1, 2, 3, 4, 5, 6, 7, 8, 9] }))
     seed(cells, buildBlankCells())
-    useGameStore.setState({ autoCandidateMode: true })
     useGameStore.getState().setCell(at(4, 4), 5)
     useGameStore.getState().undo()
     useGameStore.getState().redo()

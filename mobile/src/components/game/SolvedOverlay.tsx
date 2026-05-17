@@ -37,7 +37,7 @@ export function SolvedOverlay({ visible, onClose, onPlayAnother, onExit }: Solve
           onStartShouldSetResponder={() => true}
         >
           <View style={{ alignItems: 'center' }}>
-            <PartyPopper size={48} color={theme.colors.accent} />
+            <PartyPopper size={48} color={theme.colors.brand} />
           </View>
           <Text
             style={{

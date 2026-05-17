@@ -186,6 +186,16 @@ export const useGameStore = create<GameState>((set, get) => ({
     return { ok: true }
   },
 
+  /**
+   * Place (or toggle off) a value at the given cell.
+   *
+   *  - Tapping the same value that's already there clears the cell (web parity).
+   *  - Placing a non-zero value strips it from every empty peer's candidates
+   *    (web parity — this propagation happens REGARDLESS of autoCandidateMode;
+   *    the mode flag just controls whether the whole board's candidates were
+   *    pre-filled). Each affected peer becomes a child action so a single undo
+   *    reverses the entire group.
+   */
   setCell(idx, value) {
     const s = get()
     if (idx < 0 || idx >= 81) return
@@ -193,30 +203,33 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const prev = s.cells[idx]
     if (!prev) return
-    // No-op when setting to current value (avoids junking undo stack with no-ops).
-    if (prev.value === value) return
+
+    // Tap same-value → toggle off. Matches the web's onNumberPress behavior.
+    const nextValue = prev.value === value ? 0 : value
+    if (prev.value === nextValue) return  // already at this value; no work to do
 
     const newCells = s.cells.slice()
     const actions: Action[] = []
 
-    // Parent action: capture the target cell's prior state. Clear candidates
-    // on the target when placing a value (sudoku convention — cell with a
-    // value has no candidates).
+    // Parent action captures the target cell's prior state. Clear the target's
+    // candidates when placing a non-zero value (a filled cell has no candidates).
     actions.push({ prevCell: cloneCell(prev), isParent: true })
-    newCells[idx] = { ...prev, value, candidates: value === 0 ? prev.candidates : [] }
+    newCells[idx] = {
+      ...prev,
+      value: nextValue,
+      candidates: nextValue === 0 ? prev.candidates : [],
+    }
 
-    // Auto-candidate propagation. When the user places a value and the mode is
-    // on, strip that value from every empty peer's candidate list. Each
-    // affected peer becomes a child action so undo reverses the whole group.
-    if (s.autoCandidateMode && value !== 0) {
+    // Strip the placed value from peer candidates. Always runs (web parity).
+    if (nextValue !== 0) {
       for (const peerIdx of peerIndicesOf(idx)) {
         const peer = newCells[peerIdx]
         if (peer.value !== 0) continue
-        if (!peer.candidates.includes(value)) continue
+        if (!peer.candidates.includes(nextValue)) continue
         actions.push({ prevCell: cloneCell(peer), isParent: false })
         newCells[peerIdx] = {
           ...peer,
-          candidates: peer.candidates.filter((c) => c !== value),
+          candidates: peer.candidates.filter((c) => c !== nextValue),
         }
       }
     }
@@ -284,8 +297,21 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ usingPencil: !get().usingPencil })
   },
 
+  /**
+   * Toggle "Auto-fill candidates" mode. Turning it ON fills every empty cell
+   * with its full peer-constrained candidate set; turning it OFF clears all
+   * candidates. Matches the web's checkbox behavior in SudokuControls.vue.
+   *
+   * The toggle itself is not part of the undo stack (matches web).
+   */
   toggleAutoCandidate() {
-    set({ autoCandidateMode: !get().autoCandidateMode })
+    const s = get()
+    const next = !s.autoCandidateMode
+    if (next) {
+      set({ autoCandidateMode: true, cells: computeCandidates(s.cells) })
+    } else {
+      set({ autoCandidateMode: false, cells: clearAllCandidatesFn(s.cells) })
+    }
   },
 
   /**

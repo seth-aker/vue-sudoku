@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { View, type LayoutChangeEvent, type ViewStyle } from 'react-native'
 import { useGameStore } from '@/stores'
 import { blockOf, cellHasError, colOf, rowOf } from '@/game'
-import { BOARD_SIZE } from '@/types'
+import { BLOCK_SIZE, BOARD_SIZE } from '@/types'
 import { useTheme } from '@/theme'
 import { Cell } from './Cell'
 
@@ -13,10 +13,18 @@ interface SudokuBoardProps {
 }
 
 /**
- * 9x9 board, sized to the available width via onLayout. Renders cells in a flat
- * loop and routes taps through useGameStore.selectCell. Highlighting decisions
- * (peer / same value / error) are computed here so Cell can stay dumb.
+ * 9x9 board. Layout mirrors the Vue web app's SudokuPuzzle.vue:
+ *   - 3px BLACK outer frame
+ *   - inner area filled with the "gap" color (gray-500 light / background dark)
+ *   - 3 block-rows × 3 block-cols, with 3px gap-color between blocks
+ *   - each block is a tight 3x3 of cells with 1px hairline outlines
+ *
+ * Sized via onLayout to fit the available width (capped by maxSize). Cell size
+ * is computed in whole pixels so the layout is crisp.
  */
+const FRAME_PX = 3   // black outer frame thickness
+const GAP_PX = 3     // gap-color thickness between blocks
+
 export function SudokuBoard({ maxSize = 480, style }: SudokuBoardProps) {
   const { theme } = useTheme()
   const cells = useGameStore((s) => s.cells)
@@ -24,84 +32,111 @@ export function SudokuBoard({ maxSize = 480, style }: SudokuBoardProps) {
   const originalCells = useGameStore((s) => s.originalCells)
   const selectCell = useGameStore((s) => s.selectCell)
 
-  // Measure once; subsequent renders use the cached size.
-  const [boardSize, setBoardSize] = useState<number | null>(null)
-
+  const [containerWidth, setContainerWidth] = useState<number | null>(null)
   const onLayout = (e: LayoutChangeEvent) => {
     const w = Math.floor(Math.min(e.nativeEvent.layout.width, maxSize))
-    if (w !== boardSize && w > 0) setBoardSize(w)
+    if (w !== containerWidth && w > 0) setContainerWidth(w)
   }
 
-  // Precompute selection-derived flags once per render.
   const sel = useMemo(() => {
     if (selectedIdx === null) return null
     return {
       row: rowOf(selectedIdx),
       col: colOf(selectedIdx),
       block: blockOf(selectedIdx),
-      value: cells[selectedIdx]?.value ?? 0,
     }
-  }, [selectedIdx, cells])
+  }, [selectedIdx])
 
-  // Compute the cell size as a whole number so border rendering is crisp.
-  const cellSize = boardSize !== null ? Math.floor(boardSize / BOARD_SIZE) : 0
-  const realBoardSize = cellSize * BOARD_SIZE
+  let cellSize = 0
+  let totalSize = 0
+  if (containerWidth !== null) {
+    // total = FRAME*2 + GAP*2 (between the 3 blocks) + cellSize*9
+    const cellsArea = containerWidth - FRAME_PX * 2 - GAP_PX * 2
+    cellSize = Math.max(24, Math.floor(cellsArea / BOARD_SIZE))
+    totalSize = cellSize * BOARD_SIZE + FRAME_PX * 2 + GAP_PX * 2
+  }
 
   return (
     <View
       onLayout={onLayout}
       style={[
         {
-          aspectRatio: 1,
-          alignSelf: 'center',
           width: '100%',
           maxWidth: maxSize,
-          // Outer border (right + bottom hairlines done per-cell; we add right + bottom here).
-          backgroundColor: theme.colors.card,
+          alignSelf: 'center',
+          aspectRatio: 1,
         },
         style,
       ]}
     >
-      {boardSize !== null && (
+      {containerWidth !== null && (
         <View
           style={{
-            width: realBoardSize,
-            height: realBoardSize,
-            borderRightWidth: 2,
-            borderBottomWidth: 2,
-            borderColor: theme.colors.border,
+            width: totalSize,
+            height: totalSize,
             alignSelf: 'center',
+            backgroundColor: theme.colors.boardOuter,
+            padding: FRAME_PX,
           }}
         >
-          {Array.from({ length: BOARD_SIZE }, (_, r) => (
-            <View key={r} style={{ flexDirection: 'row' }}>
-              {Array.from({ length: BOARD_SIZE }, (_, c) => {
-                const idx = r * BOARD_SIZE + c
-                const cell = cells[idx]
-                const isSelected = idx === selectedIdx
-                const isPeer =
-                  sel !== null && !isSelected &&
-                  (sel.row === r || sel.col === c || sel.block === blockOf(idx))
-                const sameValue =
-                  sel !== null && sel.value !== 0 && !isSelected && cell.value === sel.value
-                return (
-                  <Cell
-                    key={idx}
-                    cell={cell}
-                    original={originalCells[idx]}
-                    size={cellSize}
-                    selected={isSelected}
-                    isPeer={isPeer}
-                    sameValueAsSelected={sameValue}
-                    hasError={cellHasError(cells, idx)}
-                    thickRightBorder={c === 2 || c === 5}
-                    thickBottomBorder={r === 2 || r === 5}
-                    onPress={() => selectCell(idx)}
-                  />
-                )
-              })}
-            </View>
-          ))}
+          {/* Inner wrap supplies the gap color that shows through between blocks. */}
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: theme.colors.boardInner,
+              flexDirection: 'column',
+            }}
+          >
+            {[0, 1, 2].map((br) => (
+              <View
+                key={br}
+                style={{
+                  flexDirection: 'row',
+                  marginBottom: br < 2 ? GAP_PX : 0,
+                  flex: 1,
+                }}
+              >
+                {[0, 1, 2].map((bc) => (
+                  <View
+                    key={bc}
+                    style={{
+                      marginRight: bc < 2 ? GAP_PX : 0,
+                      flexDirection: 'column',
+                    }}
+                  >
+                    {[0, 1, 2].map((dr) => (
+                      <View key={dr} style={{ flexDirection: 'row' }}>
+                        {[0, 1, 2].map((dc) => {
+                          const r = br * BLOCK_SIZE + dr
+                          const c = bc * BLOCK_SIZE + dc
+                          const idx = r * BOARD_SIZE + c
+                          const cell = cells[idx]
+                          const original = originalCells[idx]
+                          const isSelected = idx === selectedIdx
+                          const isPeer =
+                            sel !== null &&
+                            !isSelected &&
+                            (sel.row === r || sel.col === c || sel.block === blockOf(idx))
+                          return (
+                            <Cell
+                              key={idx}
+                              cell={cell}
+                              original={original}
+                              size={cellSize}
+                              selected={isSelected}
+                              isPeer={isPeer}
+                              hasError={cellHasError(cells, idx)}
+                              onPress={() => selectCell(idx)}
+                            />
+                          )
+                        })}
+                      </View>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
         </View>
       )}
     </View>

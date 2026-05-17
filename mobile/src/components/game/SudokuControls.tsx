@@ -1,186 +1,149 @@
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
-import { Eraser, ListChecks, ListX, Pencil, Redo2, RotateCcw, Undo2, Wand2 } from 'lucide-react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import { useGameStore, selectCanRedo, selectCanUndo } from '@/stores'
 import { useTheme } from '@/theme'
+import { Checkbox } from '@/components/ui'
+import { Numpad } from './Numpad'
 
 /**
- * Top row of game controls: pencil toggle, auto-candidate toggle, undo, redo,
- * erase, reset, fill-all-candidates, clear-all-candidates.
+ * Matches the Vue web's SudokuControls.vue layout exactly:
  *
- * Each button is icon-only; the row wraps on narrow screens. Reset uses
- * Alert.alert for confirmation (web app used window.confirm).
+ *   ┌─────────────────────────────────────┐
+ *   │  [ ↶ ]  [ ↷ ]  [ ✎ ]                │  ← undo / redo / pencil-toggle
+ *   │                                      │
+ *   │       [1] [2] [3]                    │
+ *   │       [4] [5] [6]                    │  ← Numpad
+ *   │       [7] [8] [9]                    │
+ *   │                                      │
+ *   │      [□] Auto-fill candidates        │  ← Checkbox + label
+ *   └─────────────────────────────────────┘
+ *
+ * No standalone Erase / Fill / Clear / Reset buttons — Reset moves to the
+ * screen header to mirror the web.
  */
+const BUTTON_SIZE = 48
+
 export function SudokuControls() {
   const { theme } = useTheme()
   const usingPencil = useGameStore((s) => s.usingPencil)
   const autoCandidateMode = useGameStore((s) => s.autoCandidateMode)
   const canUndo = useGameStore(selectCanUndo)
   const canRedo = useGameStore(selectCanRedo)
-  const selectedIdx = useGameStore((s) => s.selectedIdx)
+  const status = useGameStore((s) => s.status)
 
   const togglePencil = useGameStore((s) => s.togglePencil)
   const toggleAutoCandidate = useGameStore((s) => s.toggleAutoCandidate)
   const undo = useGameStore((s) => s.undo)
   const redo = useGameStore((s) => s.redo)
-  const eraseCell = useGameStore((s) => s.eraseCell)
-  const resetPuzzle = useGameStore((s) => s.resetPuzzle)
-  const fillCandidates = useGameStore((s) => s.fillCandidates)
-  const clearAllCandidates = useGameStore((s) => s.clearAllCandidates)
 
-  const onReset = () => {
-    Alert.alert(
-      'Reset puzzle?',
-      'This clears all your progress on this puzzle.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Reset', style: 'destructive', onPress: () => resetPuzzle() },
-      ],
-    )
-  }
-
-  const onErase = () => {
-    if (selectedIdx === null) return
-    eraseCell(selectedIdx)
-  }
+  const isPaused = status === 'paused'
 
   return (
-    <View style={styles.row}>
-      <ToggleButton
-        active={usingPencil}
-        icon={<Pencil size={20} color={theme.colors.foreground} />}
-        label="Pencil"
-        onPress={togglePencil}
-      />
-      <ToggleButton
-        active={autoCandidateMode}
-        icon={<Wand2 size={20} color={theme.colors.foreground} />}
-        label="Auto"
-        onPress={toggleAutoCandidate}
-      />
-      <ActionButton
-        icon={<Undo2 size={20} color={theme.colors.foreground} />}
-        label="Undo"
-        onPress={undo}
-        disabled={!canUndo}
-      />
-      <ActionButton
-        icon={<Redo2 size={20} color={theme.colors.foreground} />}
-        label="Redo"
-        onPress={redo}
-        disabled={!canRedo}
-      />
-      <ActionButton
-        icon={<Eraser size={20} color={theme.colors.foreground} />}
-        label="Erase"
-        onPress={onErase}
-        disabled={selectedIdx === null}
-      />
-      <ActionButton
-        icon={<ListChecks size={20} color={theme.colors.foreground} />}
-        label="Fill"
-        onPress={fillCandidates}
-      />
-      <ActionButton
-        icon={<ListX size={20} color={theme.colors.foreground} />}
-        label="Clear"
-        onPress={clearAllCandidates}
-      />
-      <ActionButton
-        icon={<RotateCcw size={20} color={theme.colors.destructive} />}
-        label="Reset"
-        onPress={onReset}
-      />
+    <View style={styles.container}>
+      <View style={styles.row}>
+        <IconButton
+          icon="undo"
+          accessibilityLabel="Undo"
+          onPress={undo}
+          disabled={!canUndo || isPaused}
+        />
+        <IconButton
+          icon="redo"
+          accessibilityLabel="Redo"
+          onPress={redo}
+          disabled={!canRedo || isPaused}
+        />
+        <IconButton
+          icon="edit"
+          accessibilityLabel="Pencil mode"
+          onPress={togglePencil}
+          disabled={isPaused}
+          active={usingPencil}
+        />
+      </View>
+
+      <View style={styles.numpadWrap}>
+        <Numpad />
+      </View>
+
+      <View style={styles.checkboxRow}>
+        <Checkbox
+          checked={autoCandidateMode}
+          onCheckedChange={() => toggleAutoCandidate()}
+          disabled={isPaused}
+          accessibilityLabel="Auto-fill candidates"
+        />
+        <Text
+          style={{
+            color: theme.colors.foreground,
+            fontSize: theme.text.xs,
+            marginLeft: theme.spacing[1],
+          }}
+        >
+          Auto-fill candidates
+        </Text>
+      </View>
     </View>
   )
 }
 
-function ToggleButton({
-  active,
-  icon,
-  label,
-  onPress,
-}: {
-  active: boolean
-  icon: React.ReactNode
-  label: string
-  onPress: () => void
-}) {
-  const { theme } = useTheme()
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      style={({ pressed }) => [
-        styles.button,
-        {
-          backgroundColor: active ? theme.colors.primary : pressed ? theme.colors.muted : theme.colors.card,
-          borderColor: active ? theme.colors.primary : theme.colors.border,
-          borderRadius: theme.radius.md,
-        },
-      ]}
-    >
-      {icon}
-      <Text
-        style={{
-          color: active ? theme.colors.primaryForeground : theme.colors.foreground,
-          fontSize: theme.text.xs,
-          marginTop: 2,
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  )
-}
-
-function ActionButton({
-  icon,
-  label,
-  onPress,
-  disabled = false,
-}: {
-  icon: React.ReactNode
-  label: string
+interface IconButtonProps {
+  icon: keyof typeof MaterialIcons.glyphMap
+  accessibilityLabel: string
   onPress: () => void
   disabled?: boolean
-}) {
+  /** When true, renders in the brand (orange-400) variant. Used for the pencil toggle. */
+  active?: boolean
+}
+
+function IconButton({ icon, accessibilityLabel, onPress, disabled, active }: IconButtonProps) {
   const { theme } = useTheme()
+  const bg = active ? theme.colors.brand : theme.colors.primary
+  const fg = active ? '#000000' : theme.colors.primaryForeground
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled, selected: active }}
       style={({ pressed }) => [
-        styles.button,
+        styles.iconBtn,
         {
-          backgroundColor: pressed ? theme.colors.muted : theme.colors.card,
-          borderColor: theme.colors.border,
+          width: BUTTON_SIZE,
+          height: BUTTON_SIZE,
+          backgroundColor: bg,
           borderRadius: theme.radius.md,
-          opacity: disabled ? 0.4 : 1,
+          opacity: disabled ? 0.4 : pressed ? 0.85 : 1,
         },
       ]}
     >
-      {icon}
-      <Text style={{ color: theme.colors.foreground, fontSize: theme.text.xs, marginTop: 2 }}>
-        {label}
-      </Text>
+      <MaterialIcons name={icon} size={22} color={fg} />
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    gap: 12,
+  },
   row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'center',
+    justifyContent: 'space-evenly',
+    width: BUTTON_SIZE * 3 + 16,  // matches the Numpad width below
+    alignItems: 'center',
   },
-  button: {
-    width: 64,
-    height: 56,
+  numpadWrap: {
+    marginTop: 4,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  iconBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
   },
 })

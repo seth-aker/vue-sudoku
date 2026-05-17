@@ -11,46 +11,35 @@ interface CellProps {
   selected: boolean
   /** Same row/column/block as the selected cell (peer highlight). */
   isPeer: boolean
-  /** Same value as the selected cell (value highlight). */
-  sameValueAsSelected: boolean
   hasError: boolean
-  /** True when this column is one of the 3x3 block boundaries (col 2 or 5). */
-  thickRightBorder: boolean
-  /** True when this row is one of the 3x3 block boundaries (row 2 or 5). */
-  thickBottomBorder: boolean
   onPress: () => void
 }
 
 /**
- * A single sudoku cell. Renders either:
- *  - the cell's value (when filled), styled prefilled (bold) or edited (accent color), or
- *  - up to 9 candidate digits laid out in a 3x3 grid (when empty).
+ * A single sudoku cell. Matches the web's Cell.vue:
+ *  - default bg: white (both modes — web keeps the board paper-light)
+ *  - selected bg: orange-400
+ *  - peer-highlighted bg: orange-200 (light) / orange-300 (dark)
+ *  - cell text: always black
+ *  - error: text color is red, background stays whatever it would have been
+ *  - prefilled cells render bold; edited cells render regular weight
+ *  - empty cells render up to 9 candidate digits in a 3x3 micro-grid
  *
- * Visual states (in priority order):
- *  - error: red-tinted background
- *  - selected: strong accent background
- *  - sameValueAsSelected: subtle highlight to call out duplicate digits
- *  - isPeer: muted background (row/col/block of the selected cell)
+ * No "same-value-as-selected" highlight — the web doesn't have one.
  *
- * Memoized on the props to avoid re-rendering all 81 cells on every state change.
+ * Block-boundary borders are handled by the parent Board. This component
+ * just renders the per-cell hairline outline.
  */
-function CellInner({
-  cell,
-  original,
-  size,
-  selected,
-  isPeer,
-  sameValueAsSelected,
-  hasError,
-  thickRightBorder,
-  thickBottomBorder,
-  onPress,
-}: CellProps) {
+function CellInner({ cell, original, size, selected, isPeer, hasError, onPress }: CellProps) {
   const { theme } = useTheme()
   const status = cellStatus(cell, original)
 
-  const bg = pickBackground(theme, { hasError, selected, sameValueAsSelected, isPeer })
-  const fg = pickForeground(theme, status)
+  const bg = selected
+    ? theme.colors.cellSelected
+    : isPeer
+      ? theme.colors.cellHighlight
+      : theme.colors.cellBg
+  const fg = hasError ? theme.colors.cellTextError : theme.colors.cellText
 
   return (
     <Pressable
@@ -59,17 +48,16 @@ function CellInner({
         width: size,
         height: size,
         backgroundColor: bg,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderLeftWidth: StyleSheet.hairlineWidth,
-        borderRightWidth: thickRightBorder ? 2 : StyleSheet.hairlineWidth,
-        borderBottomWidth: thickBottomBorder ? 2 : StyleSheet.hairlineWidth,
-        borderColor: theme.colors.border,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: theme.colors.cellOutline,
         alignItems: 'center',
         justifyContent: 'center',
       }}
       accessibilityRole="button"
       accessibilityLabel={
-        cell.value !== 0 ? `Cell ${cell.value}` : `Empty cell, candidates ${cell.candidates.join(' ')}`
+        cell.value !== 0
+          ? `Cell ${cell.value}${status === 'prefilled' ? ' (prefilled)' : ''}`
+          : `Empty cell, candidates ${cell.candidates.join(' ')}`
       }
       accessibilityState={{ selected }}
     >
@@ -78,13 +66,14 @@ function CellInner({
           style={{
             color: fg,
             fontSize: Math.floor(size * 0.55),
-            fontWeight: status === 'prefilled' ? '700' : '500',
+            fontWeight: status === 'prefilled' ? '700' : '400',
+            includeFontPadding: false,
           }}
         >
           {cell.value}
         </Text>
       ) : cell.candidates.length > 0 ? (
-        <Candidates candidates={cell.candidates} size={size} color={theme.colors.mutedForeground} />
+        <Candidates candidates={cell.candidates} size={size} theme={theme} />
       ) : null}
     </Pressable>
   )
@@ -93,23 +82,22 @@ function CellInner({
 function Candidates({
   candidates,
   size,
-  color,
+  theme,
 }: {
   candidates: number[]
   size: number
-  color: string
+  theme: Theme
 }) {
   const present = new Set(candidates)
+  // Web uses `text-2xs` = 8px. Scale slightly with cell size on bigger screens.
   const fontSize = Math.max(8, Math.floor(size * 0.22))
   return (
     <View
       style={{
-        width: size - 2,
-        height: size - 2,
+        width: size,
+        height: size,
         flexDirection: 'row',
         flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'center',
       }}
     >
       {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
@@ -122,31 +110,21 @@ function Candidates({
             justifyContent: 'center',
           }}
         >
-          <Text style={{ color, fontSize, fontVariant: ['tabular-nums'] }}>
+          <Text
+            style={{
+              color: theme.colors.cellText,
+              fontSize,
+              fontWeight: '300',
+              fontVariant: ['tabular-nums'],
+              includeFontPadding: false,
+            }}
+          >
             {present.has(n) ? n : ''}
           </Text>
         </View>
       ))}
     </View>
   )
-}
-
-function pickBackground(
-  theme: Theme,
-  flags: { hasError: boolean; selected: boolean; sameValueAsSelected: boolean; isPeer: boolean },
-): string {
-  const c = theme.colors
-  if (flags.hasError) return c.cellError
-  if (flags.selected) return c.cellSelected
-  if (flags.sameValueAsSelected) return c.accent
-  if (flags.isPeer) return c.cellHighlight
-  return c.card
-}
-
-function pickForeground(theme: Theme, status: 'prefilled' | 'edited' | 'blank'): string {
-  if (status === 'prefilled') return theme.colors.cellPrefilled
-  if (status === 'edited') return theme.colors.cellEdited
-  return theme.colors.foreground
 }
 
 export const Cell = memo(CellInner)
