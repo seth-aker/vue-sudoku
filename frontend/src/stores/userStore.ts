@@ -45,7 +45,7 @@ export const useUserStore = defineStore('userStore', () => {
     userLoading.value = true;
     const res = await userService.login(username, password);
     if(!res.success || !res.body) {
-      error.value = res.message
+      error.value = res.error
     } else {
       id.value = res.body.id,
       storeDisplayName.value = res.body.displayName
@@ -65,7 +65,7 @@ export const useUserStore = defineStore('userStore', () => {
     userLoading.value = true
     const res = await userService.logout()
     if(!res.success) {
-      error.value = `An error occured logging out, please try again. ${res.message}`
+      error.value = `An error occured logging out, please try again. ${res.error}`
     }
     $reset()
     router.push({name: 'home'})
@@ -75,7 +75,7 @@ export const useUserStore = defineStore('userStore', () => {
     userLoading.value = true;
     const res = await userService.register(username, password, displayName);
     if(!res.success || !res.body) {
-      error.value = `An error occured attempting to register, please try again. ${res.message}`
+      error.value = `An error occured attempting to register, please try again. ${res.error}`
     } else {
       id.value = res.body.id
       storeUsername.value = username
@@ -110,7 +110,7 @@ export const useUserStore = defineStore('userStore', () => {
     }
     const res = await userService.getUserStats(id.value);
     if(!res.success) {
-      error.value = res.message
+      error.value = res.error
     }
     else {
       userStats.value = res.body

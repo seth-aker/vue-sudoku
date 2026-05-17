@@ -5,6 +5,7 @@ import { onMounted } from 'vue';
 import { useUserStore } from './stores/userStore';
 import { Toaster } from './components/ui/sonner';
 import 'vue-sonner/style.css'
+import AppDialog from './components/AppDialog.vue';
 
 const route = useRoute();
 const userStore = useUserStore();
@@ -23,5 +24,6 @@ onMounted(() => {
         boxShadow: '0 0 10px var(--color-orange-400)'
       }
     }" />
+    <AppDialog />
   </div>
 </template>

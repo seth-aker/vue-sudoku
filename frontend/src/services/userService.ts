@@ -14,7 +14,7 @@ export async function login(username: string, password: string): Promise<Service
     credentials: 'include'
   })
   const result: ServiceResult<IUserDto> = {
-    message: res.statusText,
+    error: res.statusText,
     success: res.ok,
     body: res.ok ? await res.json() : undefined
   }
@@ -26,7 +26,7 @@ export async function logout(): Promise<ServiceResult<undefined>> {
     credentials: 'include'
   })
   return {
-    message: res.statusText,
+    error: res.statusText,
     success: res.ok
   }
 }
@@ -46,7 +46,7 @@ export async function register(username: string, password: string, displayName?:
   })
 
   return {
-    message: res.statusText,
+    error: res.statusText,
     success: res.ok,
     body: res.ok ? await JSON.parse(await res.text()) : undefined
   }
@@ -62,7 +62,7 @@ export async function checkSession(): Promise<ServiceResult<IUserDto>> {
   })
   if(!res.ok) {
     return {
-      message: 'User not authenitcated',
+      error: 'User not authenitcated',
       success: false
     }
   } else {
@@ -83,7 +83,7 @@ export async function getUserStats(userId: string): Promise<ServiceResult<IUserS
   })
   if(!res.ok) {
     return {
-      message: await res.text(),
+      error: await res.text(),
       success: false
     }
   }

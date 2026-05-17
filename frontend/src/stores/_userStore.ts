@@ -9,7 +9,7 @@ export interface UserDto {
   currentPuzzleId?: string,
   role: string
 }
-export const userStore = defineStore('userStore', () => {
+export const useUserStore = defineStore('userStore', () => {
   const id = ref<string | undefined>(undefined)
   const displayName = ref<string | undefined>(undefined)
   const username = ref<string | undefined>(undefined)
@@ -17,7 +17,7 @@ export const userStore = defineStore('userStore', () => {
   const role = ref<string | undefined>(undefined)
   const currentPuzzleId = ref<string | undefined>(undefined)
   const loading = ref(false)
-
+  
   const isAuthenticated = computed(() => id.value)
 
   function set(user: UserDto) {

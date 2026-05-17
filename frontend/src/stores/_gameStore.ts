@@ -1,19 +1,19 @@
+import { createBlankCells, isPuzzleSolved } from "@/utils/puzzleUtils";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
-interface Cell {
+export interface Cell {
   idx: number;
   value: number,
   candidates: number[]
 }
-type DifficultyRating = 'beginner' | 'easy' | 'medium' | 'hard' | 'impossible'
+export type DifficultyRating = 'beginner' | 'easy' | 'medium' | 'hard' | 'impossible'
 
-interface Action {
-  prevCell: Cell,
-  idx: number
+export interface Action {
+  cell: Cell,
   isParent: boolean
 }
-type GameStatus = 'idle' | 'playing' | 'paused' | 'solved'
+export type GameStatus = 'idle' | 'playing' | 'paused' | 'solved'
 
 const HOUR = 60 * 60;
 const MINUTE = 60;
@@ -21,6 +21,7 @@ const MINUTE = 60;
 export const useGameStore = defineStore('gameStore', () => {
   const state = ref<GameStatus>('idle')
   const elapsedSeconds = ref<number>(0);
+  const loading = ref(false);
   
   const puzzleId = ref<string>();
   const cells = ref<Cell[]>(createBlankCells());
@@ -31,7 +32,7 @@ export const useGameStore = defineStore('gameStore', () => {
   const usingPencil = ref(false);
   const selectedIdx = ref<number>();
 
-  const actions = ref<Action[]>([]);
+  const history = ref<Action[]>([]);
   const redoActions = ref<Action[]>([])
 
   const autoCandidateMode = ref<boolean>(false);
@@ -77,13 +78,15 @@ export const useGameStore = defineStore('gameStore', () => {
     difficultyScore.value = 0;
     usingPencil.value = false;
     selectedIdx.value = undefined
-    actions.value = []
+    history.value = []
     redoActions.value = []
-    autoCandidateMode.value = false
+    autoCandidateMode.value = false,
+    loading.value = false
   }
 
   return {
     state,
+    loading,
     elapsedSeconds,
     puzzleId,
     cells,
@@ -92,7 +95,7 @@ export const useGameStore = defineStore('gameStore', () => {
     difficultyScore,
     usingPencil,
     selectedIdx,
-    actions,
+    history,
     redoActions,
     autoCandidateMode,
     formattedTime,
@@ -101,62 +104,3 @@ export const useGameStore = defineStore('gameStore', () => {
     $reset
   }
 })
-
-function isPuzzleSolved(cells: Cell[]) {
-  for(let i = 0; i < 81; i++) {
-    if(cells[i].value === 0) {
-      return false
-    }
-    if(cellHasError(cells, i)) {
-      return false;
-    }
-  }
-  return true;
-}
-function cellHasError(cells: Cell[], idx: number) {
-  if(cells[idx].value === 0) return false;
-  const peers = [
-    ...getRow(cells, Math.floor(idx / 9)).filter(cell => cell.idx !== idx),
-    ...getCol(cells, idx % 9).filter(cell => cell.idx !== idx),
-    ...getBlock(cells, idxToBlock(idx)).filter(cell => cell.idx !== idx)
-  ]
-
-  return peers.some(each => each.value === cells[idx].value)
-}
-
-function getRow(cells: Cell[], rowIdx: number) {
-  const row: Cell[] = [];
-  const offset = rowIdx * 9;
-  for(let i = 0; i < 9; i++) {
-    row.push(cells[offset + i])
-  } 
-  return row;
-}
-function getCol(cells: Cell[], colIdx: number) {
-  const col: Cell[] = []
-  for(let i = 0; i < 9; i++) {
-    col.push(cells[i * 9 + colIdx])
-  }
-  return col;
-}
-function getBlock(cells: Cell[], blockIdx: number) {
-  const block: Cell[] = []
-  for(let i = 0; i < 9; i++) {
-    const rowOffset = Math.floor(blockIdx / 3) * 9;
-    const colOffset = (blockIdx % 3) * 3
-    const blockRowOffset = Math.floor(i / 3) * 9
-    const blockCol = i % 3;
-    const cellIdx = rowOffset + colOffset + blockRowOffset + blockCol
-    block.push(cells[cellIdx])
-  }
-  return block
-} 
-
-function createBlankCells(): Cell[] {
-  return new Array(81).map((_, idx) => ({value: 0, candidates: [], idx}))
-}
-function idxToBlock(idx: number) {
-  const row = Math.floor(idx / 9)
-  const col = idx % 9
-  return (Math.floor(row / 3) * 3) + Math.floor(col / 3)
-}

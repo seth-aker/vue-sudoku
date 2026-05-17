@@ -1,5 +1,5 @@
 export interface ServiceResult<T> {
-  message?: string,
+  error?: string,
   success: boolean
   body?: T
 }

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { loginBodyValidator, registerBodyValidator } from "../middleware/validation";
 import { AuthenticationError } from "../errors/authenticationError";
 import { AuthenticationService } from "../service/authenticationService";
+import { UserService } from "@/feature/users/service/userService";
 
 declare module 'express-session' {
     interface SessionData {
@@ -13,7 +14,7 @@ declare module 'express-session' {
     }
 }
 
-export function AuthRouter(authService: AuthenticationService) {
+export function AuthRouter(authService: AuthenticationService, userService: UserService) {
   const router = Router()
 
   router.post('/login', loginBodyValidator, async (req, res, next) => {
@@ -41,7 +42,7 @@ export function AuthRouter(authService: AuthenticationService) {
     })
   })
 
-  router.get('/logout', async (req, res, next) => {
+  router.post('/logout', async (req, res, next) => {
     req.session.user = undefined
 
     req.session.save((err) => {
@@ -84,6 +85,15 @@ export function AuthRouter(authService: AuthenticationService) {
         })
       })
     })
+  })
+
+  router.get('/session', async (req, res,) => {
+    if(!req.session.user) {
+      return res.status(200).json({user: null})
+    }
+    const userId = req.session.user.id
+    const user = await userService.getUser(userId);
+    return res.status(200).json({user})
   })
   return router
 }

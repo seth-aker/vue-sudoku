@@ -48,7 +48,7 @@ async function fetchNewPuzzle(options?: SudokuOptions): Promise<ServiceResult<{_
     const puzzle = deserializePuzzle(puzzleDTO)
     return {body: {puzzle, _id: puzzleDTO._id}, success: true}
   } catch (err) {
-    return {success: false, message: (err as Error).message}
+    return {success: false, error: (err as Error).message}
   }
 }
 async function fetchPuzzle(puzzleId: string): Promise<ServiceResult<{_id: string, puzzle:SudokuPuzzle, actions: Action[], time: number}>> {
@@ -63,14 +63,14 @@ async function fetchPuzzle(puzzleId: string): Promise<ServiceResult<{_id: string
     if(!res.ok) {
       const errData = await res.json()
       console.log(errData)
-      return { success: false, message: errData.message}
+      return { success: false, error: errData.message}
     } 
     const puzzleDto = await res.json() as UserPuzzleDto
     const puzzle = deserializeUserPuzzle(puzzleDto);
     const actions = puzzleDto.actions ? puzzleDto.actions.map(action => deserializeAction(action)) : [] as Action[]
     return {success: true, body: {puzzle, _id: puzzleDto._id, actions, time: puzzleDto.time}}
   } catch (err) {
-    return {success: false, message: (err as Error).message}
+    return {success: false, error: (err as Error).message}
   }
 }
 async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle, actions: Action[], elapsedTime: number, isCompleted: boolean, options: SaveGameOptions): Promise<ServiceResult<void>> {
@@ -94,14 +94,14 @@ async function updatePuzzle(puzzleId: string, puzzle: SudokuPuzzle, actions: Act
     if(!res.ok) {
       const error = await res.json()
       console.log(error)
-      return {message: error.message, success: false}
+      return {error: error.message, success: false}
     }
     return {success: true}
   } catch (err) {
     if(typeof err === 'string') {
-      return {message: err, success: false}
+      return {error: err, success: false}
     } else {
-      return {message: (err as Error).message, success:false}
+      return {error: (err as Error).message, success:false}
     }
   }
 }
