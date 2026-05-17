@@ -1,21 +1,18 @@
 import type { ExpoConfig, ConfigContext } from 'expo/config'
 
 /**
- * Layered on top of app.json. Resolves the API base URL at config-eval time so
- * runtime code can read it via expo-constants.
+ * Layered on top of app.json.
  *
- * Override at build/dev time with:
- *   API_BASE_URL=http://192.168.x.x:3666/api pnpm --filter mobile start
+ * Only forwards `API_BASE_URL` into `extra.apiBaseUrl` when explicitly set.
+ * When unset, the runtime in `src/config/index.ts` auto-detects from Metro's
+ * debugger host (works for Android emulator, iOS simulator, and physical
+ * devices), falling back to platform-specific defaults.
  *
- * When testing against a backend on the dev laptop from a physical phone,
- * you'll usually want the laptop's LAN IP here, not "localhost".
+ * Override at boot when you need a hard pin:
+ *   API_BASE_URL=http://192.168.1.42:3666/api pnpm --filter mobile start
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
   const envUrl = process.env.API_BASE_URL
-  const isProd = process.env.NODE_ENV === 'production'
-  const defaultUrl = isProd
-    ? 'https://sudoku.aker-bergeron.dev/api'
-    : 'http://localhost:3666/api'
 
   return {
     ...config,
@@ -23,7 +20,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     slug: config.slug ?? 'sudoku-chive',
     extra: {
       ...config.extra,
-      apiBaseUrl: envUrl ?? defaultUrl,
+      // Only forward when set; otherwise let runtime auto-detect.
+      apiBaseUrl: envUrl ?? null,
     },
   }
 }

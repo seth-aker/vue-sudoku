@@ -9,11 +9,18 @@
     "scheme": "sudoku-chive",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "dev.aker-bergeron.sudokuchive"
+      "bundleIdentifier": "dev.aker-bergeron.sudokuchive",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "android": {
       "edgeToEdgeEnabled": true,
-      "package": "dev.aker_bergeron.sudokuchive"
+      "package": "dev.aker_bergeron.sudokuchive",
+      "usesCleartextTraffic": true
     },
     "web": {
       "bundler": "metro",

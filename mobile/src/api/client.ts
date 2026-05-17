@@ -52,18 +52,28 @@ export async function apiFetch<T>(path: string, opts: ApiFetchOptions = {}): Pro
     if (token) headers.set('Authorization', `Bearer ${token}`)
   }
 
+  const url = `${API_BASE_URL}${path}`
+  const method = opts.method ?? 'GET'
+
   let res: Response
   try {
-    res = await fetch(`${API_BASE_URL}${path}`, {
-      method: opts.method ?? 'GET',
+    res = await fetch(url, {
+      method,
       headers,
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
     })
   } catch (err) {
+    const errMessage = err instanceof Error ? err.message : 'Network error'
+    if (__DEV__) {
+      // Surface failed requests in Metro's logs so users can see the URL and
+      // diagnose host/port issues (e.g. wrong API_BASE_URL on emulator).
+      // eslint-disable-next-line no-console
+      console.warn(`[api] ${method} ${url} failed: ${errMessage}`)
+    }
     return {
       ok: false,
       status: 0,
-      message: err instanceof Error ? err.message : 'Network error',
+      message: `Could not reach ${url}: ${errMessage}`,
     }
   }
 

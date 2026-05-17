@@ -100,8 +100,8 @@ const lightColors: Colors = {
   accent: '#fde68a',           // oklch(0.901 0.076 70.697) ~ amber-200
   accentForeground: '#171717',
 
-  destructive: '#ef4444',      // red-500
-  destructiveForeground: '#ef4444',
+  destructive: '#ef4444',      // red-500 — error toast/button background
+  destructiveForeground: '#ffffff',  // white text on red
 
   border: '#e5e5e5',
   input: '#e5e5e5',
@@ -138,8 +138,8 @@ const darkColors: Colors = {
   accent: '#262626',
   accentForeground: '#fafafa',
 
-  destructive: '#991b1b',      // oklch(0.396 0.141 25.723) ~ red-800
-  destructiveForeground: '#dc2626',
+  destructive: '#991b1b',      // red-800 — slightly muted for dark mode
+  destructiveForeground: '#ffffff',
 
   border: '#262626',
   input: '#262626',
