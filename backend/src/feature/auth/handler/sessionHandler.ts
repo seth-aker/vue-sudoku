@@ -11,13 +11,15 @@ export const sessionHandler = () => {
     resave: false,
     saveUninitialized: false,
     cookie: function (req: Request) {
+      const isProd = process.env.NODE_ENV === 'production'
       return {
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        // domain: config.audience,
-        secure: req.secure || process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? true : false
+        httpOnly: true,
+        secure: req.secure || isProd,
+        // 'strict' in prod blocks CSRF; 'lax' in dev keeps things workable
+        // across http://localhost:5173 → http://localhost:3666.
+        sameSite: isProd ? 'strict' : 'lax',
       }
-      
     },
     name: 'sudoku',
   })

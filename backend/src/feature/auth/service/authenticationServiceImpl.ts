@@ -1,6 +1,6 @@
-import { ISqlUser } from "@/feature/users/datasource/models/user";
+import { ISqlUser, IUserDTO } from "@/feature/users/datasource/models/user";
 import { scryptSync, timingSafeEqual, randomBytes } from "node:crypto";
-import { AuthenticationService, IVerifyResponse } from "./authenticationService";
+import { AuthenticationService, IIssuedToken, IVerifyResponse } from "./authenticationService";
 import { AuthenticationError } from "../errors/authenticationError";
 import { UserDataSource } from "@/feature/users/datasource/userDataSource";
 import { registerBodySchema } from "../middleware/validation";
@@ -8,7 +8,7 @@ import z from "zod";
 import { DatabaseError } from "@/core/errors/databaseError";
 import { CustomError } from "@/core/errors/customError";
 import { Sql } from "postgres";
-import { SqlUserPuzzle } from "@/feature/sudoku/datasource/models/sudokuPuzzle";
+import { signJwt } from "../jwt";
 
 declare global {
     namespace Express {
@@ -83,6 +83,9 @@ export class AuthenticationServiceImpl implements AuthenticationService {
       throw new AuthenticationError(`An error occurred registering user: ${err}`)
     }
 
+  }
+  async issueToken(user: IUserDTO): Promise<IIssuedToken> {
+    return await signJwt({ sub: user.id, role: user.role })
   }
   serializeUser(user: Express.User, callback: (err?: any, user?: Express.User) => void) {
     process.nextTick(() => {

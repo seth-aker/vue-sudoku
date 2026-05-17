@@ -1,0 +1,4 @@
+onlyBuiltDependencies:
+  - '@expo/cli'
+  - expo
+  - expo-modules-autolinking

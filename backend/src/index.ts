@@ -5,6 +5,7 @@ import cors from 'cors'
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { sessionHandler } from './feature/auth/handler/sessionHandler';
+import { errorHandler } from './core/middleware/errorHandler';
 import prexit from 'prexit';
 const app = express();
 
@@ -25,13 +26,17 @@ if(process.env.NODE_ENV === 'production') {
   }))
 } else {
   app.use(cors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    // Dev: Vue web on 5173 + Expo dev server on 8081 (Expo Web).
+    // Native RN sends no Origin header, so it's not CORS-gated.
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8081'],
     credentials: true
   }))
 }
 
 app.use(sessionHandler())
 configureRouting(app)
+// IMPORTANT: error handler must be mounted LAST, after all routes.
+app.use(errorHandler)
 
 const server = app.listen(config.port, () => {
   console.log('Sudoku app listening at:', config.port)

@@ -10,6 +10,21 @@ However, then I decided to revisit the puzzle generator portion and actually mak
 - **Postgres**: High quality, open source SQL database
 - **Node/Express.js**: Tried and true javascript server library. Implements Controller-Service-Repository architecture.
 - **Vue/Vite**: Simple SPA that displays the puzzles. Vue is lowkey better than React IMO which is why it is my go-to frontend framework.
+- **Expo (React Native)**: Mobile client (see [`mobile/`](./mobile)). Lives alongside the Vue web app and shares the backend.
+
+## Mobile app
+
+The [`mobile/`](./mobile) workspace is an Expo Router app that targets iOS, Android, and (for UI debugging) the web. It uses bearer-token JWT auth (`POST /auth/token`) instead of the web's session-cookie path; the backend supports both.
+
+```bash
+cd mobile
+pnpm install
+pnpm start            # press i/a or scan the QR with Expo Go
+```
+
+See [`mobile/README.md`](./mobile/README.md) for the LAN / adb-reverse setup and a tour of the codebase.
+
+> **Note:** the post-mobile-migration backend renames `_id` → `puzzleId` in its sudoku DTOs and changes the action-history encoding. The Vue web client at [`frontend/`](./frontend) was intentionally not updated to track these changes; mobile is the current focus.
 
 ## Infrastructure
 Reusing a retired PC, this app is *self-hosted* on Ubuntu Server 24.04.4 LTS. Managed by an Nginx reverse-proxy pointing to two docker containers deployed via docker-compose. While this setup likely would quickly be overwhelmed by heavy loads, it is an economical and effective for this use case where I expect traffic to be extremely light. 

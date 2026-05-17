@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Sudoku Chive",
+    "slug": "sudoku-chive",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "scheme": "sudoku-chive",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dev.aker-bergeron.sudokuchive"
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "package": "dev.aker_bergeron.sudokuchive"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-font",
+        {
+          "fonts": []
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "apiBaseUrl": null
+    }
+  }
+}

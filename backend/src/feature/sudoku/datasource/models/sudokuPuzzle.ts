@@ -1,19 +1,23 @@
-// import { ObjectId } from "mongodb";
 import { DifficultyRating, type Difficulty } from "./difficulty.ts";
 
 export interface SudokuPuzzle {
-  _id: string,
+  puzzleId: string,
   cells: string;
   candidates?: string
   difficulty: Difficulty,
 }
 
-export interface CreatePuzzle extends Omit<SudokuPuzzle, '_id'> {
+export interface CreatePuzzle extends Omit<SudokuPuzzle, 'puzzleId'> {
   solvedCells: string;
 }
 
+/**
+ * UpdatePuzzle is now keyed by `puzzleId` (carried in the URL path);
+ * the corresponding field is not part of the request body anymore.
+ * The handler constructs this by combining `req.params.puzzleId` with `req.body`.
+ */
 export interface UpdatePuzzle {
-  _id: string,
+  puzzleId: string,
   cells: string,
   candidates: string,
   time: number,
@@ -48,10 +52,10 @@ export interface SqlUserPuzzle {
 }
 
 export interface UserPuzzleDto {
-  _id: string,
+  puzzleId: string,
   isCompleted: boolean,
   currentCells: string,
-  currentCandidates: string, 
+  currentCandidates: string,
   time: number,
   originalCells: string,
   difficulty: Difficulty,

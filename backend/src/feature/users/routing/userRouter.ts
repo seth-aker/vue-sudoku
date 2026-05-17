@@ -7,7 +7,7 @@ export function UserRouter(userService: UserService) {
   const router = Router()
 
   router.get("/me", requireLoggedin, async (req, res, next) => {
-    const userId = req.session.user!.id // requireLoggedIn ensures this exists
+    const userId = req.authUser!.id // requireLoggedin ensures this exists
     const user = await userService.getUser(userId);
     return res.status(200).json(user)
   })

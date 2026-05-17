@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/feature/auth/middleware/validation";
+import { requireAdmin, resolveAuthUser } from "@/feature/auth/middleware/validation";
 import { NextFunction, Request, Response } from "express";
 import z from "zod";
 
@@ -7,12 +7,13 @@ export const requireSelfOrAdmin = async (req: Request<{id: string}>, res: Respon
   if(!z.string().uuid().safeParse(userId).success) {
     return res.sendStatus(400)
   }
-  if(!req.session.user) {
+  const authUser = await resolveAuthUser(req)
+  if(!authUser) {
     return res.sendStatus(401)
   }
-  if(req.session.user.id !== userId) {
+  req.authUser = authUser
+  if(authUser.id !== userId) {
     return requireAdmin(req, res, next)
   }
   return next()
-
 }

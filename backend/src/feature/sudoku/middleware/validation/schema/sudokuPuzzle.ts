@@ -12,8 +12,8 @@ export const createPuzzleSchema = z.object({
     cells: z.array(z.array(cellSchema, 'Invalid cell array'), 'Invalid row array'),
     difficulty: difficultySchema,
 })
+// puzzleId is carried in the URL path; not part of the body.
 export const updateUserPuzzleSchema = z.object({
-    _id: z.uuid(),
     cells: z.string().refine((val) => val.length === 81, {message: 'Error, cell string must be 81 numbers long'}),
     candidates: candidateStringSchema,
     isCompleted: z.boolean(),

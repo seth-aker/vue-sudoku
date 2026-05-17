@@ -2,7 +2,11 @@ import { Sql } from "postgres";
 import { UserDataSource } from "./userDataSource";
 import { ICreateUser, ISqlUser } from "./models/user";
 import { DatabaseError } from "@/core/errors/databaseError";
+import { ConflictError } from "@/core/errors/conflictError";
 import { IDifficultyStats, IUserStats } from "./models/userStats";
+
+/** Postgres SQLSTATE for unique_violation. */
+const PG_UNIQUE_VIOLATION = '23505'
 
 export class PgUserDataSource implements UserDataSource {
   static instance: PgUserDataSource | null = null;
@@ -18,22 +22,30 @@ export class PgUserDataSource implements UserDataSource {
   }
 
   async createUser(user: ICreateUser): Promise<string | undefined> {
-    const [res] = await this.client<{user_id: string}[]>`
-      INSERT INTO users (
-        display_name,
-        username,
-        password_hash,
-        salt
-      )
-      VALUES (
-        ${user.displayName ?? null},
-        ${user.username},
-        ${user.passwordHash},
-        ${user.salt}
-      ) 
-      RETURNING user_id;
-    `
-    return res.user_id;
+    try {
+      const [res] = await this.client<{user_id: string}[]>`
+        INSERT INTO users (
+          display_name,
+          username,
+          password_hash,
+          salt
+        )
+        VALUES (
+          ${user.displayName ?? null},
+          ${user.username},
+          ${user.passwordHash},
+          ${user.salt}
+        )
+        RETURNING user_id;
+      `
+      return res.user_id;
+    } catch (err) {
+      // postgres.js attaches the SQLSTATE under .code on its PostgresError class.
+      if (err && typeof err === 'object' && (err as { code?: string }).code === PG_UNIQUE_VIOLATION) {
+        throw new ConflictError(`Username "${user.username}" is already taken`)
+      }
+      throw err
+    }
   }
   async getUser(userId: string): Promise<ISqlUser> {
     const [user] = await this.client<ISqlUser[]>`
