@@ -1,9 +1,25 @@
-import { useGameStore } from "@/stores/_gameStore";
+import { useGameStore, type Cell } from "@/stores/_gameStore";
 import { cloneCell, getPeers } from "@/utils/puzzleUtils";
 export function useSudokuGame() {
   const gameStore = useGameStore()
   function selectCell(idx: number) {
     gameStore.selectedIdx = idx;
+  }
+  function getRow(rowIdx: number) {
+    const startIdx = rowIdx * 9;
+    const row: Cell[] = []
+    for(let i = startIdx; i < startIdx + 9; i++) {
+      row.push(gameStore.cells[i])
+    }
+    return row;
+  }
+  function getCol(colIdx: number) {
+    const col: Cell[] = []
+    for(let i = 0; i < 9; i++) {
+      const idx = i * 9 + colIdx;
+      col.push(gameStore.cells[idx])
+    }
+    return col;
   }
   function togglePencil() {
     gameStore.usingPencil = !gameStore.usingPencil
@@ -148,6 +164,8 @@ export function useSudokuGame() {
 
   return {
     selectCell,
+    getRow,
+    getCol,
     togglePencil,
     placeValue,
     clearCell,

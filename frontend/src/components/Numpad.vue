@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { useSudokuStore } from '@/stores/sudokuStore';
+import { useGameStore } from '@/stores/_gameStore';
 import { Button } from './ui/button';
-import { useGameStore } from '@/stores/gameStore';
-const sudokuStore = useSudokuStore();
-const gameStore = useGameStore()
+const store = useGameStore()
 const inputs = [1, 2, 3, 4, 5, 6, 7, 8, 9] as number[];
 const onNumberPress = (value: number) => {
   const { x, y } = sudokuStore.selectedCell
@@ -32,15 +30,9 @@ const onNumberPress = (value: number) => {
 
 const numberInPuzzleCount = (number: number) => {
   let count = 0;
-  for (const row of sudokuStore.puzzle.rows) {
-    if (count >= sudokuStore.puzzle.cellsPerRow) {
-      break;
-    }
-    for (const cell of row) {
-      if (cell.value === number) {
-        count++
-        break;
-      }
+  for (const cell of store.cells) {
+    if (cell.value) {
+      count++;
     }
   }
   return count;
@@ -52,8 +44,7 @@ const numberInPuzzleCount = (number: number) => {
     <div class="grid gap-1 place-items-center w-[60%] md:w-auto"
       :style="{ gridTemplateColumns: `repeat(3, minmax(0, 1fr))` }">
       <Button class="size-12 aspect-square md:size-10" v-for="(input) in inputs"
-        :disabled="numberInPuzzleCount(input) === sudokuStore.puzzle.cellsPerRow || gameStore.gameState === 'paused'"
-        @click="onNumberPress(input)">{{ input
+        :disabled="numberInPuzzleCount(input) >= 9 || store.state === 'paused'" @click="onNumberPress(input)">{{ input
         }}</Button>
     </div>
   </div>
