@@ -22,7 +22,6 @@ import Toggle from './ui/toggle/Toggle.vue';
 import { useColorMode } from '@vueuse/core';
 import Label from './ui/label/Label.vue';
 import Switch from './ui/switch/Switch.vue';
-import { useUserStore } from '@/stores/userStore';
 import LoginPopover from './loginRegister/LoginPopover.vue';
 import LoginDrawer from './loginRegister/LoginDrawer.vue';
 import { PUZZLE_DIFFICULTY_ROUTES } from '@/router';

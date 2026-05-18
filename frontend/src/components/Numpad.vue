@@ -1,31 +1,18 @@
 <script setup lang="ts">
 import { useGameStore } from '@/stores/_gameStore';
 import { Button } from './ui/button';
+import { useSudokuGame } from '@/composables/useSudokuGame';
 const store = useGameStore()
+const { toggleCandidate, placeValue } = useSudokuGame()
 const inputs = [1, 2, 3, 4, 5, 6, 7, 8, 9] as number[];
 const onNumberPress = (value: number) => {
-  const { x, y } = sudokuStore.selectedCell
-  const cell = sudokuStore.getCell(x, y);
-  if (x === undefined || y === undefined || cell === undefined || cell.type === 'prefilled') {
-    return;
-  }
-  if (sudokuStore.usingPencil) {
-    // Edit pencilValues
-    if (cell.candidates.includes(value)) {
-      cell.candidates = cell.candidates.filter((pencilValue) => pencilValue !== value);
-    } else {
-      cell.candidates.push(value);
-    }
+  if (!store.selectedIdx) return;
+
+  if (store.usingPencil) {
+    toggleCandidate(value, store.selectedIdx)
   } else {
-    // edit cell value
-    if (cell.value === undefined || cell.value !== value) {
-      cell.value = value;
-    } else {
-      cell.value = undefined;
-    }
+    placeValue(value, store.selectedIdx)
   }
-  cell.type = 'edited'
-  sudokuStore.setCell(cell, x, y)
 }
 
 const numberInPuzzleCount = (number: number) => {
