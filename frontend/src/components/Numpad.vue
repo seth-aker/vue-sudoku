@@ -18,7 +18,7 @@ const onNumberPress = (value: number) => {
 const numberInPuzzleCount = (number: number) => {
   let count = 0;
   for (const cell of store.cells) {
-    if (cell.value) {
+    if (cell.value === number) {
       count++;
     }
   }

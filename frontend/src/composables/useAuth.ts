@@ -17,7 +17,9 @@ export function useAuth() {
     try {
       const {success, body, error} = await userService.login(username, password)
       if(!success || !body) {
-        return error ?? "Invalid username or password";
+        toast.error(error ?? "Invalid username or password!")
+        userStore.loading = false;
+        return;
       }
       userStore.id = body.id,
       userStore.username = body.username,
@@ -102,7 +104,7 @@ export function useAuth() {
       if(gameStore.puzzleId) {
         await saveToServer()
       }
-      toast.success(`Welcome back, ${res.body?.displayName ?? res.body?.username}!`)
+      toast.success(`Welcome ${!res.body.displayName ? res.body.username : res.body.displayName}! Time to play!`)
     } catch (err) {
       toast.error("Oops! An error occured", {
         description: `Failed to register: ${err && typeof err === 'string' ? err : (err as Error).message}`

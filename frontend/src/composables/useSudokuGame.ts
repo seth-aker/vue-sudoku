@@ -1,7 +1,10 @@
 import { useGameStore, type Cell } from "@/stores/_gameStore";
 import { cloneCell, getPeers } from "@/utils/puzzleUtils";
+import { useGameSession } from "./useGameSession";
 export function useSudokuGame() {
   const gameStore = useGameStore()
+  const {saveLocal, clearLocal} = useGameSession()
+  
   function selectCell(idx: number) {
     gameStore.selectedIdx = idx;
   }
@@ -38,7 +41,7 @@ export function useSudokuGame() {
     })
     gameStore.redoActions = []
     gameStore.cells[idx].value = value;
-    if(prevCell.value === 0 && value === 0) {
+    if(prevCell.value === 0 && value !== 0) {
       const peers = getPeers(gameStore.cells, idx);
       peers.forEach((cell) => {
         if(cell.idx !== idx && cell.candidates.includes(value)) {
@@ -50,6 +53,7 @@ export function useSudokuGame() {
         }
       })
     }
+    saveLocal()
   }
 
   function clearCell(idx: number) {
@@ -67,6 +71,7 @@ export function useSudokuGame() {
     } else {
       gameStore.cells[idx].value = 0
     }
+    saveLocal()
   }
 
 
@@ -86,6 +91,7 @@ export function useSudokuGame() {
     } else {
       cell.candidates = cell.candidates.filter(c => c !== value)
     }
+    saveLocal()
   }
 
   function undo() {
@@ -108,12 +114,13 @@ export function useSudokuGame() {
       gameStore.cells[action.cell.idx] = action.cell;
       gameStore.selectedIdx = action.cell.idx;
     }
+    saveLocal()
   }
   function redo() {
     let action = gameStore.redoActions.pop()
     if(action) {
       const prevCell = cloneCell(gameStore.cells[action.cell.idx])
-      gameStore.cells[action.cell.idx] = prevCell;
+      gameStore.cells[action.cell.idx] = action.cell;
       gameStore.history.push({
         cell: prevCell,
         isParent: true
@@ -123,17 +130,17 @@ export function useSudokuGame() {
     }
     while(action && !action.isParent) {
       const prevCell = cloneCell(gameStore.cells[action.cell.idx])
-      gameStore.cells[action.cell.idx] = prevCell;
+      gameStore.cells[action.cell.idx] = action.cell;
       gameStore.history.push({
         cell: prevCell,
-        isParent: true
+        isParent: false
       })
-      gameStore.selectedIdx = action.cell.idx;
       action = gameStore.redoActions.pop()
     }
     if(action) {
       gameStore.redoActions.push(action)
     }
+    saveLocal()
   }
   function fillCandidates() {
     for(let i = 0; i < 81; i++) {
@@ -160,6 +167,14 @@ export function useSudokuGame() {
     } else {
       clearCandidates()
     }
+    saveLocal()
+  }
+
+  function resetBoard() {
+    clearLocal()
+    gameStore.cells = gameStore.originalCells.slice()
+    gameStore.selectedIdx = undefined;
+    saveLocal()
   }
 
   return {
@@ -174,7 +189,8 @@ export function useSudokuGame() {
     redo,
     fillCandidates,
     clearCandidates,
-    setAutoCandidateMode
+    setAutoCandidateMode,
+    resetBoard
   }
 
 }

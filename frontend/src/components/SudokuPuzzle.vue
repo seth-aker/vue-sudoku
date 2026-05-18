@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useSudokuGame } from '@/composables/useSudokuGame';
-import { type Cell } from '@/stores/_gameStore';
+import { type Cell as ICell } from '@/stores/_gameStore';
 import { computed } from 'vue';
-
+import Cell from './Cell.vue'
 const { selectCell, getRow } = useSudokuGame()
 
 const BLOCK_LEN = 3;
@@ -15,7 +15,7 @@ const getBlockSpacing = (idx: number) => {
   return `${offset}px`
 }
 const rows = computed(() => {
-  const arr: Cell[][] = []
+  const arr: ICell[][] = []
   for (let i = 0; i < 9; i++) {
     arr.push(getRow(i))
   }

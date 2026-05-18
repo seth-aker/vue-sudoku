@@ -3,8 +3,9 @@ import type { Cell } from "@/stores/_gameStore";
 export const PEERS = generatePeers()
 
 export function isPuzzleSolved(cells: Cell[]) {
+  if(!cells || cells.length !== 81) return false
   for(let i = 0; i < 81; i++) {
-    if(cells[i].value === 0) {
+    if(!cells[i] || cells[i].value === 0) {
       return false
     }
     if(cellHasError(cells, i)) {
@@ -57,7 +58,11 @@ export function getBlock(cells: Cell[], blockIdx: number) {
 } 
 
 export function createBlankCells(): Cell[] {
-  return new Array(81).map((_, idx) => ({value: 0, candidates: [], idx}))
+  const cells:Cell[] = []
+  for(let idx = 0; idx < 81; idx++ ) {
+    cells.push({value: 0, candidates: [], idx})
+  }
+  return cells;
 }
 
 export function cloneCell(cell: Cell): Cell {

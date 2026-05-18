@@ -10,7 +10,7 @@ const store = useGameStore();
 const isSelected = computed(() => store.selectedIdx === cell.idx)
 const isHighlighted = computed(() => store.selectedIdx ? PEERS[store.selectedIdx].includes(cell.idx) : false)
 const hasError = computed(() => PEERS[cell.idx].some((peer) => store.cells[peer].value === cell.value))
-const isImmutible = store.originalCells[cell.idx].value !== 0;
+const isImmutible = computed(() => store.originalCells[cell.idx].value !== 0)
 
 const visableCandidates = computed(() => {
   const isVisableArray: boolean[] = new Array(9).fill(false);

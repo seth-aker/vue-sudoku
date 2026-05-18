@@ -1,4 +1,4 @@
-import { useGameStore } from "@/stores/gameStore";
+import { useGameStore } from "@/stores/_gameStore";
 import { useIntervalFn, type Pausable } from "@vueuse/core";
 import { computed, effectScope } from "vue";
 
@@ -11,11 +11,11 @@ export function useGameClock() {
     })
   }
   function start() {
-    gameStore.gameState = 'playing'
+    gameStore.state = 'playing'
     interval?.resume()
   }
   function pause() {
-    gameStore.gameState = 'paused'
+    gameStore.state = 'paused'
     interval?.pause()
   }
   function halt() {
@@ -24,7 +24,7 @@ export function useGameClock() {
   function reset() {
     gameStore.elapsedSeconds = 0;
     interval?.pause()
-    gameStore.gameState = 'not-started'
+    gameStore.state = 'idle'
   }
   const isRunning = computed(() => interval?.isActive ?? false)
   return {

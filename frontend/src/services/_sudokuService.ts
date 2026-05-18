@@ -66,8 +66,8 @@ export async function getNewPuzzle(difficulty: DifficultyRating): Promise<Servic
     body: {
       cells,
       puzzleId: rawPuzzle.puzzleId,
-      difficultyRating: rawPuzzle.difficultyRating,
-      difficultyScore: rawPuzzle.difficultyScore
+      difficultyRating: rawPuzzle.difficulty.rating,
+      difficultyScore: rawPuzzle.difficulty.score
     }
   }
 }
