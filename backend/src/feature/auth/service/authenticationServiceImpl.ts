@@ -43,7 +43,7 @@ export class AuthenticationServiceImpl implements AuthenticationService {
       const [res] = await this.client<ISqlUser[]>`SELECT * FROM users WHERE username = ${username}`
 
       const salt = res.salt ? Buffer.from(res.salt, 'hex') : DUMMY_SALT
-      const storedPassword = res.password_hash ? Buffer.from(res.password_hash): DUMMY_HASHED
+      const storedPassword = res.password_hash ? Buffer.from(res.password_hash, 'hex'): DUMMY_HASHED
       const hashedPassword = scryptSync(password.normalize(), salt, SCRYPT_KEYLEN)
       const matches = timingSafeEqual(storedPassword, hashedPassword)
       if(!res || !res.salt || !res.password_hash || matches) {
