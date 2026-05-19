@@ -25,7 +25,7 @@ export async function login(username: string, password: string): Promise<Service
     }
   }
   return {
-    success: false,
+    success: true,
     body: await result.json()
   }
 }

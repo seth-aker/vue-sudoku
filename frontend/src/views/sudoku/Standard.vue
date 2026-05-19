@@ -26,22 +26,23 @@ import { useGameClock } from '@/composables/useGameClock';
 import { useSudokuGame } from '@/composables/useSudokuGame';
 import { useDialog } from '@/composables/useDialog';
 
-const { difficulty } = defineProps<{ difficulty: DifficultyRating}>()
+const { difficulty } = defineProps<{ difficulty: DifficultyRating }>()
 const userStore = useUserStore()
 const gameStore = useGameStore()
-const {resetBoard} = useSudokuGame()
-const {showDialog} = useDialog()
+const { resetBoard } = useSudokuGame()
+const { showDialog } = useDialog()
 const clock = useGameClock()
-const {saveToServer, startNewPuzzle, loadLocal, saveLocal} = useGameSession()
+const { saveToServer, startNewPuzzle, loadLocal, saveLocal } = useGameSession()
 const error = ref<string | null>(null)
 const dialogOpen = ref(false);
 
 onMounted(async () => {
   gameStore.loading = true;
   loadLocal()
-  if(!gameStore.puzzleId || gameStore.difficultyRating !== difficulty) {
+  if (!gameStore.puzzleId || gameStore.difficultyRating !== difficulty) {
     await startNewPuzzle(difficulty)
   }
+  clock.start()
   gameStore.loading = false
 })
 
@@ -104,19 +105,19 @@ const handleReset = () => {
     message: 'This action cannot be undone, are you sure you want to continue?',
     buttons: [
       {
-        text: 'Cancel', 
+        text: 'Cancel',
         onClick: () => {
           clock.start()
         },
         closeOnClick: true
       },
       {
-        text: "Reset", 
+        text: "Reset",
         onClick: () => {
           resetBoard();
           clock.start();
-        }, 
-        variant: 'destructive', 
+        },
+        variant: 'destructive',
         closeOnClick: true
       }
     ]

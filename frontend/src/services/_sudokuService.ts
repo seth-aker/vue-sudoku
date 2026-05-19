@@ -27,8 +27,10 @@ export interface UserPuzzleDto {
   currentCandidates: string, 
   time: number,
   originalCells: string,
-  difficultyRating: DifficultyRating,
-  difficultyScore: number
+  difficulty: {
+    rating: DifficultyRating,
+    score: number
+  }
   actions?: number[]
 }
 
@@ -128,8 +130,8 @@ export async function getSavedProgress(puzzleId: string): Promise<ServiceResult<
       originalCells,
       actions,
       elapsedSeconds: body.time,
-      difficultyRating: body.difficultyRating,
-      difficultyScore: body.difficultyScore
+      difficultyRating: body.difficulty.rating,
+      difficultyScore: body.difficulty.score
     }
   }
 }
