@@ -6,7 +6,7 @@ const store = useGameStore()
 const { toggleCandidate, placeValue } = useSudokuGame()
 const inputs = [1, 2, 3, 4, 5, 6, 7, 8, 9] as number[];
 const onNumberPress = (value: number) => {
-  if (!store.selectedIdx) return;
+  if (store.selectedIdx === undefined) return;
 
   if (store.usingPencil) {
     toggleCandidate(value, store.selectedIdx)

@@ -37,7 +37,7 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
             if(result !== 1) {
               console.log("A puzzle failed to be created in the database")
             }
-          })
+          }).catch((err) => console.error("Background puzzle generation failed:", err.message))
         }
         return response.puzzle
       } catch (err) {
@@ -51,7 +51,7 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
           const response = await this.sudokuDataSource.getNewPuzzle(requestedBy, options);
           return response.puzzle;
         } else {
-          throw err;
+          throw err
         }
       }
     });

@@ -8,7 +8,10 @@ export interface SudokuPuzzle {
   difficulty: Difficulty,
 }
 
-export interface CreatePuzzle extends Omit<SudokuPuzzle, '_id'> {
+export interface CreatePuzzle {
+  cells: string;
+  candidates?: string
+  difficulty: Difficulty,
   solvedCells: string;
 }
 

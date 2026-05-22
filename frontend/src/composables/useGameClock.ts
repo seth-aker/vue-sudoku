@@ -1,13 +1,17 @@
 import { useGameStore } from "@/stores/_gameStore";
 import { useIntervalFn, type Pausable } from "@vueuse/core";
 import { computed, effectScope } from "vue";
+import { useGameSession } from "./useGameSession";
 
 let interval: Pausable | undefined;
 export function useGameClock() {
   const gameStore = useGameStore()
   if(!interval) {
     effectScope(true).run(() => {
-      interval = useIntervalFn(() => gameStore.elapsedSeconds++, 1000, {immediate: false})
+      interval = useIntervalFn(() => {
+        gameStore.elapsedSeconds++
+        useGameSession().saveLocal()
+      }, 1000, {immediate: false})
     })
   }
   function start() {
