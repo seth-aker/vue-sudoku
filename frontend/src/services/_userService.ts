@@ -31,7 +31,8 @@ export async function login(username: string, password: string): Promise<Service
 }
 export async function logout(): Promise<ServiceResult<void>> {
   const result = await fetch(`${BASE_URL}/auth/logout`, {
-    method: 'POST'
+    method: 'POST',
+    credentials: 'include'
   })
   if(!result.ok) {
     return {

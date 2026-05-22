@@ -18,7 +18,7 @@ export const useUserStore = defineStore('userStore', () => {
   const currentPuzzleId = ref<string | undefined>(undefined)
   const loading = ref(false)
   
-  const isAuthenticated = computed(() => id.value)
+  const isAuthenticated = computed(() => !!id.value)
 
   function set(user: UserDto) {
     id.value = user.id

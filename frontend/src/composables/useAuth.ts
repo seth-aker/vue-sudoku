@@ -33,19 +33,22 @@ export function useAuth() {
         if(userStore.currentPuzzleId && userStore.currentPuzzleId !== gameStore.puzzleId) {
           clock.pause()
           showDialog({
-            title: 'You have an unfinished puzzle already saved. Would you like to overwrite it with your current puzzle?',
+            title: 'Resume or Overwrite?',
+            message: 'You have an unfinished puzzle already saved. Would you like to overwrite it with your current puzzle?',
             buttons: [
               {
                 text: 'Overwrite with current',
                 onClick: async () => {
                   await saveToServer()
-                }
+                },
+                closeOnClick: true
               },
               {
                 text: 'Resume unfinished',
                 onClick: async () => {
                   await resumeSavedPuzzle(userStore.currentPuzzleId!)
-                }
+                },
+                closeOnClick: true
               }
             ]
           })

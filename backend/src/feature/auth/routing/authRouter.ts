@@ -3,6 +3,7 @@ import { loginBodyValidator, registerBodyValidator } from "../middleware/validat
 import { AuthenticationError } from "../errors/authenticationError";
 import { AuthenticationService } from "../service/authenticationService";
 import { UserService } from "@/feature/users/service/userService";
+import { authConfig } from "../config";
 
 declare module 'express-session' {
     interface SessionData {
@@ -43,18 +44,13 @@ export function AuthRouter(authService: AuthenticationService, userService: User
   })
 
   router.post('/logout', async (req, res, next) => {
-    req.session.user = undefined
-
-    req.session.save((err) => {
+    req.session.user = undefined;
+    req.session.destroy((err) => {
       if(err) {
-        next(err)
+         return res.status(500).send('Could not log out.');
       }
-      req.session.regenerate((err) => {
-        if(err) {
-          next(err)
-        }
-        res.sendStatus(204)
-      })
+      res.clearCookie(authConfig.cookieName)
+      res.sendStatus(204)
     })
   })
 

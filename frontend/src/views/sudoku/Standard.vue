@@ -76,6 +76,7 @@ watchDebounced(() => gameStore.history.length, () => {
 
 onUnmounted(() => {
   clock.pause()
+  saveLocal()
 })
 
 watch(() => gameStore.isSolved, () => {
