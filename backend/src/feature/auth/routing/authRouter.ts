@@ -4,6 +4,7 @@ import { AuthenticationError } from "../errors/authenticationError";
 import { AuthenticationService } from "../service/authenticationService";
 import { UserService } from "@/feature/users/service/userService";
 import { authConfig } from "../config";
+import { authLimiter } from "../middleware/rateLimiter";
 
 declare module 'express-session' {
     interface SessionData {
@@ -18,7 +19,7 @@ declare module 'express-session' {
 export function AuthRouter(authService: AuthenticationService, userService: UserService) {
   const router = Router()
 
-  router.post('/login', loginBodyValidator, async (req, res, next) => {
+  router.post('/login', authLimiter(),  loginBodyValidator, async (req, res, next) => {
     const verifyRes = await authService.verify(req.body.username, req.body.password)
     const user = verifyRes.user;
     if(!user || verifyRes.err) {
@@ -54,7 +55,7 @@ export function AuthRouter(authService: AuthenticationService, userService: User
     })
   })
 
-  router.post('/register', registerBodyValidator, async (req, res, next) => {
+  router.post('/register', authLimiter(), registerBodyValidator, async (req, res, next) => {
     const userId = await authService.registerUser(req.body)
     if(!userId) {
       return res.sendStatus(500)
