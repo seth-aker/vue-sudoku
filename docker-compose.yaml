@@ -32,6 +32,8 @@ services:
     container_name: sudoku_backend
     build:
       context: .
+      additional_contexts: 
+        generator_src: https://github.com/seth-aker/cdoku.git
       target: backend
       dockerfile: Dockerfile
       args:

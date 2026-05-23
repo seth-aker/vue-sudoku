@@ -1,4 +1,15 @@
 # BUILD STAGE
+FROM alpine:latest AS c_builder
+
+RUN apk add --no-cache build-base cmake
+
+WORKDIR /cdoku
+
+COPY --from=generator_src . .
+
+RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build build
+
 FROM node:24-bookworm AS build
 
 ARG DEPLOY_MODE
@@ -28,7 +39,7 @@ RUN mkdir -p /sudoku/logs && chown -R node:node /sudoku/logs
 
 COPY --from=build /apps/sudoku/backend/dist ./
 COPY --from=build /apps/sudoku/backend/package.json .
-COPY --chown=node:node --from=build /apps/sudoku/backend/puzzle_generator_app .
+COPY --chown=node:node --from=c_builder /cdoku/build/src/app/puzzle_generator_app .
 
 RUN npm i --omit=dev
 
