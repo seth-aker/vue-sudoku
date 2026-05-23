@@ -1,4 +1,4 @@
-import type { Cell } from "@/stores/_gameStore";
+import type { Cell } from "@/stores/gameStore";
 
 export const PEERS = generatePeers()
 

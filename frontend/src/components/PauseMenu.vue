@@ -9,7 +9,7 @@ import Button from './ui/button/Button.vue';
 import { computed } from 'vue';
 import DialogDescription from './ui/dialog/DialogDescription.vue';
 import { useGameClock } from '@/composables/useGameClock';
-import { useGameStore } from '@/stores/_gameStore';
+import { useGameStore } from '@/stores/gameStore';
 const clock = useGameClock()
 const store = useGameStore()
 let progressPercent = computed(() => {

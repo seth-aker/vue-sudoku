@@ -6,8 +6,8 @@ import CardDescription from '@/components/ui/card/CardDescription.vue';
 import CardHeader from '@/components/ui/card/CardHeader.vue';
 import CardTitle from '@/components/ui/card/CardTitle.vue';
 import { useGameSession } from '@/composables/useGameSession';
-import { useGameStore } from '@/stores/_gameStore';
-import { useUserStore } from '@/stores/_userStore';
+import { useGameStore } from '@/stores/gameStore';
+import { useUserStore } from '@/stores/userStore';
 import type { Difficulty } from '@/stores/models/difficulty';
 import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router';
@@ -15,14 +15,14 @@ import { toast } from 'vue-sonner';
 const router = useRouter()
 const gameStore = useGameStore()
 const userStore = useUserStore()
-const {resumeSavedPuzzle} = useGameSession()
+const { resumeSavedPuzzle } = useGameSession()
 const navigateToPuzzle = (difficulty: Difficulty['rating']) => {
   router.push({ name: 'sudoku', params: { difficulty: difficulty } })
 }
 const resumePuzzle = async () => {
-  if(!userStore.currentPuzzleId) return;
+  if (!userStore.currentPuzzleId) return;
   const result = await resumeSavedPuzzle(userStore.currentPuzzleId);
-  if(!result.success) {
+  if (!result.success) {
     toast.error(result.error ?? "An error occured resuming puzzle")
   } else {
     router.push({ name: 'sudoku', params: { difficulty: result.body?.difficultyRating } })

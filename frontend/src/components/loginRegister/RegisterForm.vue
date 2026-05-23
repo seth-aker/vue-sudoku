@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/_userStore'
+import { useUserStore } from '@/stores/userStore'
 import { useMousePressed, watchDebounced } from '@vueuse/core'
 import { ref, useTemplateRef } from 'vue'
 import FieldGroup from '../ui/field/FieldGroup.vue'
@@ -21,7 +21,7 @@ import { toast } from 'vue-sonner'
 import { useAuth } from '@/composables/useAuth'
 const popoverOpen = defineModel<boolean>('popover-open', { required: true })
 const userStore = useUserStore()
-const {register} = useAuth()
+const { register } = useAuth()
 const name = ref<string>('')
 const username = ref<string>('');
 const usernameErrorMessage = ref<string | undefined>(undefined);

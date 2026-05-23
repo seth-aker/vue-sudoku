@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useGameStore, type Cell } from '@/stores/_gameStore';
+import { useGameStore, type Cell } from '@/stores/gameStore';
 import { PEERS } from '@/utils/puzzleUtils';
 import { computed } from 'vue';
 const { cell } = defineProps<{

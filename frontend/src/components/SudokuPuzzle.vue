@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useSudokuGame } from '@/composables/useSudokuGame';
-import { type Cell as ICell } from '@/stores/_gameStore';
+import { type Cell as ICell } from '@/stores/gameStore';
 import { computed } from 'vue';
 import Cell from './Cell.vue'
 const { selectCell, getRow } = useSudokuGame()

@@ -1,4 +1,4 @@
-import { useGameStore, type Cell } from "@/stores/_gameStore";
+import { useGameStore, type Cell } from "@/stores/gameStore";
 import { cloneCell, getPeers } from "@/utils/puzzleUtils";
 import { useGameSession } from "./useGameSession";
 export function useSudokuGame() {

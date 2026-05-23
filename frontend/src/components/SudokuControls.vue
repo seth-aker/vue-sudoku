@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import Toggle from './ui/toggle/Toggle.vue';
 import Numpad from './Numpad.vue';
 import Checkbox from './ui/checkbox/Checkbox.vue';
-import { useGameStore } from '@/stores/_gameStore';
+import { useGameStore } from '@/stores/gameStore';
 import { useSudokuGame } from '@/composables/useSudokuGame';
 import { useEventListener } from '@vueuse/core';
 const store = useGameStore()

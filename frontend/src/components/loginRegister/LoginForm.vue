@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/_userStore'
+import { useUserStore } from '@/stores/userStore'
 import { useMousePressed } from '@vueuse/core';
 import { ref, useTemplateRef } from 'vue';
 import FieldGroup from '../ui/field/FieldGroup.vue'
@@ -18,7 +18,7 @@ import Button from '../ui/button/Button.vue'
 import { toast } from 'vue-sonner';
 import { useAuth } from '@/composables/useAuth';
 const userStore = useUserStore()
-const {login} = useAuth()
+const { login } = useAuth()
 const popoverOpen = defineModel<boolean>('popover-open', { required: true })
 
 const username = ref<string>('')
@@ -44,7 +44,7 @@ const handleLogin = async (event: SubmitEvent) => {
       error: 'An unexpected error occured.'
     }
   )
-  
+
 }
 </script>
 

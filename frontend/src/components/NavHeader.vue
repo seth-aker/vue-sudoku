@@ -24,15 +24,15 @@ import Switch from './ui/switch/Switch.vue';
 import LoginPopover from './loginRegister/LoginPopover.vue';
 import LoginDrawer from './loginRegister/LoginDrawer.vue';
 import { PUZZLE_DIFFICULTY_ROUTES } from '@/router';
-import { useUserStore } from '@/stores/_userStore';
+import { useUserStore } from '@/stores/userStore';
 import { useAuth } from '@/composables/useAuth';
-import { type DifficultyRating } from '@/stores/_gameStore';
+import { type DifficultyRating } from '@/stores/gameStore';
 import { useGameSession } from '@/composables/useGameSession';
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
-const { startNewPuzzle} = useGameSession()
-const {logout} = useAuth()
+const { startNewPuzzle } = useGameSession()
+const { logout } = useAuth()
 const colormode = useColorMode()
 
 

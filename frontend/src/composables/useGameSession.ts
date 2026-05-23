@@ -1,7 +1,7 @@
-import { useGameStore, type Action, type Cell, type DifficultyRating, type GameStatus } from "@/stores/_gameStore"
+import { useGameStore, type Action, type Cell, type DifficultyRating, type GameStatus } from "@/stores/gameStore"
 import { useGameClock } from "./useGameClock"
-import { useUserStore } from "@/stores/_userStore"
-import * as sudokuService from "@/services/_sudokuService"
+import { useUserStore } from "@/stores/userStore"
+import * as sudokuService from "@/services/sudokuService"
 import type { ServiceResult } from "@/services/baseService"
 import { cloneCell } from "@/utils/puzzleUtils"
 

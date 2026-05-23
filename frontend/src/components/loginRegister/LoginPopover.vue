@@ -10,12 +10,12 @@ import TabsTrigger from '../ui/tabs/TabsTrigger.vue';
 import TabsContent from '../ui/tabs/TabsContent.vue';
 import LoginForm from './LoginForm.vue';
 import RegisterForm from './RegisterForm.vue';
-import { useGameStore } from '@/stores/_gameStore';
+import { useGameStore } from '@/stores/gameStore';
 
 const popoverOpen = ref<boolean>(false);
 const store = useGameStore()
 watch(popoverOpen, () => {
-  if(popoverOpen) {
+  if (popoverOpen) {
     store.selectedIdx = undefined
   }
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import Button from '../ui/button/Button.vue';
 import Drawer from '../ui/drawer/Drawer.vue';
 import DrawerTrigger from '../ui/drawer/DrawerTrigger.vue';
@@ -11,12 +11,12 @@ import TabsContent from '../ui/tabs/TabsContent.vue';
 import LoginForm from './LoginForm.vue';
 import RegisterForm from './RegisterForm.vue';
 import DrawerDescription from '../ui/drawer/DrawerDescription.vue';
-import { useGameStore } from '@/stores/_gameStore';
+import { useGameStore } from '@/stores/gameStore';
 
 const drawerOpen = ref<boolean>(false);
 const store = useGameStore()
 watch(drawerOpen, () => {
-  if(drawerOpen) {
+  if (drawerOpen) {
     store.selectedIdx = undefined
   }
 })

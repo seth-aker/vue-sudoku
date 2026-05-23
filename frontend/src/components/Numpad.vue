@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useGameStore } from '@/stores/_gameStore';
+import { useGameStore } from '@/stores/gameStore';
 import { Button } from './ui/button';
 import { useSudokuGame } from '@/composables/useSudokuGame';
 const store = useGameStore()

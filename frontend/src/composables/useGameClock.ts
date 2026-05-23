@@ -1,4 +1,4 @@
-import { useGameStore } from "@/stores/_gameStore";
+import { useGameStore } from "@/stores/gameStore";
 import { useIntervalFn, type Pausable } from "@vueuse/core";
 import { computed, effectScope } from "vue";
 import { useGameSession } from "./useGameSession";

@@ -1,6 +1,6 @@
-import { useGameStore } from "@/stores/_gameStore";
-import { useUserStore } from "@/stores/_userStore";
-import * as userService from '@/services/_userService'
+import { useGameStore } from "@/stores/gameStore";
+import { useUserStore } from "@/stores/userStore";
+import * as userService from '@/services/userService'
 import { useGameSession } from "./useGameSession";
 import { useDialog } from "./useDialog";
 import { useGameClock } from "./useGameClock";
