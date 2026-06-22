@@ -23,14 +23,12 @@ export interface UpdateProgressDTO {
 export interface UserPuzzleDto {
   puzzleId: string,
   isCompleted: boolean,
-  currentCells: string,
-  currentCandidates: string, 
+  cells: string,
+  candidates: string, 
   time: number,
   originalCells: string,
-  difficulty: {
-    rating: DifficultyRating,
-    score: number
-  }
+  rating: DifficultyRating,
+  score: number
   actions?: number[]
 }
 
@@ -68,8 +66,8 @@ export async function getNewPuzzle(difficulty: DifficultyRating): Promise<Servic
     body: {
       cells,
       puzzleId: rawPuzzle.puzzleId,
-      difficultyRating: rawPuzzle.difficulty.rating,
-      difficultyScore: rawPuzzle.difficulty.score
+      difficultyRating: rawPuzzle.rating,
+      difficultyScore: rawPuzzle.score
     }
   }
 }
@@ -118,7 +116,7 @@ export async function getSavedProgress(puzzleId: string): Promise<ServiceResult<
     }
   }
   const body = await response.json() as UserPuzzleDto
-  const cells = deserializeCells({cells: body.currentCells, candidates: body.currentCandidates})
+  const cells = deserializeCells({cells: body.cells, candidates: body.candidates})
   const originalCells = deserializeCells({cells: body.originalCells})
   const actions = body.actions?.map(each => deserializeAction(each)) ?? []
 
@@ -130,8 +128,8 @@ export async function getSavedProgress(puzzleId: string): Promise<ServiceResult<
       originalCells,
       actions,
       elapsedSeconds: body.time,
-      difficultyRating: body.difficulty.rating,
-      difficultyScore: body.difficulty.score
+      difficultyRating: body.rating,
+      difficultyScore: body.score
     }
   }
 }

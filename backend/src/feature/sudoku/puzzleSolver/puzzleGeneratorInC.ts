@@ -88,10 +88,8 @@ function processPuzzle(puzzleString: string): CreatePuzzle {
   
   return {
     cells: cellValues,
-    solvedCells,
-    difficulty: {
-      score: difficultyScore,
-      rating: difficultyRating
-    }
+    solvedCells, 
+    score: difficultyScore,
+    rating: difficultyRating
   }
 }

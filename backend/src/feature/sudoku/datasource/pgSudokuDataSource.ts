@@ -78,10 +78,8 @@ export class PgSudokuDataSource implements SudokuDataSource {
         puzzle: {
           puzzleId: res.puzzle_id,
           cells: res.cells,
-          difficulty: {
-            score: res.difficulty_score,
-            rating: res.difficulty_rating
-          }
+          score: res.difficulty_score,
+          rating: res.difficulty_rating
         }
       }
       return response
@@ -127,8 +125,8 @@ export class PgSudokuDataSource implements SudokuDataSource {
         ) VALUES (
           ${puzzle.cells},
           ${puzzle.solvedCells},
-          ${puzzle.difficulty.score ?? null},
-          ${puzzle.difficulty.rating} 
+          ${puzzle.score ?? null},
+          ${puzzle.rating} 
         ) RETURNING puzzle_id;
       `
     })

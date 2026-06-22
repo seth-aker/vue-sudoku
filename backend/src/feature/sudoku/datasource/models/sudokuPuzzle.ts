@@ -1,17 +1,19 @@
 // import { ObjectId } from "mongodb";
-import { DifficultyRating, type Difficulty } from "./difficulty.ts";
+import { DifficultyRating } from "./difficulty.ts";
 
 export interface SudokuPuzzle {
   puzzleId: string,
   cells: string;
   candidates?: string
-  difficulty: Difficulty,
+  score?: number,
+  rating: DifficultyRating
 }
 
 export interface CreatePuzzle {
   cells: string;
   candidates?: string
-  difficulty: Difficulty,
+  score?: number,
+  rating: DifficultyRating
   solvedCells: string;
 }
 
@@ -53,10 +55,11 @@ export interface SqlUserPuzzle {
 export interface UserPuzzleDto {
   puzzleId: string,
   isCompleted: boolean,
-  currentCells: string,
-  currentCandidates: string, 
+  cells: string,
+  candidates: string, 
   time: number,
   originalCells: string,
-  difficulty: Difficulty,
+  score?: number,
+  rating: DifficultyRating
   actions: number[]
 }

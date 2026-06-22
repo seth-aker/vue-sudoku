@@ -71,16 +71,14 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
       const sqlUserPuzle = await this.sudokuDataSource.getUserPuzzle(userId, puzzleId);
       return {
         puzzleId: sqlUserPuzle.puzzle_id,
-        currentCells: sqlUserPuzle.current_cells,
-        currentCandidates: sqlUserPuzle.current_candidates,
+        cells: sqlUserPuzle.current_cells,
+        candidates: sqlUserPuzle.current_candidates,
         originalCells: sqlUserPuzle.original_cells,
         time: sqlUserPuzle.time,
         isCompleted: sqlUserPuzle.is_completed,
         actions: sqlUserPuzle.actions,
-        difficulty: {
-          score: sqlUserPuzle.difficulty_score,
-          rating: sqlUserPuzle.difficulty_rating
-        }
+        score: sqlUserPuzle.difficulty_score,
+        rating: sqlUserPuzle.difficulty_rating
       }
     })
   }
