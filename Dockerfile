@@ -41,7 +41,7 @@ COPY --from=build /apps/sudoku/backend/dist ./
 COPY --from=build /apps/sudoku/backend/package.json .
 COPY --chown=node:node --from=c_builder /cdoku/build/src/app/puzzle_generator_app .
 
-RUN npm i --omit=dev
+RUN npm ci --omit=dev
 
 EXPOSE 3666
 
