@@ -3,7 +3,6 @@ sealed class Result<T> {
 
   factory Result.ok(T value) => Ok(value);
   factory Result.error(Exception error) => Error(error);
-
 }
 
 final class Ok<T> extends Result<T> {

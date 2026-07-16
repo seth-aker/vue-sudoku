@@ -1,35 +1,75 @@
-import 'package:app/data/model/puzzle/difficulty.dart';
+import 'package:app/domain/models/difficulty.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-part 'puzzle_dto.freezed.dart';
 part 'puzzle_dto.g.dart';
 
-@freezed
-abstract class NewPuzzleDTO with _$NewPuzzleDTO {
-  const factory NewPuzzleDTO({
-    required String puzzleId,
-    required String cells,
-    required DifficultyRating rating,
-    required int score
-  }) = _PuzzleDTO;
-  
-  factory NewPuzzleDTO.fromJson(Map<String, dynamic> json) => 
-    _$NewPuzzleDTOFromJson(json);
+@JsonSerializable(createJsonSchema: true)
+class NewPuzzleDTO extends PuzzleDto {
+  final String puzzleId;
+  final String cells;
+  final DifficultyRating rating;
+  final int score;
+
+  const NewPuzzleDTO(this.puzzleId, this.cells, this.rating, this.score);
+
+  factory NewPuzzleDTO.fromJson(Map<String, dynamic> json) =>
+      _$NewPuzzleDTOFromJson(json);
+  Map<String, dynamic> toJson() => _$NewPuzzleDTOToJson(this);
+  static const jsonSchema = _$NewPuzzleDTOJsonSchema;
 }
 
-@freezed 
-abstract class UserPuzzleDTO with _$UserPuzzleDTO {
-  const factory UserPuzzleDTO({
-    required String puzzleId,
-    required String currentCells,
-    required String originalCells,
-    required String candidates,
-    required DifficultyRating rating,
-    required int score,
-    required int time,
-    required bool isCompleted,
-    List<int>? actions
-  }) = _UserPuzzleDTO;
-  
-  factory UserPuzzleDTO.fromJson(Map<String, dynamic> json) => 
-    _$UserPuzzleDTOFromJson(json);
+@JsonSerializable(createJsonSchema: true)
+class UserPuzzleDTO extends NewPuzzleDTO {
+  final String originalCells;
+  final String candidates;
+  final int time;
+  final bool isCompleted;
+  final List<int>? actions;
+  const UserPuzzleDTO(
+    super.puzzleId,
+    super.cells,
+    this.originalCells,
+    this.candidates,
+    super.rating,
+    super.score,
+    this.time,
+    this.isCompleted,
+    this.actions,
+  );
+
+  factory UserPuzzleDTO.fromJson(Map<String, dynamic> json) =>
+      _$UserPuzzleDTOFromJson(json);
+  @override
+  Map<String, dynamic> toJson() => _$UserPuzzleDTOToJson(this);
+  static const jsonSchema = _$UserPuzzleDTOJsonSchema;
+}
+
+abstract class PuzzleDto {
+  const PuzzleDto();
+  factory PuzzleDto.newPuzzle(
+    String puzzleId,
+    String cells,
+    DifficultyRating rating,
+    int score,
+  ) => NewPuzzleDTO(puzzleId, cells, rating, score);
+  factory PuzzleDto.userPuzzle(
+    String puzzleId,
+    String cells,
+    String originalCells,
+    String candidates,
+    DifficultyRating rating,
+    int score,
+    int time,
+    bool isCompleted,
+    List<int>? actions,
+  ) => UserPuzzleDTO(
+    puzzleId,
+    cells,
+    originalCells,
+    candidates,
+    rating,
+    score,
+    time,
+    isCompleted,
+    actions,
+  );
 }

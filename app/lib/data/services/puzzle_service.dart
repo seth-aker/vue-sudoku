@@ -1,5 +1,5 @@
-import 'package:app/data/model/puzzle/difficulty.dart';
-import 'package:app/data/model/puzzle/puzzle.dart';
+import 'package:app/domain/models/difficulty.dart';
+import 'package:app/domain/models/puzzle.dart';
 import 'package:app/utils/result.dart';
 
 abstract class PuzzleService {
