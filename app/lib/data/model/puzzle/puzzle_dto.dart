@@ -1,5 +1,5 @@
 import 'package:app/domain/models/difficulty.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:json_annotation/json_annotation.dart';
 part 'puzzle_dto.g.dart';
 
 @JsonSerializable(createJsonSchema: true)

@@ -1,9 +1,16 @@
-import 'package:app/domain/models/action.dart';
-import 'package:app/domain/models/cell.dart';
-import 'package:app/domain/models/difficulty.dart';
-import 'package:equatable/equatable.dart';
+part of 'puzzle_bloc.dart';
 
-class PuzzleState extends Equatable {
+sealed class PuzzleState extends Equatable {
+  const PuzzleState();
+}
+
+class PuzzleInitialState extends PuzzleState {
+  const PuzzleInitialState();
+  @override
+  List<Object?> get props => [];
+}
+
+class PuzzleSuccessState extends PuzzleState {
   final String puzzleId;
 
   final DifficultyRating rating;
@@ -14,22 +21,57 @@ class PuzzleState extends Equatable {
 
   final List<Cell> originalCells;
 
-  final List<Action> actions;
+  final List<Action> history;
+
+  final List<Action> redoActions;
 
   final int elapsedSeconds;
 
   final bool isCompleted;
 
-  const PuzzleState({
+  final int? selectedIdx;
+
+  final bool usingPencil;
+
+  final bool autoCandidateModeOn;
+
+  const PuzzleSuccessState({
     required this.puzzleId,
     required this.rating,
     required this.score,
     required this.cells,
     required this.originalCells,
-    required this.actions,
+    required this.history,
     required this.elapsedSeconds,
+    this.redoActions = const [],
     this.isCompleted = false,
+    this.usingPencil = false,
+    this.autoCandidateModeOn = false,
+    this.selectedIdx,
   });
+  PuzzleSuccessState copyWith({
+    List<Cell>? cells,
+    List<Action>? history,
+    List<Action>? redoActions,
+    int? elapsedSeconds,
+    int? selectedIdx,
+    bool? usingPencil,
+    bool? autoCandidateModeOn,
+  }) {
+    return PuzzleSuccessState(
+      puzzleId: puzzleId,
+      rating: rating,
+      score: score,
+      cells: cells ?? this.cells,
+      originalCells: originalCells,
+      history: history ?? this.history,
+      redoActions: redoActions ?? this.redoActions,
+      elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
+      usingPencil: usingPencil ?? this.usingPencil,
+      selectedIdx: selectedIdx ?? this.selectedIdx,
+      autoCandidateModeOn: autoCandidateModeOn ?? this.autoCandidateModeOn,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -38,8 +80,23 @@ class PuzzleState extends Equatable {
     originalCells,
     cells,
     score,
-    actions,
+    history,
     elapsedSeconds,
     isCompleted,
+    selectedIdx,
+    usingPencil,
+    autoCandidateModeOn,
   ];
+}
+
+class PuzzleLoadingState extends PuzzleState {
+  const PuzzleLoadingState();
+  @override
+  List<Object?> get props => [];
+}
+
+class PuzzleErrorState extends PuzzleState {
+  const PuzzleErrorState();
+  @override
+  List<Object?> get props => [];
 }

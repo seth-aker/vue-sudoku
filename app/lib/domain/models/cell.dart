@@ -1,7 +1,15 @@
-class Cell {
+import 'package:equatable/equatable.dart';
+
+class Cell extends Equatable {
   final int idx;
-  int value = 0;
+  final int value;
   final List<int> candidates;
 
-  Cell(this.idx, this.value, this.candidates);
+  const Cell(this.idx, this.value, this.candidates);
+
+  Cell copyWith({int? value, List<int>? candidates}) =>
+      Cell(idx, value ?? this.value, candidates ?? this.candidates);
+
+  @override
+  List<Object?> get props => [idx, value, candidates];
 }

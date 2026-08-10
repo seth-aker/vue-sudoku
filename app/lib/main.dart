@@ -1,20 +1,10 @@
+import 'package:app/ui/sudoku_app.dart';
+import 'package:app/data/repositories/puzzle_repository.dart';
+import 'package:app/data/service/api/api_client_service_remote.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MainApp());
-}
-
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
-    );
-  }
+  const clientService = ApiClientServiceRemote();
+  const puzzleRepository = PuzzleRepository(clientService: clientService);
+  runApp(const SudokuApp(puzzleRepository: puzzleRepository));
 }

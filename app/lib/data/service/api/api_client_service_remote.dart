@@ -1,30 +1,28 @@
 import 'dart:convert' show jsonDecode, jsonEncode, utf8;
 import 'dart:io';
 
+import 'package:app/data/service/api/api_client_service.dart';
 import 'package:app/domain/models/action.dart';
 import 'package:app/domain/models/difficulty.dart';
 import 'package:app/domain/models/puzzle.dart';
 import 'package:app/data/model/puzzle/puzzle_dto.dart';
-import 'package:app/data/services/puzzle_service.dart';
 import 'package:app/utils/result.dart';
 import 'package:app/utils/serilization.dart';
 
-class PuzzleServiceRemote implements PuzzleService {
-  PuzzleServiceRemote({
-    String? host,
-    int? port,
+class ApiClientServiceRemote extends ApiClientService {
+  const ApiClientServiceRemote({
+    this._host = 'localhost',
+    this._port = 8080,
     this._authProvider,
-    HttpClient Function()? clientFactory,
-  }) : _host = host ?? 'localhost',
-       _port = port ?? 8080,
-       _clientFactory = clientFactory ?? HttpClient.new;
-
+    this._clientFactory = HttpClient.new,
+  });
   final String _host;
   final int _port;
   final HttpClient Function() _clientFactory;
   final Function()? _authProvider;
 
-  Future<void> _setAuthHeader(HttpHeaders headers) async {
+  @override
+  Future<void> setAuthHeader(HttpHeaders headers) async {
     final header = _authProvider?.call();
     if (header != null) {
       headers.add(HttpHeaders.authorizationHeader, header);
@@ -40,7 +38,7 @@ class PuzzleServiceRemote implements PuzzleService {
         _port,
         '/sudoku/new?difficulty=$difficulty',
       );
-      _setAuthHeader(request.headers);
+      await setAuthHeader(request.headers);
       final response = await request.close();
       if (response.statusCode == 200) {
         final stringData = await response.transform(utf8.decoder).join();
@@ -52,15 +50,17 @@ class PuzzleServiceRemote implements PuzzleService {
       }
     } on Exception catch (err) {
       return Result.error(err);
+    } finally {
+      client.close();
     }
   }
 
   @override
-  Future<Result<Puzzle>> getSavedProgress(String puzzleId) async {
+  Future<Result<Puzzle>> getPuzzle(String puzzleId) async {
     final client = _clientFactory();
     try {
       final request = await client.get(_host, _port, '/sudoku/$puzzleId');
-      await _setAuthHeader(request.headers);
+      await setAuthHeader(request.headers);
       final response = await request.close();
       if (response.statusCode == 200) {
         final stringData = await response.transform(utf8.decoder).join();
@@ -72,6 +72,8 @@ class PuzzleServiceRemote implements PuzzleService {
       }
     } on Exception catch (err) {
       return Result.error(err);
+    } finally {
+      client.close();
     }
   }
 
@@ -110,6 +112,8 @@ class PuzzleServiceRemote implements PuzzleService {
       }
     } on Exception catch (error) {
       return Result.error(error);
+    } finally {
+      client.close();
     }
   }
 
