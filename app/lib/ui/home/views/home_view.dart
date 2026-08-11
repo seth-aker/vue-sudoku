@@ -1,7 +1,9 @@
 import 'package:app/domain/models/difficulty.dart';
 import 'package:app/ui/core/app_theme.dart';
+import 'package:app/ui/core/spacing/app_spacing.dart';
 import 'package:app/ui/sudoku/state/puzzle/puzzle_bloc.dart';
 import 'package:app/ui/sudoku/state/timer/timer_bloc.dart';
+import 'package:app/ui/sudoku/widgets/controls/control_panel.dart';
 import 'package:app/ui/sudoku/widgets/controls/numpad.dart';
 import 'package:app/ui/sudoku/widgets/puzzle/info_bar.dart';
 import 'package:app/ui/sudoku/widgets/puzzle/puzzle_widget.dart';
@@ -40,14 +42,13 @@ class _HomeViewState extends State<HomeView> {
         child: Column(
           children: [
             InfoBar(),
-            Flexible(
-              child: Align(
-                alignment: AlignmentGeometry.topCenter,
-                child: AspectRatio(aspectRatio: 1, child: const PuzzleWidget()),
-              ),
+            Align(
+              alignment: AlignmentGeometry.topCenter,
+              child: AspectRatio(aspectRatio: 1, child: const PuzzleWidget()),
             ),
+            ControlPanel(),
             SizedBox(
-              width: 200, // TODO: scale this appropriately
+              width: AppSpacing.four * 3 + AppSpacing.half * 2, // AppSpacing.four sized buttons + AppSpacing.half * 2
               child: Numpad(
                 onTap: (value) =>
                     context.read<PuzzleBloc>().add(ValuePlaced(value: value)),
