@@ -2,6 +2,7 @@ import 'package:app/routing/routes.dart';
 import 'package:app/ui/core/app_theme.dart';
 import 'package:app/ui/core/colors/app_colors.dart';
 import 'package:app/ui/core/constants.dart';
+import 'package:app/ui/core/widgets/button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -37,20 +38,21 @@ class CupertinoLayout extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: const Icon(CupertinoIcons.gear),
           // Displays the settins modal
-          onPressed: () => showCupertinoModalPopup(
+          onPressed: () => showCupertinoSheet(
             context: context,
-            builder: (BuildContext context) => CupertinoActionSheet(
-              title: const Text('Settings'),
-              actions: [
-                CupertinoActionSheetAction(
-                  onPressed: () {},
-                  child: const Text('Does Something'),
-                ),
-              ],
-              cancelButton: CupertinoActionSheetAction(
-                isDestructiveAction: true,
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
+            scrollableBuilder: (context, scrollController) => SingleChildScrollView(
+              controller: scrollController,
+              child: ColoredBox( 
+                color: AppTheme.background(context),
+                child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // TODO: Add settings here
+              const Text('Settings'),
+              Button.primary(child: const Text('Close'), onPressed: () => Navigator.pop(context)),
+                ],
+              ),
               ),
             ),
           ),

@@ -147,7 +147,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       }
       // TODO: Save Local()
       emit(
-        state.copyWith(cells: cells, history: history, redoActions: const []),
+        state.copyWith(
+          cells: cells, 
+          history: history, 
+          redoActions: const []
+        ),
       );
     }
   }
@@ -209,9 +213,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   void _onUndoPressed(UndoPressed event, Emitter<PuzzleState> emit) {
     final state = this.state;
     if (state is PuzzleSuccessState) {
-      final redoActions = List<Action>.empty();
+      final redoActions = [...state.redoActions];
       final cells = List<Cell>.from(state.cells);
-      final history = List<Action>.from(state.history);
+      final history = [...state.history];
       var action = history.isNotEmpty ? history.removeLast() : null;
       int? selectedIdx = state.selectedIdx;
       // loop through each action that is not a parent action and add it to the redo stack
@@ -245,9 +249,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final state = this.state;
     if (state is PuzzleSuccessState) {
       final cells = List<Cell>.from(state.cells);
-      final history = List<Action>.from(state.history);
-      final redoActions = List<Action>.from(state.redoActions);
-      var action = history.isNotEmpty ? history.removeLast() : null;
+      final history = [...state.history];
+      final redoActions = [...state.redoActions];
+      var action = redoActions.isNotEmpty ? redoActions.removeLast() : null;
       int? selectedIdx = state.selectedIdx;
 
       if (action != null) {
@@ -272,7 +276,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         state.copyWith(
           cells: cells,
           history: history,
-          redoActions: history,
+          redoActions: redoActions,
           selectedIdx: selectedIdx,
         ),
       );

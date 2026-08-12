@@ -47,11 +47,13 @@ class _HomeViewState extends State<HomeView> {
               child: AspectRatio(aspectRatio: 1, child: const PuzzleWidget()),
             ),
             ControlPanel(),
-            SizedBox(
-              width: AppSpacing.four * 3 + AppSpacing.half * 2, // AppSpacing.four sized buttons + AppSpacing.half * 2
-              child: Numpad(
-                onTap: (value) =>
-                    context.read<PuzzleBloc>().add(ValuePlaced(value: value)),
+            Expanded(
+              child: SizedBox(
+                width: AppSpacing.four * 3 + AppSpacing.half * 2, // AppSpacing.four sized buttons + AppSpacing.half * 2
+                child: Numpad(
+                  onTap: (value) =>
+                      context.read<PuzzleBloc>().add(ValuePlaced(value: value)),
+                ),
               ),
             ),
           ],
