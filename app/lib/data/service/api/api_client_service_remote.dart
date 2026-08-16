@@ -1,13 +1,16 @@
 import 'dart:convert' show jsonDecode, jsonEncode, utf8;
 import 'dart:io';
 
+import 'package:app/data/model/user/user_dto.dart';
 import 'package:app/data/service/api/api_client_service.dart';
-import 'package:app/domain/models/action.dart';
 import 'package:app/domain/models/difficulty.dart';
 import 'package:app/domain/models/puzzle.dart';
 import 'package:app/data/model/puzzle/puzzle_dto.dart';
+import 'package:app/domain/models/user.dart';
 import 'package:app/utils/result.dart';
 import 'package:app/utils/serilization.dart';
+
+// TODO: Split this into parts.
 
 class ApiClientServiceRemote extends ApiClientService {
   const ApiClientServiceRemote({
@@ -30,6 +33,17 @@ class ApiClientServiceRemote extends ApiClientService {
   }
 
   @override
+  void setContentTypeJson(HttpHeaders headers) {
+    headers.contentType = ContentType.json;
+  }
+
+  @override
+  Future<dynamic> parseResponseBody(HttpClientResponse response) async {
+    final stringData = await response.transform(utf8.decoder).join();
+    return jsonDecode(stringData);
+  }
+
+  @override
   Future<Result<Puzzle>> getNewPuzzle(DifficultyRating difficulty) async {
     final client = _clientFactory();
     try {
@@ -39,6 +53,8 @@ class ApiClientServiceRemote extends ApiClientService {
         '/api/sudoku/new?difficulty=${difficulty.toString().toLowerCase()}',
       );
       await setAuthHeader(request.headers);
+      setContentTypeJson(request.headers);
+
       final response = await request.close();
       if (response.statusCode == 200) {
         final stringData = await response.transform(utf8.decoder).join();
@@ -46,7 +62,9 @@ class ApiClientServiceRemote extends ApiClientService {
         final dto = NewPuzzleDTO.fromJson(json);
         return Result.ok(_mapDtoToPuzzle(dto));
       } else {
-        return Result.error(HttpException("Invalid response"));
+        return Result.error(
+          HttpException("Invalid response code: ${response.statusCode}"),
+        );
       }
     } on Exception catch (err) {
       return Result.error(err);
@@ -61,14 +79,17 @@ class ApiClientServiceRemote extends ApiClientService {
     try {
       final request = await client.get(_host, _port, '/api/sudoku/$puzzleId');
       await setAuthHeader(request.headers);
+      setContentTypeJson(request.headers);
+
       final response = await request.close();
       if (response.statusCode == 200) {
-        final stringData = await response.transform(utf8.decoder).join();
-        final json = jsonDecode(stringData) as dynamic;
+        final json = await parseResponseBody(response);
         final dto = UserPuzzleDTO.fromJson(json);
         return Result.ok(_mapDtoToPuzzle(dto));
       } else {
-        return Result.error(HttpException("Invalid Response"));
+        return Result.error(
+          HttpException("Invalid Response Code: ${response.statusCode}"),
+        );
       }
     } on Exception catch (err) {
       return Result.error(err);
@@ -90,7 +111,8 @@ class ApiClientServiceRemote extends ApiClientService {
         _port,
         "/api/sudoku/${state.puzzleId}",
       );
-      request.headers.contentType = ContentType.json;
+
+      setContentTypeJson(request.headers);
       final payload = {
         'puzzleId': state.puzzleId,
         'cells': serializedCells.cells,
@@ -105,9 +127,7 @@ class ApiClientServiceRemote extends ApiClientService {
         return Result.ok(null);
       } else {
         return Result.error(
-          HttpException(
-            "${result.statusCode} Error: ${result.transform(utf8.decoder).join()}",
-          ),
+          HttpException('Invalid Response Code: ${result.statusCode}'),
         );
       }
     } on Exception catch (error) {
@@ -120,42 +140,134 @@ class ApiClientServiceRemote extends ApiClientService {
   Puzzle _mapDtoToPuzzle(PuzzleDto dto) {
     switch (dto) {
       case UserPuzzleDTO():
-        final cells = PuzzleSerializer.deserializeCells(
-          dto.cells,
-          dto.candidates,
-        );
-        final originalCells = PuzzleSerializer.deserializeCells(
-          dto.originalCells,
-          null,
-        );
-        final actions = dto.actions
-            ?.map(PuzzleSerializer.deserializeAction)
-            .toList();
-        return Puzzle(
-          puzzleId: dto.puzzleId,
-          cells: cells,
-          orginalCells: originalCells,
-          rating: dto.rating,
-          score: dto.score,
-          elapsedSeconds: dto.time,
-          isCompleted: dto.isCompleted,
-          actions: actions ?? <Action>[],
-        );
+        return Puzzle.fromUserPuzzleDto(dto);
       case NewPuzzleDTO():
-        final cells = PuzzleSerializer.deserializeCells(dto.cells, null);
-        return Puzzle(
-          puzzleId: dto.puzzleId,
-          cells: cells,
-          orginalCells: cells,
-          rating: dto.rating,
-          score: dto.score,
-          elapsedSeconds: 0,
-          actions: const <Action>[],
-        );
+        return Puzzle.fromNewPuzzleDto(dto);
       default:
         throw UnsupportedError(
           "An unknown type of PuzzleDto was used in the function _mapDtoToPuzzle",
         );
     }
   }
+
+  @override
+  Future<Result<User>> login(String username, String password) async {
+    final client = _clientFactory();
+
+    try {
+      final request = await client.post(_host, _port, '/api/auth/login');
+
+      await setAuthHeader(request.headers);
+      setContentTypeJson(request.headers);
+
+      request.write(jsonEncode({'username': username, 'password': password}));
+
+      final response = await request.close();
+
+      if (response.statusCode == 200) {
+        final json = await parseResponseBody(response);
+        final userDto = UserDto.fromJson(json);
+
+        return Result.ok(User.fromDto(userDto));
+      } else {
+        return Result.error(
+          HttpException('Invalid response code: ${response.statusCode}'),
+        );
+      }
+    } on Exception catch (err) {
+      return Result.error(err);
+    } finally {
+      client.close();
+    }
+  }
+
+  @override
+  Future<Result<void>> logout() async {
+    final client = _clientFactory();
+
+    try {
+      final request = await client.post(_host, _port, '/api/auth/logout');
+
+      await setAuthHeader(request.headers);
+
+      final response = await request.close();
+
+      if (response.statusCode != 204) {
+        return Result.error(
+          HttpException('Invaid response code: ${response.statusCode}'),
+        );
+      } else {
+        return Result.ok(null);
+      }
+    } on Exception catch (err) {
+      return Result.error(err);
+    } finally {
+      client.close();
+    }
+  }
+
+  @override
+  Future<Result<User?>> register(
+    String username,
+    String password,
+    String? displayName,
+  ) async {
+    final client = _clientFactory();
+
+    try {
+      final request = await client.post(_host, _port, '/api/auth/register');
+
+      setContentTypeJson(request.headers);
+
+      request.write(
+        jsonEncode({
+          'username': username,
+          'password': password,
+          'displayName': displayName,
+        }),
+      );
+
+      final response = await request.close();
+
+      if (response.statusCode == 201) {
+        final json = await parseResponseBody(response);
+        final dto = UserDto.fromJson(json);
+
+        return Result.ok(User.fromDto(dto));
+      } else {
+        return Result.error(
+          HttpException('Invalid Response Code: ${response.statusCode}'),
+        );
+      }
+    } on Exception catch (error) {
+      return Result.error(error);
+    } finally {
+      client.close();
+    }
+  }
+  // @override
+  // Future<Result<User?>> getSession() async {
+  //   final client = _clientFactory();
+
+  //   try {
+  //     final request = await client.get(
+  //       _host,
+  //       _port,
+  //       '/api/auth/session'
+  //     );
+  //     setContentTypeJson(request.headers);
+  //     await setAuthHeader(request.headers);
+
+  //     final response = await request.close();
+
+  //     if(response.statusCode == 200) {
+  //       final json = await parseResponseBody(response);
+
+  //     }
+  //   } on Exception catch (err) {
+  //     return Result.error(err);
+  //   } finally {
+  //     client.close();
+  //   }
+  // }
 }

@@ -345,19 +345,19 @@ class PuzzleBloc extends HydratedBloc<PuzzleEvent, PuzzleState> {
     }
   }
 
-  List<Cell> _generateEmptyCells() {
-    final cells = <Cell>[];
-    for (var i = 0; i < 81; i++) {
-      cells.add(
-        Cell(
-          idx: i,
-          value: i == 0 ? 9 : 0,
-          candidates: {1, 2, 3, 4, 5, 6, 7, 8, 9},
-        ),
-      );
-    }
-    return cells;
-  }
+  // List<Cell> _generateEmptyCells() {
+  //   final cells = <Cell>[];
+  //   for (var i = 0; i < 81; i++) {
+  //     cells.add(
+  //       Cell(
+  //         idx: i,
+  //         value: i == 0 ? 9 : 0,
+  //         candidates: {1, 2, 3, 4, 5, 6, 7, 8, 9},
+  //       ),
+  //     );
+  //   }
+  //   return cells;
+  // }
 
   @override
   PuzzleState? fromJson(Map<String, dynamic> json) {

@@ -11,17 +11,17 @@ class Puzzle {
 
   final int score;
 
-  List<Cell> cells;
+  final List<Cell> cells;
 
   final List<Cell> orginalCells;
 
-  List<Action> actions;
+  final List<Action> actions;
 
-  int elapsedSeconds;
+  final int elapsedSeconds;
 
-  bool isCompleted = false;
+  final bool isCompleted;
 
-  Puzzle({
+  const Puzzle({
     required this.puzzleId,
     required this.rating,
     required this.score,
@@ -31,23 +31,38 @@ class Puzzle {
     required this.elapsedSeconds,
     this.isCompleted = false,
   });
-}
 
-class NewPuzzleDtoToPuzzleMapper {
-  static Puzzle map(NewPuzzleDTO dto) {
-    final cells = parseCells(dto.cells);
+  factory Puzzle.fromNewPuzzleDto(NewPuzzleDTO dto) {
+    final cells = PuzzleSerializer.deserializeCells(dto.cells, null);
     return Puzzle(
       puzzleId: dto.puzzleId,
       rating: dto.rating,
       score: dto.score,
       cells: cells,
-      orginalCells: cells,
+      orginalCells: [...cells],
       actions: [],
       elapsedSeconds: 0,
     );
   }
 
-  static List<Cell> parseCells(String cellStr) {
-    return PuzzleSerializer.deserializeCells(cellStr, null);
+  factory Puzzle.fromUserPuzzleDto(UserPuzzleDTO dto) {
+    final cells = PuzzleSerializer.deserializeCells(dto.cells, dto.candidates);
+    final originalCells = PuzzleSerializer.deserializeCells(
+      dto.originalCells,
+      null,
+    );
+    final actions =
+        dto.actions?.map(PuzzleSerializer.deserializeAction).toList() ??
+        const <Action>[];
+
+    return Puzzle(
+      puzzleId: dto.puzzleId,
+      rating: dto.rating,
+      score: dto.score,
+      cells: cells,
+      orginalCells: originalCells,
+      actions: actions,
+      elapsedSeconds: dto.time,
+    );
   }
 }
