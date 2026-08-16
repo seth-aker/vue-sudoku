@@ -11,8 +11,8 @@ import 'package:app/utils/serilization.dart';
 
 class ApiClientServiceRemote extends ApiClientService {
   const ApiClientServiceRemote({
-    this._host = 'localhost',
-    this._port = 8080,
+    this._host = '127.0.0.1',
+    this._port = 3666,
     this._authProvider,
     this._clientFactory = HttpClient.new,
   });
@@ -36,7 +36,7 @@ class ApiClientServiceRemote extends ApiClientService {
       final request = await client.get(
         _host,
         _port,
-        '/sudoku/new?difficulty=$difficulty',
+        '/api/sudoku/new?difficulty=${difficulty.toString().toLowerCase()}',
       );
       await setAuthHeader(request.headers);
       final response = await request.close();
@@ -59,7 +59,7 @@ class ApiClientServiceRemote extends ApiClientService {
   Future<Result<Puzzle>> getPuzzle(String puzzleId) async {
     final client = _clientFactory();
     try {
-      final request = await client.get(_host, _port, '/sudoku/$puzzleId');
+      final request = await client.get(_host, _port, '/api/sudoku/$puzzleId');
       await setAuthHeader(request.headers);
       final response = await request.close();
       if (response.statusCode == 200) {
@@ -88,7 +88,7 @@ class ApiClientServiceRemote extends ApiClientService {
       final request = await client.put(
         _host,
         _port,
-        "/sudoku/${state.puzzleId}",
+        "/api/sudoku/${state.puzzleId}",
       );
       request.headers.contentType = ContentType.json;
       final payload = {
@@ -139,7 +139,7 @@ class ApiClientServiceRemote extends ApiClientService {
           score: dto.score,
           elapsedSeconds: dto.time,
           isCompleted: dto.isCompleted,
-          actions: actions ?? [],
+          actions: actions ?? <Action>[],
         );
       case NewPuzzleDTO():
         final cells = PuzzleSerializer.deserializeCells(dto.cells, null);
@@ -150,7 +150,7 @@ class ApiClientServiceRemote extends ApiClientService {
           rating: dto.rating,
           score: dto.score,
           elapsedSeconds: 0,
-          actions: [] as List<Action>,
+          actions: const <Action>[],
         );
       default:
         throw UnsupportedError(
