@@ -1,36 +1,31 @@
 import 'package:app/routing/routes.dart';
-import 'package:app/ui/core/widgets/shared_page_layout.dart';
 import 'package:app/ui/home/views/home_view.dart';
+import 'package:app/ui/sudoku/views/sudoku_view.dart';
+import 'package:app/ui/sudoku/views/pause_menu.dart';
 import 'package:go_router/go_router.dart';
 
 GoRouter router() => GoRouter(
   initialLocation: Routes.home,
   routes: [
-    ShellRoute(
-      builder: (context, state, child) {
-        return SharedPageLayout(child: child);
-      },
-      routes: [
-        GoRoute(
-          path: Routes.home,
-          builder: (context, state) => const HomeView(),
-        ),
-      ],
+    GoRoute(path: Routes.home, builder: (context, state) => const HomeView()),
+    GoRoute(
+      path: Routes.settings,
+      builder: (context, state) => const PauseMenu(),
     ),
-    // GoRoute(
-    //   path: Routes.login,
-    //   builder:(context, state) => LoginView(),
-    // ),
-    // GoRoute(
-    //   path: Routes.sudoku,
-    //   builder: (context, state) => SudokuView(),
-    // ),
-    // GoRoute(
-    //   name: 'About',
-    //   path: Routes.about,
-    //   builder:(context, state) => AboutView(),
-    // )
+    GoRoute(
+      path: Routes.sudoku,
+      builder: (context, state) => const SudokuView(),
+    ),
   ],
+  // GoRoute(
+  //   path: Routes.login,
+  //   builder:(context, state) => LoginView(),
+  // ),
+  // GoRoute(
+  //   name: 'About',
+  //   path: Routes.about,
+  //   builder:(context, state) => AboutView(),
+  // )
 );
 
 // Future<String?> _redirect(BuildContext context, GoRouterState state) async {

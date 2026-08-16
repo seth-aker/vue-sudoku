@@ -2,25 +2,23 @@ import 'package:app/data/repositories/puzzle_repository.dart';
 import 'package:app/domain/models/constants/puzzle_constants.dart';
 import 'package:app/domain/models/puzzle.dart';
 import 'package:app/utils/result.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app/domain/models/action.dart';
 import 'package:app/domain/models/cell.dart';
 import 'package:app/domain/models/difficulty.dart';
 import 'package:equatable/equatable.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 part 'puzzle_state.dart';
 part 'puzzle_event.dart';
 
-class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
+class PuzzleBloc extends HydratedBloc<PuzzleEvent, PuzzleState> {
   PuzzleBloc({required this._puzzleRepository})
     : super(const PuzzleInitialState()) {
     on<NewPuzzleFetched>(_onNewPuzzleFetched);
     on<PuzzleFetched>(_onPuzzleFetched);
     on<CellSelected>(_onCellSelected);
     on<PencilToggled>(_onPencilToggled);
-    on<ValuePlaced>(_onValuePlaced);
-    on<CellCleared>(_onCellCleared);
-    on<CandidateToggled>(_onCandidateToggled);
+    on<NumberPressed>(_onNumberPressed);
     on<UndoPressed>(_onUndoPressed);
     on<RedoPressed>(_onRedoPressed);
     on<AutoCandidateModeToggled>(_onAutoCandidateModeToggled);
@@ -35,19 +33,19 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   ) async {
     emit(const PuzzleLoadingState());
     final difficulty = event.difficultyRating;
-    final emptyCells = _generateEmptyCells();
-    emit(
-      PuzzleSuccessState(
-        puzzleId: 'test',
-        rating: difficulty,
-        score: 0,
-        cells: emptyCells,
-        originalCells: emptyCells,
-        history: const [],
-        elapsedSeconds: 0,
-      ),
-    );
-    return;
+    // final emptyCells = _generateEmptyCells();
+    // emit(
+    //   PuzzlePlayingState(
+    //     puzzleId: 'test',
+    //     rating: difficulty,
+    //     score: 0,
+    //     cells: emptyCells,
+    //     originalCells: [...emptyCells],
+    //     history: const [],
+    //     elapsedSeconds: 0,
+    //   ),
+    // );
+    // return;
     final result = await _puzzleRepository.getNewPuzzle(difficulty);
     switch (result) {
       case Error<Puzzle>():
@@ -58,7 +56,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final puzzle = result.value;
 
     emit(
-      PuzzleSuccessState(
+      PuzzlePlayingState(
         puzzleId: puzzle.puzzleId,
         rating: puzzle.rating,
         score: puzzle.score,
@@ -85,7 +83,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     }
     final puzzle = result.value;
     emit(
-      PuzzleSuccessState(
+      PuzzlePlayingState(
         puzzleId: puzzle.puzzleId,
         rating: puzzle.rating,
         score: puzzle.score,
@@ -99,120 +97,142 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   void _onCellSelected(CellSelected event, Emitter<PuzzleState> emit) {
     final state = this.state;
-    if (state is PuzzleSuccessState) {
+    if (state is PuzzlePlayingState) {
       emit(state.copyWith(selectedIdx: event.selectedIdx));
     }
   }
 
   void _onPencilToggled(PencilToggled event, Emitter<PuzzleState> emit) {
     final state = this.state;
-    if (state is PuzzleSuccessState) {
+    if (state is PuzzlePlayingState) {
       emit(state.copyWith(usingPencil: !state.usingPencil));
     }
   }
 
-  void _onValuePlaced(ValuePlaced event, Emitter<PuzzleState> emit) {
+  void _onNumberPressed(NumberPressed event, Emitter<PuzzleState> emit) {
     final state = this.state;
-    if (state is PuzzleSuccessState) {
-      final newValue = event.value;
-      final idx = state.selectedIdx;
-      if (newValue < 0 || newValue > 9 || idx == null || idx < 0 || idx > 80) {
-        return;
-      }
-      final cells = state.cells;
-      final originalCells = state.cells;
-      if (originalCells[idx].value != 0) {
-        return;
-      }
-      final prevCell = cells[idx];
-      final history = [...state.history];
-      history.add(Action(cell: prevCell, isParent: true));
-      if (prevCell.value == 0 && newValue != 0) {
-        // Apply new value to target.
-        cells[idx] = prevCell.copyWith(value: newValue, candidates: const []);
+    if (state is! PuzzlePlayingState) return;
 
-        // Loop through cell peers and remove candidates that equal new value;
+    final selectedIdx = state.selectedIdx;
+    final value = event.value;
+    if (value < 0 ||
+        value > 9 ||
+        selectedIdx == null ||
+        selectedIdx < 0 ||
+        selectedIdx > 80) {
+      return;
+    }
+
+    if (state.originalCells[selectedIdx].value != 0) return;
+
+    if (state.usingPencil) {
+      _toggleCandidate(state, selectedIdx, value, emit);
+    } else {
+      _toggleValue(state, selectedIdx, value, emit);
+    }
+  }
+
+  void _toggleValue(
+    PuzzlePlayingState state,
+    int idx,
+    int value,
+    Emitter<PuzzleState> emit,
+  ) {
+    final cells = state.cells;
+    final originalCells = state.originalCells;
+    if (originalCells[idx].value != 0) {
+      return;
+    }
+    final prevCell = cells[idx];
+    final history = [...state.history];
+    history.add(Action(cell: prevCell, isParent: true));
+
+    if (prevCell.value != value) {
+      // Apply new value to target.
+      cells[idx] = prevCell.copyWith(value: value, candidates: const {});
+
+      // Loop through cell peers and remove candidates that equal new value;
+      if (state.autoCandidateModeOn) {
         final cellPeers = peers[idx];
         for (final peer in cellPeers) {
           final cell = cells[peer];
-          if (cell.idx != idx && cell.candidates.contains(newValue)) {
+          if (cell.idx != idx && cell.candidates.contains(value)) {
             history.add(Action(cell: cell.copyWith(), isParent: false));
             cells[peer] = cell.copyWith(
               candidates: cell.candidates
-                  .where((candidate) => candidate != newValue)
-                  .toList(),
+                  .where((candidate) => candidate != value)
+                  .toSet(),
             );
           }
         }
       }
-      // TODO: Save Local()
-      emit(
-        state.copyWith(
-          cells: cells, 
-          history: history, 
-          redoActions: const []
-        ),
-      );
+    } else if (prevCell.value == value) {
+      cells[idx] = prevCell.copyWith(value: 0);
+
+      if (state.autoCandidateModeOn) {
+        final affectedCells = {idx, ...peers[idx]};
+        for (final affectedIdx in affectedCells) {
+          if (cells[affectedIdx].value != 0) continue;
+          final candidates = <int>{};
+          for (var c = 1; c <= 9; c++) {
+            final cellPeers = peers[affectedIdx];
+            if (cellPeers.any((peerIdx) => cells[peerIdx].value == c)) {
+              candidates.remove(c);
+            } else {
+              candidates.add(c);
+            }
+          }
+          history.add(Action(cell: cells[affectedIdx], isParent: false));
+          cells[affectedIdx] = cells[affectedIdx].copyWith(
+            candidates: candidates,
+          );
+        }
+      }
     }
+    emit(
+      state.copyWith(
+        cells: cells,
+        history: history,
+        redoActions: const [],
+        moveCount: state.moveCount + 1,
+      ),
+    );
   }
 
-  void _onCellCleared(CellCleared event, Emitter<PuzzleState> emit) {
-    final state = this.state;
-    if (state is PuzzleSuccessState) {
-      final idx = event.idx;
-      if (state.originalCells[idx].value != 0) {
-        return;
-      }
-      final prevCell = state.cells[idx];
-      final history = List<Action>.from(state.history);
-      final cells = List<Cell>.from(state.cells);
-      history.add(Action(cell: prevCell, isParent: true));
-      if (state.usingPencil) {
-        cells[idx] = cells[idx].copyWith(candidates: const []);
-      } else {
-        cells[idx] = cells[idx].copyWith(value: 0);
-      }
-      // TODO: saveLocal()
-      emit(
-        state.copyWith(cells: cells, history: history, redoActions: const []),
-      );
+  void _toggleCandidate(
+    PuzzlePlayingState state,
+    int idx,
+    int value,
+    Emitter<PuzzleState> emit,
+  ) {
+    if (state.originalCells[idx].value != 0) {
+      return;
     }
-  }
-
-  void _onCandidateToggled(CandidateToggled event, Emitter<PuzzleState> emit) {
-    final state = this.state;
-    if (state is PuzzleSuccessState) {
-      final idx = event.idx;
-      final value = event.value;
-      if (state.originalCells[idx].value != 0) {
-        return;
-      }
-      final prevCell = state.cells[idx];
-      final candidates = List<int>.from(prevCell.candidates);
-      if (!candidates.contains(value)) {
-        candidates.add(value);
-      } else {
-        candidates.remove(value);
-      }
-      final cells = List<Cell>.from(state.cells);
-      cells[idx] = prevCell.copyWith(candidates: candidates);
-      // TODO: saveLocal()
-      emit(
-        state.copyWith(
-          cells: cells,
-          history: [
-            ...state.history,
-            Action(cell: prevCell, isParent: true),
-          ],
-          redoActions: const [],
-        ),
-      );
+    final prevCell = state.cells[idx];
+    final candidates = Set<int>.from(prevCell.candidates);
+    if (!candidates.contains(value)) {
+      candidates.add(value);
+    } else {
+      candidates.remove(value);
     }
+    final cells = List<Cell>.from(state.cells);
+    cells[idx] = prevCell.copyWith(candidates: candidates);
+    emit(
+      state.copyWith(
+        cells: cells,
+        history: [
+          ...state.history,
+          Action(cell: prevCell, isParent: true),
+        ],
+        redoActions: const [],
+        moveCount: state.moveCount + 1,
+      ),
+    );
   }
 
   void _onUndoPressed(UndoPressed event, Emitter<PuzzleState> emit) {
     final state = this.state;
-    if (state is PuzzleSuccessState) {
+    if (state is PuzzlePlayingState) {
       final redoActions = [...state.redoActions];
       final cells = List<Cell>.from(state.cells);
       final history = [...state.history];
@@ -233,13 +253,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         cells[action.cell.idx] = action.cell;
         selectedIdx = action.cell.idx;
       }
-      // TODO: saveLocal()
       emit(
         state.copyWith(
           cells: cells,
           history: history,
           redoActions: redoActions,
           selectedIdx: selectedIdx,
+          moveCount: state.moveCount + 1,
         ),
       );
     }
@@ -247,7 +267,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   void _onRedoPressed(RedoPressed event, Emitter<PuzzleState> emit) {
     final state = this.state;
-    if (state is PuzzleSuccessState) {
+    if (state is PuzzlePlayingState) {
       final cells = List<Cell>.from(state.cells);
       final history = [...state.history];
       final redoActions = [...state.redoActions];
@@ -271,13 +291,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       if (action != null) {
         redoActions.add(action);
       }
-      // TODO: saveLocal()
       emit(
         state.copyWith(
           cells: cells,
           history: history,
           redoActions: redoActions,
           selectedIdx: selectedIdx,
+          moveCount: state.moveCount + 1,
         ),
       );
     }
@@ -288,30 +308,28 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     Emitter<PuzzleState> emit,
   ) {
     final state = this.state;
-    if (state is PuzzleSuccessState) {
-      final autoCandidateMode = state.autoCandidateModeOn;
+    if (state is PuzzlePlayingState) {
       var cells = state.cells;
-      if (autoCandidateMode) {
-        for (final cell in cells) {
-          cell.candidates.clear();
-        }
-      } else {
+      if (event.autoCandidateModeOn) {
         for (var i = 0; i < 81; i++) {
-          if (cells[i].value != 0) {
-            continue;
-          }
+          if (cells[i].value != 0) continue;
+          final candidates = <int>{};
           for (var c = 1; c <= 9; c++) {
             final cellPeers = peers[i];
-            if (!cellPeers.any((idx) => cells[idx].value == c) &&
-                !cells[i].candidates.contains(c)) {
-              cells[i].candidates.add(c);
+            if (cellPeers.any((idx) => cells[idx].value == c)) {
+              candidates.remove(c);
+            } else {
+              candidates.add(c);
             }
           }
+          cells[i] = cells[i].copyWith(candidates: candidates);
         }
       }
-      // TODO: saveLocal()
       emit(
-        state.copyWith(cells: cells, autoCandidateModeOn: !autoCandidateMode),
+        state.copyWith(
+          cells: cells,
+          autoCandidateModeOn: event.autoCandidateModeOn,
+        ),
       );
     }
   }
@@ -321,8 +339,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     Emitter<PuzzleState> emit,
   ) {
     final state = this.state;
-    if (state is PuzzleSuccessState) {
-      // TODO: clearLocal()
+    if (state is PuzzlePlayingState) {
+      // TODO: add changes into undoActions
       emit(state.copyWith(cells: [...state.originalCells], selectedIdx: null));
     }
   }
@@ -330,8 +348,91 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   List<Cell> _generateEmptyCells() {
     final cells = <Cell>[];
     for (var i = 0; i < 81; i++) {
-      cells.add(Cell(i, i == 0 ? 9 : 0, [1, 2, 3, 4, 5, 6, 7, 8, 9]));
+      cells.add(
+        Cell(
+          idx: i,
+          value: i == 0 ? 9 : 0,
+          candidates: {1, 2, 3, 4, 5, 6, 7, 8, 9},
+        ),
+      );
     }
     return cells;
+  }
+
+  @override
+  PuzzleState? fromJson(Map<String, dynamic> json) {
+    try {
+      final type = json['type'];
+      switch (type) {
+        case 'PuzzlePlayingState':
+          return PuzzlePlayingState(
+            puzzleId: json['puzzleId'],
+            rating: DifficultyRating.fromString(json['rating']),
+            score: json['score'] as int,
+            cells: (json['cells'] as List)
+                .map((e) => Cell.fromJson(e))
+                .toList(),
+            originalCells: (json['originalCells'] as List)
+                .map((e) => Cell.fromJson(e))
+                .toList(),
+            history: (json['history'] as List)
+                .map((e) => Action.fromJson(e))
+                .toList(),
+            elapsedSeconds: json['elapsedSeconds'] as int,
+            redoActions: (json['redoActions'] as List)
+                .map((e) => Action.fromJson(e))
+                .toList(),
+            isCompleted: json['isCompleted'] as bool,
+            usingPencil: json['usingPencil'] as bool,
+            autoCandidateModeOn: json['autoCandidateModeOn'] as bool,
+            selectedIdx: json['selectedIdx'] as int,
+            moveCount: json['moveCount'] as int,
+          );
+        case 'PuzzleLoadingState':
+          return const PuzzleLoadingState();
+        case 'PuzzleErrorState':
+          return const PuzzleErrorState();
+        default:
+          return const PuzzleInitialState();
+      }
+    } catch (e) {
+      // TODO: Implement Error handling
+      return null;
+    }
+  }
+
+  @override
+  Map<String, dynamic>? toJson(PuzzleState state) {
+    try {
+      switch (state) {
+        case PuzzlePlayingState():
+          return {
+            'type': 'PuzzlePlayingState',
+            'puzzleId': state.puzzleId,
+            'rating': state.rating.toString(),
+            'score': state.score,
+            'cells': state.cells.map((c) => c.toJson()).toList(),
+            'originalCells': state.originalCells
+                .map((e) => e.toJson())
+                .toList(),
+            'history': state.history.map((e) => e.toJson()).toList(),
+            'redoActions': state.redoActions.map((e) => e.toJson()).toList(),
+            'elapsedSeconds': state.elapsedSeconds,
+            'isCompleted': state.isCompleted,
+            'usingPencil': state.usingPencil,
+            'autoCandidateModeOn': state.autoCandidateModeOn,
+            'selectedIdx': state.selectedIdx,
+            'moveCount': state.moveCount,
+          };
+        case PuzzleInitialState():
+          return {'type': 'PuzzleInitialState'};
+        case PuzzleLoadingState():
+          return {'type': 'PuzzleLoadingState'};
+        case PuzzleErrorState():
+          return {'type': 'PuzzleErrorState'};
+      }
+    } catch (e) {
+      return null;
+    }
   }
 }

@@ -1,1 +1,5 @@
-const bool isApple = bool.fromEnvironment('APPLE_BUILD', defaultValue: false);
+import 'package:flutter/foundation.dart';
+
+final bool isApple =
+    defaultTargetPlatform == TargetPlatform.iOS ||
+    defaultTargetPlatform == TargetPlatform.macOS;

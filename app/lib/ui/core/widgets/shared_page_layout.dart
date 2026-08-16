@@ -2,61 +2,83 @@ import 'package:app/routing/routes.dart';
 import 'package:app/ui/core/app_theme.dart';
 import 'package:app/ui/core/colors/app_colors.dart';
 import 'package:app/ui/core/constants.dart';
-import 'package:app/ui/core/widgets/button.dart';
+import 'package:app/ui/core/icons/app_icons.dart';
+import 'package:app/ui/core/widgets/app_icon.dart';
+import 'package:app/ui/sudoku/state/timer/timer_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class SharedPageLayout extends StatelessWidget {
   final Widget child;
-
-  const SharedPageLayout({required this.child, super.key});
+  final Widget? leading;
+  final Widget? trailing;
+  final String title;
+  const SharedPageLayout({
+    required this.child,
+    required this.title,
+    this.leading,
+    this.trailing,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (isApple) {
-      return CupertinoLayout(child: child);
+      return CupertinoLayout(
+        title: title,
+        leading: leading,
+        trailing: trailing,
+        child: child,
+      );
     } else {
-      return MaterialLayout(child: child);
+      return MaterialLayout(
+        title: title,
+        leading: leading,
+        trailing: trailing,
+        child: child,
+      );
     }
   }
 }
 
 class CupertinoLayout extends StatelessWidget {
   final Widget child;
-  const CupertinoLayout({super.key, required this.child});
+  final String title;
+
+  final Widget? leading;
+  final Widget? trailing;
+
+  const CupertinoLayout({
+    super.key,
+    required this.child,
+    required this.title,
+    this.leading,
+    this.trailing,
+  });
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: const Icon(CupertinoIcons.home),
-          onPressed: () => context.go(Routes.home),
-        ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: const Icon(CupertinoIcons.gear),
-          // Displays the settins modal
-          onPressed: () => showCupertinoSheet(
-            context: context,
-            scrollableBuilder: (context, scrollController) => SingleChildScrollView(
-              controller: scrollController,
-              child: ColoredBox( 
-                color: AppTheme.background(context),
-                child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // TODO: Add settings here
-              const Text('Settings'),
-              Button.primary(child: const Text('Close'), onPressed: () => Navigator.pop(context)),
-                ],
-              ),
-              ),
+        leading:
+            leading ??
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: const AppIcon(AppIcons.home),
+              onPressed: () => context.go(Routes.home),
             ),
-          ),
-        ),
+        middle: Text(title),
+        trailing:
+            trailing ??
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: const AppIcon(AppIcons.settings),
+              onPressed: () {
+                context.read<TimerBloc>().add(const TimerPaused());
+                context.push(Routes.settings);
+              },
+            ),
       ),
       backgroundColor: AppTheme.background(context),
       child: SafeArea(bottom: false, child: child),
@@ -66,8 +88,16 @@ class CupertinoLayout extends StatelessWidget {
 
 class MaterialLayout extends StatelessWidget {
   final Widget child;
-
-  const MaterialLayout({super.key, required this.child});
+  final String title;
+  final Widget? leading;
+  final Widget? trailing;
+  const MaterialLayout({
+    super.key,
+    required this.child,
+    required this.title,
+    this.leading,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -75,10 +105,9 @@ class MaterialLayout extends StatelessWidget {
       appBar: AppBar(
         leading: MaterialButton(
           padding: EdgeInsets.zero,
-          child: const Icon(Icons.home),
+          child: const AppIcon(AppIcons.home),
           onPressed: () {
             context.go(Routes.home);
-            Navigator.pop(context);
           },
         ),
         title: const Text('Sudoku'),

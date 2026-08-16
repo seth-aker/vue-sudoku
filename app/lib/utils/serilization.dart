@@ -20,7 +20,11 @@ class PuzzleSerializer {
     return cellVals.indexed.map((each) {
       final idx = each.$1;
       final val = each.$2;
-      return Cell(idx, val, cands != null ? cands[idx] : []);
+      return Cell(
+        idx: idx,
+        value: val,
+        candidates: cands != null ? cands[idx].toSet() : {},
+      );
     }).toList();
   }
 
@@ -30,14 +34,14 @@ class PuzzleSerializer {
     int candidateMask = (action >> 11) & 511; // 0b111111111
     final isParentBit = (action >> 20) & 1;
 
-    List<int> candidates = [];
+    Set<int> candidates = {};
     while (candidateMask != 0) {
       final candidate = ctz(candidateMask) + 1;
       candidates.add(candidate);
       candidateMask &= candidateMask - 1;
     }
     return Action(
-      cell: Cell(index, cellVal, candidates),
+      cell: Cell(idx: index, value: cellVal, candidates: candidates),
       isParent: isParentBit == 1,
     );
   }

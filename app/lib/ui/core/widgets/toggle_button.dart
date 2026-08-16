@@ -29,8 +29,12 @@ class ToggleButton extends StatelessWidget {
       ),
       child: Button.icon(
         padding: padding,
-        backgroundColor: isOn ? AppTheme.primary() : AppTheme.background(context) ,
-        foregroundColor: isOn ? AppTheme.background(context) : AppTheme.buttonPrimary(context),
+        backgroundColor: isOn
+            ? AppTheme.primary()
+            : AppTheme.background(context),
+        foregroundColor: isOn
+            ? AppTheme.background(context)
+            : AppTheme.buttonPrimary(context),
         onPressed: onToggle,
         child: child,
       ),

@@ -5,13 +5,8 @@ import 'package:app/ui/sudoku/widgets/puzzle/cell_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class PuzzleWidget extends StatefulWidget {
+class PuzzleWidget extends StatelessWidget {
   const PuzzleWidget({super.key});
-  @override
-  State<StatefulWidget> createState() => _PuzzleWidgetState();
-}
-
-class _PuzzleWidgetState extends State<PuzzleWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -39,39 +34,31 @@ class _PuzzleWidgetState extends State<PuzzleWidget> {
   }
 }
 
-class _PuzzleBlock extends StatefulWidget {
+class _PuzzleBlock extends StatelessWidget {
   const _PuzzleBlock({required this.blockIdx});
   final int blockIdx;
   @override
-  State<StatefulWidget> createState() => _PuzzleBlockState();
-}
-
-class _PuzzleBlockState extends State<_PuzzleBlock> {
-  @override
   Widget build(BuildContext context) {
+    final isPlaying = context.select<PuzzleBloc, bool>(
+      (bloc) => bloc.state is PuzzlePlayingState,
+    );
+    if (!isPlaying) return const SizedBox.shrink();
+
     final bloc = context.read<PuzzleBloc>();
-    final state = bloc.state;
-    switch (state) {
-      case PuzzleSuccessState():
-        return GridView.count(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          crossAxisCount: 3,
-          crossAxisSpacing: AppSpacing.sixteenth,
-          mainAxisSpacing: AppSpacing.sixteenth,
-          children: blockIdxs[widget.blockIdx]
-              .map(
-                (cellIdx) => CellWidget(
-                  idx: cellIdx,
-                  onTap: () => bloc.add(CellSelected(selectedIdx: cellIdx)),
-                ),
-              )
-              .toList(),
-        );
-      case PuzzleInitialState():
-      case PuzzleLoadingState():
-      case PuzzleErrorState():
-        return SizedBox.shrink();
-    }
+    return GridView.count(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      crossAxisCount: 3,
+      crossAxisSpacing: AppSpacing.sixteenth,
+      mainAxisSpacing: AppSpacing.sixteenth,
+      children: blockIdxs[blockIdx]
+          .map(
+            (cellIdx) => CellWidget(
+              idx: cellIdx,
+              onTap: () => bloc.add(CellSelected(selectedIdx: cellIdx)),
+            ),
+          )
+          .toList(),
+    );
   }
 }

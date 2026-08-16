@@ -1,4 +1,6 @@
+import 'package:app/ui/core/icons/app_icons.dart';
 import 'package:app/ui/core/spacing/app_spacing.dart';
+import 'package:app/ui/core/widgets/app_icon.dart';
 import 'package:app/ui/core/widgets/button.dart';
 import 'package:app/ui/core/widgets/toggle_button.dart';
 import 'package:app/ui/sudoku/state/puzzle/puzzle_bloc.dart';
@@ -11,7 +13,7 @@ class ControlPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PuzzleBloc, PuzzleState>(
       buildWhen: (previous, current) =>
-          (current is PuzzleSuccessState && previous is PuzzleSuccessState) &&
+          (current is PuzzlePlayingState && previous is PuzzlePlayingState) &&
           (previous.usingPencil != current.usingPencil),
       builder: (context, state) => Padding(
         padding: const EdgeInsets.all(8.0),
@@ -25,7 +27,7 @@ class ControlPanel extends StatelessWidget {
               child: Button.primary(
                 onPressed: () =>
                     context.read<PuzzleBloc>().add(const UndoPressed()),
-                child: Icon(CupertinoIcons.arrow_uturn_left),
+                child: AppIcon(AppIcons.undo),
               ),
             ),
             SizedBox(
@@ -34,7 +36,7 @@ class ControlPanel extends StatelessWidget {
               child: Button.primary(
                 onPressed: () =>
                     context.read<PuzzleBloc>().add(const RedoPressed()),
-                child: Icon(CupertinoIcons.arrow_uturn_right),
+                child: AppIcon(AppIcons.redo),
               ),
             ),
             SizedBox(
@@ -43,10 +45,26 @@ class ControlPanel extends StatelessWidget {
               child: ToggleButton(
                 onToggle: () =>
                     context.read<PuzzleBloc>().add(const PencilToggled()),
-                isOn: state is PuzzleSuccessState ? state.usingPencil : false,
-                child: Icon(CupertinoIcons.pencil),
+                isOn: state is PuzzlePlayingState ? state.usingPencil : false,
+                child: AppIcon(AppIcons.pencil),
               ),
             ),
+            // SizedBox(
+            //   height: AppSpacing.four,
+            //   width: AppSpacing.four,
+            //   child: Button.primary(
+            //     backgroundColor: AppTheme.destructive(),
+            //     child: Icon(CupertinoIcons.trash),
+            //     onPressed: () {
+            //       final bloc = context.read<PuzzleBloc>();
+            //       final state = bloc.state;
+            //       if(state is PuzzlePlayingState) {
+            //         final selectedIdx = state.selectedIdx;
+            //         if(selectedIdx != null ) bloc.add(CellCleared(idx: selectedIdx));
+            //       }
+            //     }
+            //   )
+            // )
           ],
         ),
       ),

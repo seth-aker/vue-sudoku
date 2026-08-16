@@ -53,4 +53,10 @@ abstract class AppSpacing {
 
   /// eight spacing value (128pt)
   static const double eight = 128;
+
+  /// ten spacing value (160pt)
+  static const double ten = 160;
+
+  /// twelve spacing value (192pt)
+  static const double twelve = 192;
 }

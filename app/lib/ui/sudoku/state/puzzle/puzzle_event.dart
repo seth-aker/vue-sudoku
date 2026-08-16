@@ -33,23 +33,12 @@ class PencilToggled extends PuzzleEvent {
   List<Object?> get props => [];
 }
 
-class ValuePlaced extends PuzzleEvent {
-  const ValuePlaced({required this.value});
-
+class NumberPressed extends PuzzleEvent {
   final int value;
+  const NumberPressed({required this.value});
 
   @override
   List<Object?> get props => [value];
-}
-
-class CandidateToggled extends PuzzleEvent {
-  const CandidateToggled({required this.value, required this.idx});
-
-  final int value;
-  final int idx;
-
-  @override
-  List<Object?> get props => [value, idx];
 }
 
 class CellCleared extends PuzzleEvent {
@@ -74,7 +63,8 @@ class RedoPressed extends PuzzleEvent {
 }
 
 class AutoCandidateModeToggled extends PuzzleEvent {
-  const AutoCandidateModeToggled();
+  final bool autoCandidateModeOn;
+  const AutoCandidateModeToggled({required this.autoCandidateModeOn});
   @override
   List<Object?> get props => [];
 }

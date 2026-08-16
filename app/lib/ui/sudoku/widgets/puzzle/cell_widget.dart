@@ -16,12 +16,12 @@ class CellWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final cell = context.select<PuzzleBloc, Cell?>((bloc) {
       final state = bloc.state;
-      return state is PuzzleSuccessState ? state.cells[idx] : null;
+      return state is PuzzlePlayingState ? state.cells[idx] : null;
     });
     if (cell == null) return const SizedBox.shrink();
     final isSelected = context.select<PuzzleBloc, bool>((bloc) {
       final state = bloc.state;
-      if (state is PuzzleSuccessState) {
+      if (state is PuzzlePlayingState) {
         return state.selectedIdx == cell.idx;
       } else {
         return false;
@@ -29,7 +29,7 @@ class CellWidget extends StatelessWidget {
     });
     final isHighlighted = context.select<PuzzleBloc, bool>((bloc) {
       final state = bloc.state;
-      if (state is PuzzleSuccessState) {
+      if (state is PuzzlePlayingState) {
         return state.selectedIdx != null
             ? peers[state.selectedIdx!].contains(cell.idx)
             : false;
@@ -39,7 +39,7 @@ class CellWidget extends StatelessWidget {
     });
     final hasError = context.select<PuzzleBloc, bool>((bloc) {
       final state = bloc.state;
-      if (state is PuzzleSuccessState) {
+      if (state is PuzzlePlayingState) {
         return peers[cell.idx].any(
           (peer) => state.cells[peer].value == cell.value,
         );
@@ -47,14 +47,11 @@ class CellWidget extends StatelessWidget {
         return false;
       }
     });
-    final isImmutable = context.select<PuzzleBloc, bool>((bloc) {
-      final state = bloc.state;
-      if (state is PuzzleSuccessState) {
-        return state.originalCells[cell.idx].value != 0;
-      } else {
-        return false;
-      }
-    });
+
+    final puzzleBlocState = context.read<PuzzleBloc>().state;
+    final isImmutable =
+        puzzleBlocState is PuzzlePlayingState &&
+        puzzleBlocState.originalCells[idx].value != 0;
     final visableCandidates = List.generate(
       9,
       (idx) => cell.value != 0 ? false : cell.candidates.contains(idx + 1),

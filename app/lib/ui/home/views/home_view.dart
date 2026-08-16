@@ -1,59 +1,64 @@
 import 'package:app/domain/models/difficulty.dart';
+import 'package:app/routing/routes.dart';
 import 'package:app/ui/core/app_theme.dart';
 import 'package:app/ui/core/spacing/app_spacing.dart';
+import 'package:app/ui/core/widgets/button.dart';
+import 'package:app/ui/core/widgets/shared_page_layout.dart';
 import 'package:app/ui/sudoku/state/puzzle/puzzle_bloc.dart';
-import 'package:app/ui/sudoku/state/timer/timer_bloc.dart';
-import 'package:app/ui/sudoku/widgets/controls/control_panel.dart';
-import 'package:app/ui/sudoku/widgets/controls/numpad.dart';
-import 'package:app/ui/sudoku/widgets/puzzle/info_bar.dart';
-import 'package:app/ui/sudoku/widgets/puzzle/puzzle_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
-class HomeView extends StatefulWidget {
+class HomeView extends StatelessWidget {
   const HomeView({super.key});
   @override
-  State<StatefulWidget> createState() {
-    return _HomeViewState();
-  }
-}
-
-class _HomeViewState extends State<HomeView> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<PuzzleBloc>().add(
-      const NewPuzzleFetched(difficultyRating: DifficultyRating.medium),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return BlocListener<PuzzleBloc, PuzzleState>(
-      listener: (context, state) {
-        final timerBloc = context.read<TimerBloc>();
-        if (timerBloc.state is TimerInitialState &&
-            state is PuzzleSuccessState) {
-          timerBloc.add(const TimerStarted());
-        }
-      },
-      child: ColoredBox(
-        color: AppTheme.background(context),
+    return SharedPageLayout(
+      title: '',
+      leading: const SizedBox.shrink(),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.two),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            InfoBar(),
-            Align(
-              alignment: AlignmentGeometry.topCenter,
-              child: AspectRatio(aspectRatio: 1, child: const PuzzleWidget()),
-            ),
-            ControlPanel(),
-            Expanded(
-              child: SizedBox(
-                width: AppSpacing.four * 3 + AppSpacing.half * 2, // AppSpacing.four sized buttons + AppSpacing.half * 2
-                child: Numpad(
-                  onTap: (value) =>
-                      context.read<PuzzleBloc>().add(ValuePlaced(value: value)),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.half),
+                child: Text(
+                  'Sudoku',
+                  style: TextStyle(
+                    fontSize: AppSpacing.two,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primary(),
+                  ),
                 ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: AppTheme.foreground(context)),
+                borderRadius: BorderRadius.all(Radius.circular(AppSpacing.one)),
+              ),
+              padding: EdgeInsets.all(AppSpacing.one),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: AppSpacing.half,
+                children: DifficultyRating.values.map((rating) {
+                  return SizedBox(
+                    width: AppSpacing.twelve,
+                    child: Button.primary(
+                      onPressed: () {
+                        context.read<PuzzleBloc>().add(
+                          NewPuzzleFetched(difficultyRating: rating),
+                        );
+                        context.push(Routes.sudoku, extra: rating);
+                      },
+                      child: Text(rating.toString()),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
           ],

@@ -2,6 +2,8 @@ part of 'puzzle_bloc.dart';
 
 sealed class PuzzleState extends Equatable {
   const PuzzleState();
+  @override
+  List<Object?> get props;
 }
 
 class PuzzleInitialState extends PuzzleState {
@@ -10,7 +12,7 @@ class PuzzleInitialState extends PuzzleState {
   List<Object?> get props => [];
 }
 
-class PuzzleSuccessState extends PuzzleState {
+class PuzzlePlayingState extends PuzzleState {
   final String puzzleId;
 
   final DifficultyRating rating;
@@ -35,7 +37,9 @@ class PuzzleSuccessState extends PuzzleState {
 
   final bool autoCandidateModeOn;
 
-  const PuzzleSuccessState({
+  final int moveCount;
+
+  const PuzzlePlayingState({
     required this.puzzleId,
     required this.rating,
     required this.score,
@@ -48,17 +52,20 @@ class PuzzleSuccessState extends PuzzleState {
     this.usingPencil = false,
     this.autoCandidateModeOn = false,
     this.selectedIdx,
+    this.moveCount = 0,
   });
-  PuzzleSuccessState copyWith({
+  PuzzlePlayingState copyWith({
     List<Cell>? cells,
     List<Action>? history,
     List<Action>? redoActions,
+    bool? isCompleted,
     int? elapsedSeconds,
     int? selectedIdx,
     bool? usingPencil,
     bool? autoCandidateModeOn,
+    int? moveCount,
   }) {
-    return PuzzleSuccessState(
+    return PuzzlePlayingState(
       puzzleId: puzzleId,
       rating: rating,
       score: score,
@@ -70,6 +77,7 @@ class PuzzleSuccessState extends PuzzleState {
       usingPencil: usingPencil ?? this.usingPencil,
       selectedIdx: selectedIdx ?? this.selectedIdx,
       autoCandidateModeOn: autoCandidateModeOn ?? this.autoCandidateModeOn,
+      moveCount: moveCount ?? this.moveCount,
     );
   }
 
@@ -86,6 +94,7 @@ class PuzzleSuccessState extends PuzzleState {
     selectedIdx,
     usingPencil,
     autoCandidateModeOn,
+    moveCount,
   ];
 }
 
