@@ -4,8 +4,8 @@ import { config } from "./core/config/index";
 import cors from 'cors'
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { sessionHandler } from './feature/auth/handler/sessionHandler';
 import prexit from 'prexit';
+import cookieParser from 'cookie-parser';
 const app = express();
 
 app.use(express.json())
@@ -14,7 +14,7 @@ if(process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1)
   app.use(cors({
     origin: config.origin,
-    credentials: true
+    credentials: true,
   }))
   app.use(helmet())
   app.use(rateLimit({
@@ -30,7 +30,7 @@ if(process.env.NODE_ENV === 'production') {
   }))
 }
 
-app.use(sessionHandler())
+app.use(cookieParser())
 configureRouting(app)
 
 const server = app.listen(config.port, () => {

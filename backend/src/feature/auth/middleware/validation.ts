@@ -5,9 +5,20 @@ const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-])
 
 const passwordSchema = z.string().refine((pw) => passwordRegex.test(pw), "Password must contain a minimum of 8 characters, one uppercase, one lowercase, one number, and one special character")
 
+const tokenBodySchema = z.discriminatedUnion('grant_type', [
+  z.object({
+    grant_type: z.literal('password'),
+    username: z.string().min(4),
+    password: z.string().min(4)
+  }),
+  z.object({
+    grant_type: z.literal('refresh_token'),
+    refreshToken: z.string().min(1)
+  })
+])
 export const loginBodySchema = z.object({
-  username: z.string().refine((val) => val.length >= 4),
-  password: passwordSchema
+  username: z.string().min(4),
+  password: z.string().min(4)
 })
 
 export const registerBodySchema = z.object({
@@ -15,20 +26,6 @@ export const registerBodySchema = z.object({
   password: passwordSchema,
   displayName: z.string().optional()
 })
-
-export const requireLoggedin = (req: Request, res: Response, next: NextFunction) => {
-  if(req.session.user) {
-    return next()
-  }
-  return res.sendStatus(401)
-}
-
-export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if(req.session.user && req.session.user.role === 'admin') {
-    return next()
-  }
-  return res.sendStatus(403)
-}
 
 export const loginBodyValidator = (req: Request, _res: Response, next: NextFunction) => {
   const validationResult = loginBodySchema.safeParse(req.body)
@@ -44,4 +41,11 @@ export const registerBodyValidator = (req: Request, _res: Response, next: NextFu
     throw validationResult.error
   }
   next()
+}
+
+export const tokenBodyValidator = (req: Request, _res: Response, next: NextFunction) => {
+  const result = tokenBodySchema.safeParse(req.body);
+  if (!result.success) return next(result.error);
+  req.body = result.data;
+  next();
 }

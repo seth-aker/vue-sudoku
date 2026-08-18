@@ -1,11 +1,13 @@
 import { Router, Request } from "express";
 import { UserService } from "../service/userService";
 import { requireSelfOrAdmin } from "../middleware/requireSelfOrAdmin";
+import { requireLoggedin } from "@/feature/auth/middleware/authentication";
 
 export function UserRouter(userService: UserService) {
   const router = Router()
 
   router.get('/:id', 
+    requireLoggedin,
     requireSelfOrAdmin,
     async (req: Request<{id: string}>, res) => {
       // get user
@@ -15,6 +17,7 @@ export function UserRouter(userService: UserService) {
     }
   )
   router.get('/:id/stats',
+    requireLoggedin,
     requireSelfOrAdmin,
     async (req: Request<{id: string}>, res) => {
       const userId = req.params.id;

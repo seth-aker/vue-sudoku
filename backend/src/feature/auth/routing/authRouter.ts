@@ -1,58 +1,54 @@
-import { Router } from "express";
-import { loginBodyValidator, registerBodyValidator } from "../middleware/validation";
+import { NextFunction, Request, Response, Router } from "express";
+import { loginBodyValidator, registerBodyValidator, tokenBodyValidator } from "../middleware/validation";
 import { AuthenticationError } from "../errors/authenticationError";
 import { AuthenticationService } from "../service/authenticationService";
-import { UserService } from "@/feature/users/service/userService";
-import { authConfig } from "../config";
 import { authLimiter } from "../middleware/rateLimiter";
+import { clearAuthCookies, setAuthCookies } from "../utils/cookies";
 
-declare module 'express-session' {
-    interface SessionData {
-      user?: {
-        id: string;
-        username: string;
-        role: string;
-      }
-    }
+type TokenPasswordBody = {
+  grant_type: 'password',
+  username: string,
+  password: string,
 }
 
-export function AuthRouter(authService: AuthenticationService, userService: UserService) {
+type TokenRefreshBody = {
+  grant_type: 'refresh_token',
+  refreshToken: string
+}
+
+type TokenRequestBody = TokenPasswordBody | TokenRefreshBody;
+
+export function AuthRouter(authService: AuthenticationService) {
   const router = Router()
 
+  // web only endpoint
   router.post('/login', authLimiter(),  loginBodyValidator, async (req, res, next) => {
     const verifyRes = await authService.verify(req.body.username, req.body.password)
     const user = verifyRes.user;
     if(!user || verifyRes.err) {
       return next(verifyRes?.err ?? new AuthenticationError("Incorrect email or password"))
     }
-    req.session.regenerate((err) => {
-      if(err) {
-        return next(err)
-      }
-      req.session.user = {
-        id: user.id,
-        username: user.username,
-        role: user.role
-      }
 
-      req.session.save((err) => {
-        if(err) {
-          return next(err)
-        }
-        return res.json(user)
-      })
-    })
+    const accessToken = await authService.generateAccessToken(user.id);
+    const refreshToken = authService.generateRefreshToken();
+
+    await authService.saveRefreshToken(user.id, refreshToken);
+
+    setAuthCookies(res, accessToken, refreshToken);
+
+    res.json({ user })
   })
 
-  router.post('/logout', async (req, res, next) => {
-    req.session.user = undefined;
-    req.session.destroy((err) => {
-      if(err) {
-         return res.status(500).send('Could not log out.');
-      }
-      res.clearCookie(authConfig.cookieName)
-      res.sendStatus(204)
-    })
+  router.post('/logout', authLimiter(), async (req, res) => {
+    const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
+
+    if(refreshToken) {
+      await authService.deleteRefreshToken(refreshToken);
+    }
+    
+    clearAuthCookies(res);
+
+    res.sendStatus(201);
   })
 
   router.post('/register', authLimiter(), registerBodyValidator, async (req, res, next) => {
@@ -60,37 +56,63 @@ export function AuthRouter(authService: AuthenticationService, userService: User
     if(!userId) {
       return res.sendStatus(500)
     }
-    req.session.regenerate((err) => {
-      if(err) {
-        next(err);
-      }
-      req.session.user = {
-        username: req.body.username,
-        id: userId,
-        role: 'user'
-      }
+    const accessToken = await authService.generateAccessToken(userId);
+    const refreshToken = authService.generateRefreshToken();    
+    
+    await authService.saveRefreshToken(userId, refreshToken);
 
-      req.session.save((err) => {
-        if(err) {
-          next(err)
-        }
-        res.status(201).send({
-          id: userId,
-          displayName: req.body.displayName,
-          username: req.body.username,
-          role: 'user'
-        })
-      })
+    setAuthCookies(res, accessToken, refreshToken);
+
+    return res.status(201).json({
+      id: userId,
+      displayName: req.body.displayName,
+      username: req.body.username,
+      role: 'user'
     })
   })
 
-  router.get('/session', async (req, res,) => {
-    if(!req.session.user) {
-      return res.status(200).json({user: null})
+  // web only endpoint
+  router.post('/refresh', authLimiter(), async (req, res) => {
+    const refreshToken = req.cookies?.refreshToken;
+    if(!refreshToken) {
+      return res.status(401).send({error: 'Refresh token required'})
     }
-    const userId = req.session.user.id
-    const user = await userService.getUser(userId);
-    return res.status(200).json({user})
+    const {accessToken, refreshToken: newRefreshToken} = await authService.refreshAccessToken(refreshToken);
+
+    setAuthCookies(res, accessToken, newRefreshToken);
+    res.sendStatus(201)
+  })
+
+  // mobile only endpoint
+  router.post('/token', tokenBodyValidator, authLimiter(), async (req: Request<{}, {}, TokenRequestBody>, res: Response, next) => {
+    switch(req.body.grant_type) {
+      case 'password': {
+        const verifyRes = await authService.verify(req.body.username, req.body.password)
+        const user = verifyRes.user;
+        if(!user || verifyRes.err) {
+          return next(verifyRes?.err ?? new AuthenticationError("Incorrect email or password"))
+        }
+
+        const accessToken = await authService.generateAccessToken(user.id);
+        const refreshToken = authService.generateRefreshToken();
+
+        await authService.saveRefreshToken(user.id, refreshToken);
+
+        res.json({accessToken, refreshToken, user})
+        return;
+      }
+      case 'refresh_token':{
+        const refreshToken = req.body.refreshToken;
+        if(!refreshToken) {
+          return res.status(401).send({error: 'Missing/invlalid refresh token'})
+        }
+        const {accessToken, refreshToken: newRefreshToken} = await authService.refreshAccessToken(refreshToken);
+        return res.json({accessToken, refreshToken: newRefreshToken})
+      }
+      default: {
+        return res.status(400).send('Invalid grant_type')
+      }
+    }
   })
   return router
 }

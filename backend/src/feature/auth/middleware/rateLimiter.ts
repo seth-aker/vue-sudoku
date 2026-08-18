@@ -1,9 +1,37 @@
-import rateLimit from "express-rate-limit";
+import { NextFunction, Request, Response } from "express";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+import { createHash } from "node:crypto";
 
-export function authLimiter(max = 5) {
+
+function passwordGrantLimiter() {
   return rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: max, 
-    message: "Too many login attempts. Please try again later."
+    windowMs: 15 * 60 * 1000,
+    limit: 5,
+    skipSuccessfulRequests: true,
+    keyGenerator: (req) => {
+      const username = req.body?.username as string;
+      return username ? `login:${username.toLowerCase()}` : `ip:${ipKeyGenerator(req.ip!)}`
+    }
   })
+}
+
+function refreshGrantLimiter() {
+  return rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 5,
+    skipSuccessfulRequests: true,
+    keyGenerator: (req) => {
+      const token = req.body?.refreshToken as string;
+      const tokenHash = createHash('sha256').update(token).digest('hex');
+      return token ? `rt:${tokenHash}` : `ip:${ipKeyGenerator(req.ip!)}`
+    }
+  })
+}
+export function authLimiter() {
+  const password = passwordGrantLimiter();
+  const refresh = refreshGrantLimiter();
+  return (req: Request, res: Response, next: NextFunction) =>
+    req.body?.grant_type === 'refresh_token'
+      ? refresh(req, res, next)
+      : password(req, res, next);
 }

@@ -101,6 +101,14 @@ CREATE TABLE IF NOT EXISTS public.sessions (
     CONSTRAINT pk_session PRIMARY KEY (sid)
 );
 
+CREATE TABLE IF NOT EXISTS public.refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id uuid REFERENCES public.users(user_id) ON DELETE CASCADE,
+    token text NOT NULL UNIQUE,
+    expires_at TIMESTAMPZ NOT NULL,
+    created_at TIMESTAMPZ DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON public.sessions USING btree (expire);
 
 --
