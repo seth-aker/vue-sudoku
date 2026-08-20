@@ -3,6 +3,8 @@ import { UserDataSource } from "./userDataSource";
 import { ICreateUser, ISqlUser } from "./models/user";
 import { DatabaseError } from "@/core/errors/databaseError";
 import { IDifficultyStats, IUserStats } from "./models/userStats";
+import { NotFoundError } from "@/core/errors/notFoundError";
+import { ErrorType } from "@/core/errors/errorTypes";
 
 export class PgUserDataSource implements UserDataSource {
   static instance: PgUserDataSource | null = null;
@@ -52,7 +54,9 @@ export class PgUserDataSource implements UserDataSource {
         AND u.deleted_at IS NULL
     `
     if(!user) {
-      throw new DatabaseError("User not found")
+      throw new NotFoundError(`User with id: ${userId} not found`, {
+        type: ErrorType.RESOURCE_NOT_FOUND
+      })
     }
     return user;
   }

@@ -3,15 +3,14 @@ import { PuzzleArray } from "../datasource/models/puzzleArray";
 import { type PuzzleOptions} from "../datasource/models/puzzleOptions";
 import { SudokuPuzzle, CreatePuzzle, UpdatePuzzle, UserPuzzleDto } from "../datasource/models/sudokuPuzzle";
 import { SudokuService } from "./sudokuService";
-import { BaseService } from "../../../core/service/baseService";
 import { WorkerPoolManager } from "@/core/workers/workerpoolManager";
 import { DatabaseError } from "@/core/errors/databaseError";
 import { config } from "@/core/workers/workerpoolConfig";
-export class SudokuServiceImplementation extends BaseService implements SudokuService {
+import { logger } from "@/core/logging/logger";
+export class SudokuServiceImplementation implements SudokuService {
   private sudokuDataSource: SudokuDataSource;
   private workerpoolManager: WorkerPoolManager;
   private constructor(dataSource: SudokuDataSource) {
-    super();
     this.sudokuDataSource = dataSource;
     this.workerpoolManager = new WorkerPoolManager();
     this.workerpoolManager.configure(config)
@@ -25,27 +24,26 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
   }
 
   async getNewPuzzle(requestedBy: string | undefined, options: PuzzleOptions): Promise<SudokuPuzzle>{
-    return await this.callDataSource(async () => {
-      try {
-        if(options.difficulty === 'impossible') {
-          throw new Error("Cannot get difficulty of impossible") 
-        }
-        const response = await this.sudokuDataSource.getNewPuzzle(requestedBy, options);
-        if(response.metadata.totalCount < 1000) {
-          this.workerpoolManager.execute('generatePuzzles', [100, options], async (newPuzzle: CreatePuzzle) => {
-            const result = await this.createPuzzles([newPuzzle]);
-            if(result !== 1) {
-              console.log("A puzzle failed to be created in the database")
-            }
-          }).catch((err) => console.error("Background puzzle generation failed:", err.message))
-        }
-        return response.puzzle
+    try {    
+      if(options.difficulty === 'impossible') {
+            throw new Error("Cannot get difficulty of impossible") 
+          }
+          const response = await this.sudokuDataSource.getNewPuzzle(requestedBy, options);
+          if(response.metadata.totalCount < 1000) {
+            await this.workerpoolManager.execute('generatePuzzles', [100, options], async (newPuzzle: CreatePuzzle) => {
+              const result = await this.createPuzzles([newPuzzle]);
+              if(result !== 1) {
+                logger.error('Failed to generate a puzzle')
+              }
+            })
+          }
+          return response.puzzle
       } catch (err) {
         if(err instanceof DatabaseError && err.message.includes('No more puzzles')) {
           await this.workerpoolManager.execute('generatePuzzles', [100, options], async (newPuzzles: CreatePuzzle) => {
             const result = await this.createPuzzles([newPuzzles]);
             if(result != 1) {
-              console.log("A puzzle failed to be created in the database")
+              logger.error('Failed to generate a puzzle')
             }
           })
           const response = await this.sudokuDataSource.getNewPuzzle(requestedBy, options);
@@ -54,20 +52,14 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
           throw err
         }
       }
-    });
   };
-  async getPuzzles(options: PuzzleOptions, page?: number, limit?: number): Promise<PuzzleArray>{
-    return await this.callDataSource(async () => {
-      return await this.sudokuDataSource.getPuzzles(options, page, limit);
-    })
+  async getPuzzles(options: PuzzleOptions, page?: number, limit?: number): Promise<PuzzleArray> {
+   return await this.sudokuDataSource.getPuzzles(options, page, limit);
   };
   async createPuzzles(puzzles: CreatePuzzle[]): Promise<number> {
-    return await this.callDataSource(async () => {
-      return await this.sudokuDataSource.createPuzzles(puzzles);
-    })
+    return await this.sudokuDataSource.createPuzzles(puzzles);
   };
   async getUserPuzzle(userId: string, puzzleId: string): Promise<UserPuzzleDto> {
-    return await this.callDataSource(async () => {
       const sqlUserPuzle = await this.sudokuDataSource.getUserPuzzle(userId, puzzleId);
       return {
         puzzleId: sqlUserPuzle.puzzle_id,
@@ -80,21 +72,16 @@ export class SudokuServiceImplementation extends BaseService implements SudokuSe
         score: sqlUserPuzle.difficulty_score,
         rating: sqlUserPuzle.difficulty_rating
       }
-    })
   }
   async updateUserPuzzle(userId: string, puzzle: UpdatePuzzle): Promise<number> {
-    return await this.callDataSource(async () => {  
       // don't trust that the puzzle is actually complete, verfiy
       if(puzzle.isCompleted) {
         const existingPuzzle = await this.sudokuDataSource.getPuzzleById(puzzle.puzzleId)
         puzzle.isCompleted = existingPuzzle.solved_cells === puzzle.cells
       }
       return await this.sudokuDataSource.updateUserPuzzle(userId, puzzle)
-    });
   };
-  async deletePuzzle(puzzleId: string): Promise<number>{
-    return await this.callDataSource(async () => {
+  async deletePuzzle(puzzleId: string): Promise<number> {
       return await this.sudokuDataSource.deletePuzzle(puzzleId)
-    });
   }
 }

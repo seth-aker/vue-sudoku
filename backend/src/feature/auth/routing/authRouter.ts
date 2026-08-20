@@ -4,6 +4,7 @@ import { AuthenticationError } from "../errors/authenticationError";
 import { AuthenticationService } from "../service/authenticationService";
 import { authLimiter } from "../middleware/rateLimiter";
 import { clearAuthCookies, setAuthCookies } from "../utils/cookies";
+import { ErrorType } from "@/core/errors/errorTypes";
 
 type TokenPasswordBody = {
   grant_type: 'password',
@@ -23,16 +24,9 @@ export function AuthRouter(authService: AuthenticationService) {
 
   // web only endpoint
   router.post('/login', authLimiter(),  loginBodyValidator, async (req, res, next) => {
-    const verifyRes = await authService.verify(req.body.username, req.body.password)
-    const user = verifyRes.user;
-    if(!user || verifyRes.err) {
-      return next(verifyRes?.err ?? new AuthenticationError("Incorrect email or password"))
-    }
+    const user = await authService.verify(req.body.username, req.body.password)
 
-    const accessToken = await authService.generateAccessToken(user.id);
-    const refreshToken = authService.generateRefreshToken();
-
-    await authService.saveRefreshToken(user.id, refreshToken);
+    const {accessToken, refreshToken} = await authService.getNewTokenSet(user.id);
 
     setAuthCookies(res, accessToken, refreshToken);
 
@@ -43,7 +37,7 @@ export function AuthRouter(authService: AuthenticationService) {
     const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
 
     if(refreshToken) {
-      await authService.deleteRefreshToken(refreshToken);
+      await authService.clearToken(refreshToken);
     }
     
     clearAuthCookies(res);
@@ -56,10 +50,7 @@ export function AuthRouter(authService: AuthenticationService) {
     if(!userId) {
       return res.sendStatus(500)
     }
-    const accessToken = await authService.generateAccessToken(userId);
-    const refreshToken = authService.generateRefreshToken();    
-    
-    await authService.saveRefreshToken(userId, refreshToken);
+    const {accessToken, refreshToken} = await authService.getNewTokenSet(userId);
 
     setAuthCookies(res, accessToken, refreshToken);
 
@@ -84,19 +75,12 @@ export function AuthRouter(authService: AuthenticationService) {
   })
 
   // mobile only endpoint
-  router.post('/token', tokenBodyValidator, authLimiter(), async (req: Request<{}, {}, TokenRequestBody>, res: Response, next) => {
+  router.post('/token', authLimiter(), async (req: Request<{}, {}, TokenRequestBody>, res: Response, next) => {
     switch(req.body.grant_type) {
       case 'password': {
-        const verifyRes = await authService.verify(req.body.username, req.body.password)
-        const user = verifyRes.user;
-        if(!user || verifyRes.err) {
-          return next(verifyRes?.err ?? new AuthenticationError("Incorrect email or password"))
-        }
-
-        const accessToken = await authService.generateAccessToken(user.id);
-        const refreshToken = authService.generateRefreshToken();
-
-        await authService.saveRefreshToken(user.id, refreshToken);
+        const user = await authService.verify(req.body.username, req.body.password)
+     
+       const { accessToken, refreshToken } = await authService.getNewTokenSet(user.id);
 
         res.json({accessToken, refreshToken, user})
         return;
@@ -104,13 +88,17 @@ export function AuthRouter(authService: AuthenticationService) {
       case 'refresh_token':{
         const refreshToken = req.body.refreshToken;
         if(!refreshToken) {
-          return res.status(401).send({error: 'Missing/invlalid refresh token'})
+          throw new AuthenticationError('Missing or invalid refresh token.', {
+            type: ErrorType.TOKEN_MISSING
+          })
         }
         const {accessToken, refreshToken: newRefreshToken} = await authService.refreshAccessToken(refreshToken);
         return res.json({accessToken, refreshToken: newRefreshToken})
       }
       default: {
-        return res.status(400).send('Invalid grant_type')
+        throw new AuthenticationError('Invalid grant_type', {
+          type: ErrorType.MALFORMED_BODY 
+        })
       }
     }
   })

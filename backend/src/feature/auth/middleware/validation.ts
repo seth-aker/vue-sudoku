@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import * as z from "zod";
+import * as z from "zod/v4";
 
 const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/
 

@@ -6,28 +6,28 @@ import { SudokuRequest } from '../../routing/sudokuRequest.ts';
 export const getPuzzleValidator = (req: SudokuRequest, _res: Response, next: NextFunction) => {
     const validationResult = getPuzzleSchema.safeParse(req.query.difficulty);
     if(!validationResult.success) {
-        throw new ValidationError(validationResult.error);
+        throw ValidationError.fromZod(validationResult.error);
     }
     next()
 }
 export const getPuzzleByIdValidator = (req: Request<{puzzleId: string}>, _res: Response, next: NextFunction) => {
     const validationResult = getPuzzleByIdSchema.safeParse(req.params);
     if(!validationResult.success) {
-        throw new ValidationError(validationResult.error)
+        throw ValidationError.fromZod(validationResult.error)
     }
     next();
 }
 export const createPuzzleValidator = (req: Request, _res: Response, next: NextFunction) => {
     const validationResult = createPuzzleSchema.safeParse(req.body)
     if(!validationResult.success) {
-        throw new ValidationError(validationResult.error)
+        throw ValidationError.fromZod(validationResult.error)
     }
     next();
 }
 export const updatePuzzleValidator = (req: Request, _res: Response, next: NextFunction) => {
     const validationResult = updateUserPuzzleSchema.safeParse(req.body)
     if(!validationResult.success) {
-        throw new ValidationError(validationResult.error)
+        throw ValidationError.fromZod(validationResult.error)
     }
     next();
 }
@@ -35,7 +35,7 @@ export const updatePuzzleValidator = (req: Request, _res: Response, next: NextFu
 export const deletePuzzleValidator = (req: Request, _res: Response, next: NextFunction) => {
     const validationResult = deletePuzzleSchema.safeParse(req.params)
     if(!validationResult.success) {
-        throw new ValidationError(validationResult.error)
+        throw ValidationError.fromZod(validationResult.error)
     }
     next();
 }

@@ -19,4 +19,6 @@ export const config = {
   rootDir: process.env.ROOT_DIR || process.cwd(),
   puzzleGeneratorWorkerPath: process.env.WORKER_PATH || '/home/saker/workspace/vue-sudoku/backend/src/feature/sudoku/puzzleSolver/puzzleGeneratorInC.ts',
   jwtSecret: process.env.JWT_SECRET,
+  isProduction: process.env.NODE_ENV === 'production',
+  logLevel: process.env.LOG_LEVEL
 }

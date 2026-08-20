@@ -8,7 +8,7 @@ function passwordGrantLimiter() {
     windowMs: 15 * 60 * 1000,
     limit: 5,
     skipSuccessfulRequests: true,
-    keyGenerator: (req) => {
+    keyGenerator: (req: Request) => {
       const username = req.body?.username as string;
       return username ? `login:${username.toLowerCase()}` : `ip:${ipKeyGenerator(req.ip!)}`
     }

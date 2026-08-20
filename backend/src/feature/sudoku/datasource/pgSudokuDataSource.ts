@@ -5,6 +5,11 @@ import { SudokuDataSource } from "./sudokuDataSource";
 import { Sql } from "postgres";
 import { PuzzleArray } from "./models/puzzleArray";
 import { CustomError } from "@/core/errors/customError";
+import { NotFoundError } from "@/core/errors/notFoundError";
+import { ErrorType } from "@/core/errors/errorTypes";
+  interface QueryRes extends SqlPuzzle {
+    total_count: number
+  }
 export class PgSudokuDataSource implements SudokuDataSource {
   static instance: PgSudokuDataSource | null = null;
   private client: Sql;
@@ -19,11 +24,8 @@ export class PgSudokuDataSource implements SudokuDataSource {
   }
   async getNewPuzzle(requestedBy: string | undefined, options: PuzzleOptions): Promise<SudokuPuzzleResponse> {
     const userId = requestedBy;
-    try {
+
       const res = await this.client.begin(async sql => {
-        interface QueryRes extends SqlPuzzle {
-          total_count: number
-        }
         const [puzzle] = await sql<(QueryRes | undefined)[]>`
           SELECT p.puzzle_id, p.cells, p.difficulty_score, p.difficulty_rating, p.created_at, COUNT(*) OVER () as total_count
           FROM puzzles p
@@ -83,37 +85,25 @@ export class PgSudokuDataSource implements SudokuDataSource {
         }
       }
       return response
-    } catch (err) {
-      if(err instanceof DatabaseError) {
-        throw err
-      } else {
-        throw new DatabaseError((err as Error).message)
-      }
-    }
   }
 
   async getPuzzleById (puzzleId: string): Promise<SqlPuzzle> {
-    try {
       const [res] = await this.client<(SqlPuzzle | undefined)[]>`
       SELECT * FROM puzzles WHERE puzzle_id = ${puzzleId};
       `
       if(!res) {
-        throw new DatabaseError("Not found")
+        throw new NotFoundError(`Puzzle with id: ${puzzleId} not found`, {
+          type: ErrorType.RESOURCE_NOT_FOUND
+        })
       }
       const puzzleRow = res;
       return puzzleRow;
-    } catch (err) {
-      if(err instanceof CustomError) {
-        throw err
-      } else {
-        throw new DatabaseError((err as Error).message)
-      }
-    }
   }
 
   async getPuzzles(options: PuzzleOptions, page?: number, limit: number = 100): Promise<PuzzleArray> {
     throw new DatabaseError("Not implemented")
   }
+  
   async createPuzzles(puzzles: CreatePuzzle[]): Promise<number> {
     const queries = puzzles.map((puzzle) => {
       return this.client<({puzzle_id: string} | undefined)[]>`
@@ -135,7 +125,6 @@ export class PgSudokuDataSource implements SudokuDataSource {
     return res.length
   }
   async updateUserPuzzle(userId: string, puzzle: UpdatePuzzle): Promise<number> {
-    try {
       const res = await this.client.begin(async sql => {
         const updateUpRes = await sql`
         UPDATE user_puzzles
@@ -191,12 +180,8 @@ export class PgSudokuDataSource implements SudokuDataSource {
       return 1;
     })
     return res
-    } catch (err) {
-      throw new DatabaseError((err as Error).message)
-    }
   }
   async getUserPuzzle(userId: string, puzzleId: string): Promise<SqlUserPuzzle> {
-    try {
       const [res] = await this.client<(SqlUserPuzzle | undefined)[]>`
         SELECT 
           p.puzzle_id,
@@ -215,12 +200,11 @@ export class PgSudokuDataSource implements SudokuDataSource {
           AND up.puzzle_id = ${puzzleId}
       `
       if(!res) {
-        throw new DatabaseError("No puzzle found!")
+        throw new NotFoundError(`No puzzle with id: ${puzzleId} found`, {
+          type: ErrorType.RESOURCE_NOT_FOUND
+        })
       }
       return res;
-    } catch (err) {
-      throw new DatabaseError((err as Error).message)
-    }
   }
   async deletePuzzle(puzzleId: string): Promise<number> {
     throw new DatabaseError("Fn deletePuzzle() not implemented")

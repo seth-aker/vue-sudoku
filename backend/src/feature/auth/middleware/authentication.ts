@@ -4,12 +4,8 @@ import { JWTPayload, jwtVerify } from "jose";
 
 export interface SudokuAppJwtPayload extends JWTPayload {
     userId: string, 
+    username: string,
     role: 'user' | 'admin',
-}
-declare module 'express' {
-    interface Request {
-        user?: SudokuAppJwtPayload
-    }
 }
 export const requireLoggedin = async (req: Request, res: Response, next: NextFunction) => {
   const token: string | undefined  = getToken(req);

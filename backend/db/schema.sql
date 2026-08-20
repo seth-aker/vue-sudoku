@@ -102,12 +102,14 @@ CREATE TABLE IF NOT EXISTS public.sessions (
 );
 
 CREATE TABLE IF NOT EXISTS public.refresh_tokens (
-    id SERIAL PRIMARY KEY,
-    user_id uuid REFERENCES public.users(user_id) ON DELETE CASCADE,
+    id BIGSERIAL PRIMARY KEY,
+    user_id uuid NOT NULL REFERENCES public.users(user_id) ON DELETE CASCADE,
     token text NOT NULL UNIQUE,
-    expires_at TIMESTAMPZ NOT NULL,
-    created_at TIMESTAMPZ DEFAULT CURRENT_TIMESTAMP
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_family ON public.refresh_tokens (family_id);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires ON public.refresh_tokens (expires_at);
 
 CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON public.sessions USING btree (expire);
 
