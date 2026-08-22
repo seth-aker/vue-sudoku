@@ -1,8 +1,10 @@
+import 'package:app/data/model/authentication/login_request_dto.dart';
+import 'package:app/data/model/authentication/login_response_dto.dart';
 import 'package:app/domain/models/user.dart';
 import 'package:app/utils/result.dart';
 
 abstract class UserService {
-  Future<Result<User>> login(String username, String password);
+  Future<Result<LoginResponseDto>> login(LoginRequestDto loginRequest);
 
   Future<Result<void>> logout();
 
@@ -11,4 +13,6 @@ abstract class UserService {
     String password,
     String? displayName,
   );
+
+  Future<Result<void>> refreshAccessToken(String refreshToken);
 }

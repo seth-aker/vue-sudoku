@@ -37,16 +37,6 @@ export class PgTokenDataSource implements TokenDataSource {
         }
         return PgTokenDataSource.instance
     }
-
-    public async get(token: string) {
-        const hashedToken = this.hashToken(token);
-        const [result] = await this.client<TokenRecord[]>`
-            SELECT user_id, expires_at
-            FROM refresh_tokens
-            WHERE token = ${hashedToken}
-        `;
-        return result;
-    }
     public async rotateRefreshToken(token: string) {
         const expiresAt = Math.ceil((Date.now() + this.THIRTY_DAY_MS) / 1000); // postgres to_timestamp takes seconds as its argument
         const hashedOld = this.hashToken(token);

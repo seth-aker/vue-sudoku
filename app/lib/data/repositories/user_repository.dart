@@ -1,3 +1,5 @@
+import 'package:app/data/model/authentication/grant_type.dart';
+import 'package:app/data/model/authentication/login_request_dto.dart';
 import 'package:app/data/service/api/api_client_service.dart';
 import 'package:app/domain/models/user.dart';
 import 'package:app/utils/result.dart';
@@ -9,7 +11,18 @@ class UserRepository {
 
   Future<Result<User>> login(String username, String password) async {
     try {
-      return await _clientService.login(username, password);
+      final request = LoginRequestDto(username: username, password: password, grantType: GrantType.password);
+      final response = await _clientService.login(request);
+      // TODO: Save accessToken and refresh token to secure store
+      switch (response) {
+        case Error() : {
+          return Error(response.error);
+        }
+        case Ok() : {
+          return Result.ok(User.fromDto(response.value.user));
+        }
+      }
+    
     } on Exception catch (err) {
       return Result.error(err);
     }

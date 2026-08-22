@@ -1,6 +1,8 @@
 import 'dart:convert' show jsonDecode, jsonEncode, utf8;
 import 'dart:io';
 
+import 'package:app/data/model/authentication/login_request_dto.dart';
+import 'package:app/data/model/authentication/login_response_dto.dart';
 import 'package:app/data/model/user/user_dto.dart';
 import 'package:app/data/service/api/api_client_service.dart';
 import 'package:app/domain/models/difficulty.dart';
@@ -151,24 +153,23 @@ class ApiClientServiceRemote extends ApiClientService {
   }
 
   @override
-  Future<Result<User>> login(String username, String password) async {
+  Future<Result<LoginResponseDto>> login(LoginRequestDto dto) async {
     final client = _clientFactory();
-
     try {
-      final request = await client.post(_host, _port, '/api/auth/login');
+      final request = await client.post(_host, _port, '/api/auth/token');
 
       await setAuthHeader(request.headers);
       setContentTypeJson(request.headers);
 
-      request.write(jsonEncode({'username': username, 'password': password}));
+      request.write(jsonEncode(dto.toJson()));
 
       final response = await request.close();
 
       if (response.statusCode == 200) {
         final json = await parseResponseBody(response);
-        final userDto = UserDto.fromJson(json);
+        final loginResponseDto = LoginResponseDto.fromJson(json);
 
-        return Result.ok(User.fromDto(userDto));
+        return Result.ok(loginResponseDto);
       } else {
         return Result.error(
           HttpException('Invalid response code: ${response.statusCode}'),
@@ -244,6 +245,12 @@ class ApiClientServiceRemote extends ApiClientService {
     } finally {
       client.close();
     }
+  }
+
+  @override
+  Future<Result<void>> refreshAccessToken(String refreshToken) {
+    // TODO: implement refreshAccessToken
+    throw UnimplementedError();
   }
   // @override
   // Future<Result<User?>> getSession() async {

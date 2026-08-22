@@ -108,7 +108,6 @@ CREATE TABLE IF NOT EXISTS public.refresh_tokens (
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_family ON public.refresh_tokens (family_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires ON public.refresh_tokens (expires_at);
 
 CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON public.sessions USING btree (expire);

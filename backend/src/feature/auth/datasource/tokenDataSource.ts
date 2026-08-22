@@ -5,7 +5,6 @@ export interface TokenRecord {
 
 export interface TokenDataSource {
     close: () => void
-    get: (token: string) => Promise<TokenRecord | undefined>
     rotateRefreshToken: (token: string) => Promise<{token: string, userId: string}>
     create: (userId: string) => Promise<string>
     delete: (token: string) => Promise<void>

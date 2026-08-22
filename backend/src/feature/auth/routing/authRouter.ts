@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response, Router } from "express";
-import { loginBodyValidator, registerBodyValidator, tokenBodyValidator } from "../middleware/validation";
+import { Request, Response, Router } from "express";
+import { loginBodyValidator, registerBodyValidator, } from "../middleware/validation";
 import { AuthenticationError } from "../errors/authenticationError";
 import { AuthenticationService } from "../service/authenticationService";
 import { authLimiter } from "../middleware/rateLimiter";
@@ -23,7 +23,7 @@ export function AuthRouter(authService: AuthenticationService) {
   const router = Router()
 
   // web only endpoint
-  router.post('/login', authLimiter(),  loginBodyValidator, async (req, res, next) => {
+  router.post('/login', authLimiter(),  loginBodyValidator, async (req, res, _next) => {
     const user = await authService.verify(req.body.username, req.body.password)
 
     const {accessToken, refreshToken} = await authService.getNewTokenSet(user.id);
@@ -45,14 +45,11 @@ export function AuthRouter(authService: AuthenticationService) {
     res.sendStatus(201);
   })
 
-  router.post('/register', authLimiter(), registerBodyValidator, async (req, res, next) => {
+  router.post('/register', authLimiter(), registerBodyValidator, async (req, res, _next) => {
     const userId = await authService.registerUser(req.body)
     if(!userId) {
       return res.sendStatus(500)
     }
-    const {accessToken, refreshToken} = await authService.getNewTokenSet(userId);
-
-    setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(201).json({
       id: userId,
@@ -75,7 +72,7 @@ export function AuthRouter(authService: AuthenticationService) {
   })
 
   // mobile only endpoint
-  router.post('/token', authLimiter(), async (req: Request<{}, {}, TokenRequestBody>, res: Response, next) => {
+  router.post('/token', authLimiter(), async (req: Request<{}, {}, TokenRequestBody>, res: Response, _next) => {
     switch(req.body.grant_type) {
       case 'password': {
         const user = await authService.verify(req.body.username, req.body.password)
