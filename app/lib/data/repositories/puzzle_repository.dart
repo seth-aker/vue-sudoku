@@ -1,34 +1,19 @@
-import 'package:app/data/service/api/api_client_service.dart';
+import 'package:app/data/service/api/puzzle_service.dart';
 import 'package:app/domain/models/difficulty.dart';
 import 'package:app/domain/models/puzzle.dart';
 import 'package:app/utils/result.dart';
 
 class PuzzleRepository {
-  const PuzzleRepository({required this._clientService});
+  const PuzzleRepository({required this._puzzleService});
 
-  final ApiClientService _clientService;
+  final PuzzleService _puzzleService;
 
-  Future<Result<Puzzle>> getNewPuzzle(DifficultyRating difficulty) async {
-    try {
-      return await _clientService.getNewPuzzle(difficulty);
-    } on Exception catch (err) {
-      return Result.error(err);
-    }
-  }
+  Future<Result<Puzzle>> getNewPuzzle(DifficultyRating difficulty) =>
+      _puzzleService.getNewPuzzle(difficulty);
 
-  Future<Result<Puzzle>> getPuzzle(String puzzleId) async {
-    try {
-      return await _clientService.getPuzzle(puzzleId);
-    } on Exception catch (err) {
-      return Result.error(err);
-    }
-  }
+  Future<Result<Puzzle>> getPuzzle(String puzzleId) =>
+      _puzzleService.getPuzzle(puzzleId);
 
-  Future<Result<void>> saveProgress(Puzzle state) async {
-    try {
-      return await _clientService.saveProgress(state);
-    } on Exception catch (err) {
-      return Result.error(err);
-    }
-  }
+  Future<Result<void>> saveProgress(Puzzle state) =>
+      _puzzleService.saveProgress(state);
 }

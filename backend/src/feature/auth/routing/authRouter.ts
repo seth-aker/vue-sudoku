@@ -42,7 +42,7 @@ export function AuthRouter(authService: AuthenticationService) {
     
     clearAuthCookies(res);
 
-    res.sendStatus(201);
+    res.sendStatus(204);
   })
 
   router.post('/register', authLimiter(), registerBodyValidator, async (req, res, _next) => {
