@@ -52,20 +52,20 @@ class PuzzleBloc extends HydratedBloc<PuzzleEvent, PuzzleState> {
         emit(const PuzzleErrorState());
         return;
       case Ok<Puzzle>():
-    }
-    final puzzle = result.value;
+        final puzzle = result.value;
 
-    emit(
-      PuzzlePlayingState(
-        puzzleId: puzzle.puzzleId,
-        rating: puzzle.rating,
-        score: puzzle.score,
-        cells: puzzle.cells,
-        originalCells: puzzle.orginalCells,
-        history: puzzle.actions,
-        elapsedSeconds: puzzle.elapsedSeconds,
-      ),
-    );
+        emit(
+          PuzzlePlayingState(
+            puzzleId: puzzle.puzzleId,
+            rating: puzzle.rating,
+            score: puzzle.score,
+            cells: puzzle.cells,
+            originalCells: puzzle.orginalCells,
+            history: puzzle.actions,
+            elapsedSeconds: puzzle.elapsedSeconds,
+          ),
+        );
+    }
   }
 
   Future<void> _onPuzzleFetched(

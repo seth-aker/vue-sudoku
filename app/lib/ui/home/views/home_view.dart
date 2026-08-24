@@ -1,7 +1,9 @@
 import 'package:app/domain/models/difficulty.dart';
 import 'package:app/routing/routes.dart';
 import 'package:app/ui/core/app_theme.dart';
+import 'package:app/ui/core/icons/app_icons.dart';
 import 'package:app/ui/core/spacing/app_spacing.dart';
+import 'package:app/ui/core/widgets/app_icon.dart';
 import 'package:app/ui/core/widgets/button.dart';
 import 'package:app/ui/core/widgets/shared_page_layout.dart';
 import 'package:app/ui/sudoku/state/puzzle/puzzle_bloc.dart';
@@ -15,7 +17,9 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SharedPageLayout(
       title: '',
-      leading: const SizedBox.shrink(),
+      leading: CupertinoButton(child: const AppIcon(AppIcons.pencil), onPressed: () {
+	  context.push(Routes.login);	
+	}) , 
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.two),
         child: Column(

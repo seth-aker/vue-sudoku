@@ -2,6 +2,7 @@ import 'package:app/routing/routes.dart';
 import 'package:app/ui/home/views/home_view.dart';
 import 'package:app/ui/sudoku/views/sudoku_view.dart';
 import 'package:app/ui/sudoku/views/pause_menu.dart';
+import 'package:app/ui/user/views/login_register_view.dart';
 import 'package:go_router/go_router.dart';
 
 GoRouter router() => GoRouter(
@@ -16,12 +17,11 @@ GoRouter router() => GoRouter(
       path: Routes.sudoku,
       builder: (context, state) => const SudokuView(),
     ),
+    GoRoute(
+      path: Routes.login,
+      builder: (context, state) => LoginRegisterView(),
+    ),
   ],
-  // GoRoute(
-  //   path: Routes.login,
-  //   builder:(context, state) => LoginView(),
-  // ),
-  // GoRoute(
   //   name: 'About',
   //   path: Routes.about,
   //   builder:(context, state) => AboutView(),
