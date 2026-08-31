@@ -31,5 +31,10 @@ void main() async {
     storageDirectory: HydratedStorageDirectory(appData.path),
   );
 
-  runApp(SudokuApp(puzzleRepository: puzzleRepository));
+  runApp(
+    SudokuApp(
+      authRepository: authRepository,
+      puzzleRepository: puzzleRepository,
+    ),
+  );
 }

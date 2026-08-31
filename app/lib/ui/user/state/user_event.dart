@@ -8,17 +8,17 @@ sealed class UserEvent extends Equatable {
 }
 
 class LoginRequested extends UserEvent {
-  final String username;
+  final String email;
   final String password;
 
   const LoginRequested({
-    required this.username,
+    required this.email,
     required this.password,
     });
 
   @override
     List<Object?> get props => [
-      username,
+      email,
       password,
     ];
 }
@@ -31,20 +31,19 @@ class LogoutRequested extends UserEvent {
 }
 
 class RegisterRequested extends UserEvent {
-  final String username;
   final String password;
-  final String? displayName;
-
+  final String email;
+  final String username;
   const RegisterRequested({
-    required this.username,
     required this.password,
-    this.displayName,
+    required this.email,
+    required this.username,
     });
 
   @override
     List<Object?> get props => [
       username,
       password,
-      displayName,
+      email,
     ];
 }

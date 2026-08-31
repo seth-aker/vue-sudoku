@@ -5,13 +5,15 @@ part 'register_request_dto.g.dart';
 
 @JsonSerializable(createJsonSchema: true, createFactory: false)
 class RegisterRequestDto extends Equatable {
+  final String email;
   final String username;
   final String password;
-  final String? displayName;
+  final bool tosAcknowledged;
   const RegisterRequestDto({
-    required this.username,
+    required this.email,
     required this.password,
-    this.displayName,
+    required this.username,
+    this.tosAcknowledged = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -21,5 +23,5 @@ class RegisterRequestDto extends Equatable {
   static const jsonSchema = _$RegisterRequestDtoJsonSchema;
 
   @override
-  List<Object?> get props => [username, password, displayName];
+  List<Object?> get props => [email, password, username, tosAcknowledged];
 }

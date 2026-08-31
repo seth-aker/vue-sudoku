@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-enum AppIcons { home, settings, back, pencil, undo, redo, reset }
+enum AppIcons { home, settings, back, pencil, undo, redo, reset, auth }
 
 const Map<AppIcons, IconData> cupertinoIconMap = {
   AppIcons.home: CupertinoIcons.home,
@@ -11,6 +11,7 @@ const Map<AppIcons, IconData> cupertinoIconMap = {
   AppIcons.undo: CupertinoIcons.arrow_uturn_left,
   AppIcons.redo: CupertinoIcons.arrow_uturn_right,
   AppIcons.reset: CupertinoIcons.restart,
+  AppIcons.auth: CupertinoIcons.person_circle,
 };
 
 const Map<AppIcons, IconData> materialIconMap = {
@@ -21,4 +22,5 @@ const Map<AppIcons, IconData> materialIconMap = {
   AppIcons.undo: Icons.undo,
   AppIcons.redo: Icons.redo,
   AppIcons.reset: Icons.replay,
+  AppIcons.auth: Icons.person,
 };

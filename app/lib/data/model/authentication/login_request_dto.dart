@@ -10,12 +10,12 @@ part 'login_request_dto.g.dart';
 
 )
 class LoginRequestDto extends Equatable {
-  final String username;
+  final String email;
   final String password;
-  final GrantType grantType; 
+  final GrantType grantType;
 
   const LoginRequestDto({
-    required this.username,
+    required this.email,
     required this.password,
     required this.grantType
   });
@@ -26,5 +26,5 @@ class LoginRequestDto extends Equatable {
   static const jsonSchema = _$LoginRequestDtoJsonSchema;
 
   @override
-  List<Object?> get props => [username, password, grantType];
+  List<Object?> get props => [email, password, grantType];
 }

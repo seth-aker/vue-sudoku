@@ -17,9 +17,12 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SharedPageLayout(
       title: '',
-      leading: CupertinoButton(child: const AppIcon(AppIcons.pencil), onPressed: () {
-	  context.push(Routes.login);	
-	}) , 
+      leading: CupertinoButton(
+        child: const AppIcon(AppIcons.auth),
+        onPressed: () {
+          context.push(Routes.login);
+        },
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.two),
         child: Column(

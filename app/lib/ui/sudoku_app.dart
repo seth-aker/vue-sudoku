@@ -1,15 +1,22 @@
+import 'package:app/data/repositories/auth_repository.dart';
 import 'package:app/routing/router.dart';
 import 'package:app/ui/core/constants.dart';
 import 'package:app/ui/sudoku/state/puzzle/puzzle_bloc.dart';
 import 'package:app/ui/core/app_theme.dart';
 import 'package:app/data/repositories/puzzle_repository.dart';
 import 'package:app/ui/sudoku/state/timer/timer_bloc.dart';
+import 'package:app/ui/user/state/user_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SudokuApp extends StatelessWidget {
-  const SudokuApp({required this._puzzleRepository, super.key});
+  const SudokuApp({
+    required this._puzzleRepository,
+    required this._authRepository,
+    super.key,
+  });
+  final AuthRepository _authRepository;
   final PuzzleRepository _puzzleRepository;
   @override
   Widget build(BuildContext context) {
@@ -19,6 +26,9 @@ class SudokuApp extends StatelessWidget {
         providers: [
           BlocProvider(
             create: (_) => PuzzleBloc(puzzleRepository: _puzzleRepository),
+          ),
+          BlocProvider(
+            create: (_) => UserBloc(authRepository: _authRepository),
           ),
           BlocProvider(create: (_) => TimerBloc()),
         ],

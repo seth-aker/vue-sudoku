@@ -20,7 +20,7 @@ class UserBloc extends HydratedBloc<UserEvent, UserState> {
     Emitter<UserState> emit,
   ) async {
     emit(const LoadingUserState());
-    final username = event.username;
+    final username = event.email;
     final password = event.password;
 
     final result = await _authRepository.login(username, password);
@@ -32,6 +32,7 @@ class UserBloc extends HydratedBloc<UserEvent, UserState> {
         emit(
           AuthenticatedUserState(
             userId: user.userId,
+	    email: user.email,
             username: user.username,
             role: user.role,
             currentPuzzleId: user.currentPuzzleId,
@@ -46,15 +47,13 @@ class UserBloc extends HydratedBloc<UserEvent, UserState> {
     Emitter<UserState> emit,
   ) async {
     emit(const LoadingUserState());
-
-    final username = event.username;
+    final email = event.email;
     final password = event.password;
-    final displayName = event.displayName;
-
+    final username = event.username;
     final result = await _authRepository.register(
+      email,
       username,
       password,
-      displayName,
     );
 
     switch (result) {
@@ -70,6 +69,7 @@ class UserBloc extends HydratedBloc<UserEvent, UserState> {
         emit(
           AuthenticatedUserState(
             userId: user.userId,
+	    email: user.email,
             username: user.username,
             currentPuzzleId: user.currentPuzzleId,
             imageUrl: user.imageUrl,
@@ -105,6 +105,7 @@ class UserBloc extends HydratedBloc<UserEvent, UserState> {
         case 'AuthenticatedUserState':
           return AuthenticatedUserState(
             userId: json['userId'],
+	    email: json['email'],
             username: json['username'],
             role: UserRole.fromString(json['role']),
             currentPuzzleId: json['currentPuzzleId'],
@@ -129,6 +130,7 @@ class UserBloc extends HydratedBloc<UserEvent, UserState> {
           return {
             'type': 'AuthenticatedUserState',
             'userId': state.userId,
+	    'email': state.email,
             'username': state.username,
             'role': state.role.toString(),
             'currentPuzzleId': state.currentPuzzleId,

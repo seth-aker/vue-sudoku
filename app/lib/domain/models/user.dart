@@ -17,11 +17,11 @@ enum UserRole { user, admin;
 class User {
   final String userId;
 
+  final String email;
+
   final String username;
 
   final UserRole role;
-
-  final String? displayName;
 
   final String? imageUrl;
 
@@ -29,9 +29,9 @@ class User {
 
   const User({
     required this.userId,
+    required this.email,
     required this.username,
     required this.role,
-    this.displayName,
     this.imageUrl,
     this.currentPuzzleId,
   });
@@ -39,9 +39,9 @@ class User {
   factory User.fromDto(UserDto dto) {
     return User(
       userId: dto.id,
+      email: dto.email,
       username: dto.username,
-      role: UserRole.values.byName(dto.role),
-      displayName: dto.displayName,
+      role: UserRole.fromString(dto.role),
       imageUrl: dto.imageUrl,
       currentPuzzleId: dto.currentPuzzleId,
     );
@@ -51,8 +51,8 @@ class User {
     return UserDto(
       id: userId,
       username: username,
+      email: email,
       role: role.name,
-      displayName: displayName,
       imageUrl: imageUrl,
       currentPuzzleId: currentPuzzleId,
     );

@@ -12,17 +12,14 @@ class AuthRepository {
 
   String? _accessToken;
 
-  AuthRepository({
-    required this._authService,
-    required this._storageService,
-  });
+  AuthRepository({required this._authService, required this._storageService});
 
   String? get authHeader =>
       _accessToken != null ? 'Bearer $_accessToken' : null;
 
-  Future<Result<User>> login(String username, String password) async {
+  Future<Result<User>> login(String email, String password) async {
     final request = LoginRequestDto(
-      username: username,
+      email: email,
       password: password,
       grantType: GrantType.password,
     );
@@ -48,15 +45,17 @@ class AuthRepository {
   }
 
   Future<Result<User?>> register(
+    String email,
     String username,
     String password,
-    String? displayName,
   ) async {
     final result = await _authService.register(
       RegisterRequestDto(
+        email: email,
         username: username,
         password: password,
-        displayName: displayName,
+        // Validation guards prevent the AuthRepository from being called if Terms of Service isn't acknowledged.
+        tosAcknowledged: true,
       ),
     );
     switch (result) {

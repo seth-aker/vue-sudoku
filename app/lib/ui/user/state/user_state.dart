@@ -15,6 +15,7 @@ class UnauthenticatedUserState extends UserState {
 
 class AuthenticatedUserState extends UserState {
   final String userId;
+  final String email;
   final String username;
   final String? currentPuzzleId;
   final UserRole role;
@@ -22,18 +23,21 @@ class AuthenticatedUserState extends UserState {
 
   const AuthenticatedUserState({
     required this.userId,
+    required this.email,
     required this.username,
     required this.role,
     this.currentPuzzleId,
     this.imageUrl,
   });
   AuthenticatedUserState copyWith({
+    String? email,
     String? username,
     String? currentPuzzleId,
     String? imageUrl,
   }) {
     return AuthenticatedUserState(
       userId: userId,
+      email: email ?? this.email,
       username: username ?? this.username,
       role: role,
       currentPuzzleId: currentPuzzleId ?? this.currentPuzzleId,

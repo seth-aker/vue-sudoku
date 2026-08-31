@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'login_response_dto.g.dart';
+
 @JsonSerializable(createJsonSchema: true, createToJson: false)
 class LoginResponseDto extends Equatable {
   final String accessToken;
@@ -16,7 +17,7 @@ class LoginResponseDto extends Equatable {
   });
 
   factory LoginResponseDto.fromJson(Map<String, dynamic> json) =>
-    _$LoginResponseDtoFromJson(json);
+      _$LoginResponseDtoFromJson(json);
 
   static const jsonSchema = _$LoginResponseDtoJsonSchema;
 

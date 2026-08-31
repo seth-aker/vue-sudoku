@@ -6,17 +6,19 @@ part 'user_dto.g.dart';
 @JsonSerializable(createJsonSchema: true)
 class UserDto extends Equatable {
   final String id;
+  final String email;
+  final bool emailVerified;
   final String username;
   final String role;
-  final String? displayName;
   final String? imageUrl;
   final String? currentPuzzleId;
 
   const UserDto({
     required this.id,
+    required this.email,
     required this.username,
     required this.role,
-    this.displayName,
+    this.emailVerified = false,
     this.imageUrl,
     this.currentPuzzleId,
   });
@@ -31,9 +33,10 @@ class UserDto extends Equatable {
   @override
   List<Object?> get props => [
     id,
+    email,
     username,
     role,
-    displayName,
+    emailVerified,
     imageUrl,
     currentPuzzleId,
   ];
@@ -41,19 +44,19 @@ class UserDto extends Equatable {
 
 @JsonSerializable(createJsonSchema: true, createFactory: false)
 class CreateUserDto extends Equatable {
+  final String email;
   final String username;
   final String password;
-  final String? displayName;
-
+  final bool tosAcknowledged;
   const CreateUserDto({
+    required this.email,
     required this.username,
     required this.password,
-    this.displayName,
+    this.tosAcknowledged = false,
   });
-
   Map<String, dynamic> toJson() => _$CreateUserDtoToJson(this);
 
   static const jsonSchema = _$CreateUserDtoJsonSchema;
   @override
-  List<Object?> get props => [username, password, displayName];
+  List<Object?> get props => [username, password, email, tosAcknowledged];
 }
