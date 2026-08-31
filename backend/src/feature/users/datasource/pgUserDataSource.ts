@@ -22,16 +22,20 @@ export class PgUserDataSource implements UserDataSource {
   async createUser(user: ICreateUser): Promise<string | undefined> {
     const [res] = await this.client<{user_id: string}[]>`
       INSERT INTO users (
-        display_name,
+        email,
         username,
         password_hash,
-        salt
+        salt,
+	role,
+	tos_acknowledged
       )
       VALUES (
-        ${user.displayName ?? null},
+	${user.email},
         ${user.username},
         ${user.passwordHash},
-        ${user.salt}
+        ${user.salt},
+	${user.role},
+	${user.tosAcknowledged}
       ) 
       RETURNING user_id;
     `
@@ -40,7 +44,8 @@ export class PgUserDataSource implements UserDataSource {
   async getUser(userId: string): Promise<ISqlUser> {
     const [user] = await this.client<ISqlUser[]>`
      SELECT u.user_id,
-        u.display_name,
+	u.email,
+	u.email_verified,
         u.username,
         u.role,
         u.current_puzzle_id,
@@ -57,6 +62,25 @@ export class PgUserDataSource implements UserDataSource {
       throw new NotFoundError(`User with id: ${userId} not found`, {
         type: ErrorType.RESOURCE_NOT_FOUND
       })
+    }
+    return user;
+  }
+  async getUserByEmail(email: string): Promise<ISqlUser> {
+    const [user] = await this.client<ISqlUser[]>`
+	SELECT 
+	  user_id,
+	  email,
+	  email_verified,
+	  username,
+	  salt,
+	  password_hash,
+	  role,
+	  image_url,
+	  current_puzzle_id,
+	  deleted_at
+	FROM users WHERE email = ${email.toLowerCase()}`
+    if(!user) {
+      throw new NotFoundError(`User email not found`, { type: ErrorType.RESOURCE_NOT_FOUND })
     }
     return user;
   }

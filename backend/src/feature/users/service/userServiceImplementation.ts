@@ -34,9 +34,9 @@ export class UserServiceImplementation implements UserService {
   private serializeUser(sqlUser: ISqlUser) {
     const userDTO: IUserDTO = {
       id: sqlUser.user_id,
-      displayName: sqlUser.display_name,
-      username: sqlUser.username, 
-      role: sqlUser.role, 
+      email: sqlUser.email,
+      username: sqlUser.username,
+      role: sqlUser.role,
       imageUrl: sqlUser.image_url,
       currentPuzzleId: sqlUser.current_puzzle_id
     }

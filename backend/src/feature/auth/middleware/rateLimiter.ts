@@ -22,8 +22,11 @@ function refreshGrantLimiter() {
     skipSuccessfulRequests: true,
     keyGenerator: (req) => {
       const token = req.body?.refreshToken as string;
-      const tokenHash = createHash('sha256').update(token).digest('hex');
-      return token ? `rt:${tokenHash}` : `ip:${ipKeyGenerator(req.ip!)}`
+      if(token) {
+	const tokenHash = createHash('sha256').update(token).digest('hex');
+	return `rt:${tokenHash}`;
+      }
+      return `ip:${ipKeyGenerator(req.ip!)}`
     }
   })
 }

@@ -3,6 +3,7 @@ import { IUserStats } from "./models/userStats";
 
 export interface UserDataSource {
   createUser: (user: ICreateUser) => Promise<string | undefined>;
+  getUserByEmail: (email: string) => Promise<ISqlUser>;
   getUser: (userId: string) => Promise<ISqlUser>;
   getUserStats: (userId: string) => Promise<IUserStats>
   // updateUser: (userId: string, user: UpdateUser) => Promise<number>;

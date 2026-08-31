@@ -22,7 +22,7 @@ COPY ./frontend/.env.production ./sudoku/frontend/
 
 WORKDIR /apps/sudoku/frontend
 
-RUN pnpm i
+RUN CI=true pnpm i
 
 WORKDIR /apps/sudoku/backend
 

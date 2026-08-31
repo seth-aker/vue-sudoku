@@ -17,14 +17,15 @@ const tokenBodySchema = z.discriminatedUnion('grant_type', [
   })
 ])
 export const loginBodySchema = z.object({
-  username: z.string().min(4),
-  password: z.string().min(4)
+  email: z.email(),
+  password: z.string().min(8)
 })
 
 export const registerBodySchema = z.object({
-  username: z.string().refine((val) => val.length >= 4),
+  email: z.email(),
+  username: z.string().min(4),
   password: passwordSchema,
-  displayName: z.string().optional()
+  tosAcknowledged: z.boolean()
 })
 
 export const loginBodyValidator = (req: Request, _res: Response, next: NextFunction) => {

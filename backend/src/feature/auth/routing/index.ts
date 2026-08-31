@@ -6,5 +6,5 @@ import { PgTokenDataSource } from "../datasource/pgTokenDataSource";
 
 const userDataSource = PgUserDataSource.create(sql)
 const tokenDataSource = PgTokenDataSource.create(sql)
-const authService = AuthenticationServiceImpl.create(sql, userDataSource, tokenDataSource)
+const authService = AuthenticationServiceImpl.create(userDataSource, tokenDataSource)
 export const authRouter = AuthRouter(authService)

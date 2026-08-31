@@ -6,6 +6,7 @@ settings:
 
 overrides:
   ip-address@<=10.1.0: '>=10.1.1'
+  esbuild: '>=0.28.1'
 
 importers:
 

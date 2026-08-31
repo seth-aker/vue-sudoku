@@ -1,19 +1,20 @@
 import { Request, Response, Router } from "express";
-import { loginBodyValidator, registerBodyValidator, } from "../middleware/validation";
+import { loginBodyValidator, registerBodyValidator, tokenBodyValidator, } from "../middleware/validation";
 import { AuthenticationError } from "../errors/authenticationError";
 import { AuthenticationService } from "../service/authenticationService";
 import { authLimiter } from "../middleware/rateLimiter";
 import { clearAuthCookies, setAuthCookies } from "../utils/cookies";
 import { ErrorType } from "@/core/errors/errorTypes";
+import { DatabaseError } from "@/core/errors/databaseError";
 
 type TokenPasswordBody = {
-  grant_type: 'password',
-  username: string,
+  grantType: 'password',
+  email: string,
   password: string,
 }
 
 type TokenRefreshBody = {
-  grant_type: 'refresh_token',
+  grantType: 'refresh_token',
   refreshToken: string
 }
 
@@ -24,7 +25,7 @@ export function AuthRouter(authService: AuthenticationService) {
 
   // web only endpoint
   router.post('/login', authLimiter(),  loginBodyValidator, async (req, res, _next) => {
-    const user = await authService.verify(req.body.username, req.body.password)
+    const user = await authService.verify(req.body.email, req.body.password)
 
     const {accessToken, refreshToken} = await authService.getNewTokenSet(user.id);
 
@@ -39,7 +40,7 @@ export function AuthRouter(authService: AuthenticationService) {
     if(refreshToken) {
       await authService.clearToken(refreshToken);
     }
-    
+
     clearAuthCookies(res);
 
     res.sendStatus(204);
@@ -48,12 +49,12 @@ export function AuthRouter(authService: AuthenticationService) {
   router.post('/register', authLimiter(), registerBodyValidator, async (req, res, _next) => {
     const userId = await authService.registerUser(req.body)
     if(!userId) {
-      return res.sendStatus(500)
+      throw new DatabaseError("An error occured registering the user")
     }
-
+    // TODO: Send email verification
     return res.status(201).json({
       id: userId,
-      displayName: req.body.displayName,
+      email: req.body.email,
       username: req.body.username,
       role: 'user'
     })
@@ -72,10 +73,10 @@ export function AuthRouter(authService: AuthenticationService) {
   })
 
   // mobile only endpoint
-  router.post('/token', authLimiter(), async (req: Request<{}, {}, TokenRequestBody>, res: Response, _next) => {
-    switch(req.body.grant_type) {
+  router.post('/token', authLimiter(), tokenBodyValidator, async (req: Request<{}, {}, TokenRequestBody>, res: Response, _next) => {
+    switch(req.body.grantType) {
       case 'password': {
-        const user = await authService.verify(req.body.username, req.body.password)
+        const user = await authService.verify(req.body.email, req.body.password)
      
        const { accessToken, refreshToken } = await authService.getNewTokenSet(user.id);
 

@@ -9,6 +9,7 @@ export const ErrorType = {
   TOKEN_INVALID:        'token_invalid',
   TOKEN_REVOKED:        'token_revoked',
   TOKEN_REUSE_DETECTED: 'token_reuse_detected',
+  UNVERIFIED_EMAIL:     'unverified_email',
   // 403
   INSUFFICIENT_ROLE:    'insufficient_role',
   // 404

@@ -51,20 +51,25 @@ CREATE TABLE IF NOT EXISTS public.puzzles (
 
 CREATE TABLE IF NOT EXISTS public.users (
     user_id uuid DEFAULT gen_random_uuid() NOT NULL,
-    display_name text,
+    email text NOT NULL,
+    email_verified boolean DEFAULT false,
     username text NOT NULL,
     password_hash text NOT NULL,
     salt text NOT NULL,
     role text DEFAULT 'user'::text NOT NULL,
     image_url text,
     current_puzzle_id uuid,
+    tos_acknowledged boolean DEFAULT false,
+    last_login_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     deleted_at timestamp with time zone,
     CONSTRAINT users_pkey PRIMARY KEY (user_id),
-    CONSTRAINT users_email_key UNIQUE (username),
+    CONSTRAINT users_username UNIQUE (username),
+    CONSTRAINT users_email_key UNIQUE (email),
+    CONSTRAINT users_role_check CHECK (role IN ('user', 'admin')),
     CONSTRAINT fk_current_puzzle FOREIGN KEY (current_puzzle_id)
-        REFERENCES public.puzzles(puzzle_id)
+        REFERENCES public.puzzles(puzzle_id) ON DELETE SET NULL
 );
 
 --
